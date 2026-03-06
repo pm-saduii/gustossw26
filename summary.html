@@ -127,12 +127,19 @@ async function init(){
   const d=await api({action:'getFeeSummary'});
   if(!d.success)return;
   const years=d.data.years||[];
-  currentYear=d.data.year||(years[0]||'');
+  // ใช้ปีล่าสุดที่มีข้อมูลจริงเสมอ
+  currentYear = years.length > 0 ? years[0] : '';
   // สร้างปุ่มปีจากข้อมูลจริงใน Sheet
   document.getElementById('yearBtns').innerHTML=years.length
     ? years.map(y=>`<button class="year-btn ${y===currentYear?'active':''}" onclick="selectYear(this,'${y}')">${y}</button>`).join('')
     : '<span style="font-size:.82rem;color:var(--muted)">ไม่มีข้อมูล</span>';
-  renderSummary(d.data);
+  // โหลดข้อมูลของปีล่าสุด
+  if(currentYear && currentYear !== d.data.year) {
+    const d2 = await api({action:'getFeeSummary', year:currentYear});
+    if(d2.success) renderSummary(d2.data);
+  } else {
+    renderSummary(d.data);
+  }
 }
 
 async function selectYear(btn,year){
