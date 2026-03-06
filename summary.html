@@ -161,6 +161,11 @@ const API_URL='https://script.google.com/macros/s/AKfycbwQbc31pY86tM7EdD41dBsXRQ
 const token=localStorage.getItem('vms_token');
 const role=localStorage.getItem('vms_role');
 
+let currentYear='';
+let lastData=null;
+let donutChart=null,barChart=null;
+let sortCol='', sortDir=1;
+
 applyTheme(localStorage.getItem('vms_theme')||'light');
 function applyTheme(t){
   document.documentElement.setAttribute('data-theme',t);
@@ -173,17 +178,10 @@ function toggleTheme(){applyTheme(document.documentElement.getAttribute('data-th
 if(!token)document.getElementById('dashLink').style.display='none';
 if(role==='admin'){document.getElementById('homeLink').href='admin.html';document.getElementById('homeLink').innerHTML='<i class="fa-solid fa-shield-halved"></i> Admin';}
 
-let currentYear='';
-let lastData=null;
-let donutChart=null,barChart=null;
-
 async function api(p){const r=await fetch(API_URL+'?'+new URLSearchParams(p));return r.json();}
 function fmt(n){return Number(n||0).toLocaleString('th-TH');}
 function pct(a,b){return b>0?Math.round(a/b*100):0;}
 function barHtml(p){return`<div class="bar-mini"><div class="bar-mini-fill" style="width:${p}%"></div></div>`;}
-
-// Sort state
-let sortCol='', sortDir=1;
 
 async function init(){
   const d=await api({action:'getFeeSummary'});

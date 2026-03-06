@@ -137,6 +137,22 @@
     btn.classList.add('active');currentCat=cat;renderList();
   }
 
+  function fmtDate(val){
+    if(!val)return'—';
+    const s=String(val).trim();
+    if(/^\d{4}-\d{2}-\d{2}/.test(s)){
+      const d=new Date(s);
+      const dd=String(d.getDate()).padStart(2,'0');
+      const mm=String(d.getMonth()+1).padStart(2,'0');
+      return`${dd}/${mm}/${d.getFullYear()+543}`;
+    }
+    const m=s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+    if(m){const yr=parseInt(m[3]);return`${m[1].padStart(2,'0')}/${m[2].padStart(2,'0')}/${yr<2500?yr+543:yr}`;}
+    return s;
+  }
+
+  function extractFileId(url){const m=url.match(/\/d\/([a-zA-Z0-9_-]+)/);return m?m[1]:null;}
+
   function renderList(){
     const filtered=currentCat?allAnn.filter(a=>a.category===currentCat):allAnn;
     if(!filtered.length){
@@ -145,20 +161,28 @@
     document.getElementById('annList').innerHTML=filtered.map((a,i)=>{
       const cat=a.category||'ทั่วไป';
       const fileUrl=a.file_url||'';
-      const isPdf=fileUrl&&fileUrl.includes('drive.google.com');
       let fileHtml='';
       if(fileUrl){
+        const fid=extractFileId(fileUrl);
+        const isPdf=fileUrl.toLowerCase().includes('.pdf')||(fid&&!fileUrl.includes('image'));
         const fileIcon=isPdf?'fa-file-pdf':'fa-image';
         const fileLabel=isPdf?'ดูเอกสาร PDF':'ดูรูปภาพแนบ';
         const btnCls=isPdf?'pdf':'';
-        fileHtml=`<button class="ann-file-btn ${btnCls}" onclick="toggleFile(this,'viewer${i}','${fileUrl}',${isPdf})"><i class="fa-solid ${fileIcon}"></i> ${fileLabel}</button><div class="file-viewer-wrap" id="viewer${i}"></div>`;
+        const viewerContent=isPdf
+          ?`<iframe src="${fid?`https://drive.google.com/file/d/${fid}/preview`:fileUrl}" allowfullscreen style="width:100%;height:480px;border:none;display:block"></iframe>`
+          :`<img src="${fid?`https://drive.google.com/thumbnail?id=${fid}&sz=w1200`:fileUrl}" style="width:100%;max-height:520px;object-fit:contain;display:block" onerror="this.src='${fileUrl}'">`;
+        fileHtml=`
+          <button class="ann-file-btn ${btnCls}" onclick="toggleFile(this,'viewer${i}','${viewerContent.replace(/'/g,'&#39;')}')">
+            <i class="fa-solid ${fileIcon}"></i> ${fileLabel}
+          </button>
+          <div class="file-viewer-wrap" id="viewer${i}"></div>`;
       }
       return`<div class="ann-card" style="animation-delay:${i*0.05}s">
         <div class="ann-top">
           <div class="ann-icon ${cat}"><i class="fa-solid ${catIcon[cat]||'fa-info-circle'}"></i></div>
           <div style="flex:1">
             <div class="ann-title">${a.title} <span class="cat-badge ${cat}">${cat}</span></div>
-            <div class="ann-meta"><span><i class="fa-solid fa-calendar"></i>${a.date}</span><span><i class="fa-solid fa-user"></i>${a.created_by}</span></div>
+            <div class="ann-meta"><span><i class="fa-solid fa-calendar"></i>${fmtDate(a.date)}</span><span><i class="fa-solid fa-user"></i>${a.created_by||''}</span></div>
           </div>
           <button class="ann-toggle" onclick="toggleAnn(this)"><i class="fa-solid fa-chevron-down"></i></button>
         </div>
@@ -167,12 +191,11 @@
     }).join('');
   }
 
-  function toggleFile(btn,viewerId,fileUrl,isPdf){
+  function toggleFile(btn,viewerId,html){
     const wrap=document.getElementById(viewerId);
-    if(wrap.classList.contains('open')){wrap.classList.remove('open');wrap.innerHTML='';return;}
+    if(wrap.classList.contains('open')){wrap.classList.remove('open');wrap.innerHTML='';btn.innerHTML=btn.innerHTML.replace('ซ่อน','ดู').replace('fa-chevron-up','fa-chevron-down');return;}
     wrap.classList.add('open');
-    if(isPdf){wrap.innerHTML=`<iframe src="${fileUrl}" allowfullscreen></iframe>`;}
-    else{wrap.innerHTML=`<img src="${fileUrl.replace('/preview','').replace('drive.google.com/file/d/','drive.google.com/uc?id=').replace('/view','')}" onerror="this.parentNode.innerHTML='<iframe src=\'${fileUrl}\' allowfullscreen style=\'width:100%;height:480px;border:none\'></iframe>'">`;}
+    wrap.innerHTML=html;
   }
 
   function toggleAnn(btn){
