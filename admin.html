@@ -15,8 +15,8 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/sweetalert2/11.10.5/sweetalert2.all.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
   <style>
-    :root{--primary:#4f7ef7;--primary-d:#2f5be8;--primary-l:#e8efff;--accent:#34c88a;--bg:#f0f4fd;--bg2:#e4ecfb;--card:#fff;--card2:#f8faff;--text:#1a2035;--text2:#4a5568;--muted:#8896ab;--border:#d0ddf5;--shadow:rgba(79,126,247,.15);--shadow2:rgba(0,0,0,.06);--sidebar-w:230px;}
-    [data-theme="dark"]{--primary:#6b9aff;--primary-d:#4f7ef7;--primary-l:#1a2540;--accent:#3dd68c;--bg:#0f1420;--bg2:#151c2e;--card:#1a2235;--card2:#202840;--text:#e8eeff;--text2:#a0aec0;--muted:#5a6a85;--border:#2a3650;--shadow:rgba(107,154,255,.12);--shadow2:rgba(0,0,0,.3);}
+    :root{--primary:#4f7ef7;--primary-d:#2f5be8;--primary-l:#e8efff;--accent:#34c88a;--accent-l:#ecfdf5;--bg:#f0f4fd;--bg2:#e4ecfb;--card:#fff;--card2:#f8faff;--text:#1a2035;--text2:#4a5568;--muted:#8896ab;--border:#d0ddf5;--shadow:rgba(79,126,247,.15);--shadow2:rgba(0,0,0,.06);--sidebar-w:230px;}
+    [data-theme="dark"]{--primary:#6b9aff;--primary-d:#4f7ef7;--primary-l:#1a2540;--accent:#3dd68c;--accent-l:#0d2a1e;--bg:#0f1420;--bg2:#151c2e;--card:#1a2235;--card2:#202840;--text:#e8eeff;--text2:#a0aec0;--muted:#5a6a85;--border:#2a3650;--shadow:rgba(107,154,255,.12);--shadow2:rgba(0,0,0,.3);}
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
     body{font-family:'Sarabun',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;transition:background .3s,color .3s;}
     .layout{display:flex;min-height:100vh;}
@@ -42,7 +42,7 @@
     .hamburger{display:none;background:none;border:none;font-size:1.2rem;color:var(--text);cursor:pointer;}
     .btn-theme-top{background:var(--bg2);border:1.5px solid var(--border);color:var(--text2);width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:.9rem;transition:all .15s;}
     .btn-theme-top:hover{border-color:var(--primary);color:var(--primary);}
-    main{padding:1.4rem;max-width:1100px;}
+    main{padding:1.4rem;max-width:1400px;}
     @keyframes fadeSlideIn{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
 
     /* BTN */
@@ -330,15 +330,25 @@
           <div class="card-body">
             <div class="year-filter-bar" id="yearFilterBar"></div>
             <div class="search-box"><i class="fa-solid fa-search"></i><input type="text" id="feeSearch" placeholder="ค้นหาหมายเลขบ้าน หรือปี" oninput="filterFees()"/></div>
-            <div class="table-wrap"><table><thead><tr>
-              <th onclick="sortTable('fees','year',this)">ปี<i class="fa-solid fa-sort sort-i"></i></th>
-              <th onclick="sortTable('fees','house_no',this)">บ้านเลขที่<i class="fa-solid fa-sort sort-i"></i></th>
-              <th onclick="sortTable('fees','soi',this)">ซอย<i class="fa-solid fa-sort sort-i"></i></th>
-              <th>ชื่อเจ้าของ</th>
-              <th>จำนวนเงินครึ่งปีแรก</th><th>จำนวนเงินชำระครึ่งปีแรก</th><th>สถานะครึ่งปีแรก</th>
-              <th>จำนวนเงินครึ่งปีหลัง</th><th>จำนวนเงินชำระครึ่งปีหลัง</th><th>สถานะครึ่งปีหลัง</th>
-              <th>จัดการ</th>
-            </tr></thead><tbody id="feeTbody"><tr><td colspan="11"><div class="skeleton"></div></td></tr></tbody></table></div>
+            <div class="table-wrap"><table><thead>
+              <tr>
+                <th rowspan="2" onclick="sortTable('fees','year',this)" style="vertical-align:middle">ปี<i class="fa-solid fa-sort sort-i"></i></th>
+                <th rowspan="2" onclick="sortTable('fees','house_no',this)" style="vertical-align:middle">บ้านเลขที่<i class="fa-solid fa-sort sort-i"></i></th>
+                <th rowspan="2" onclick="sortTable('fees','soi',this)" style="vertical-align:middle">ซอย<i class="fa-solid fa-sort sort-i"></i></th>
+                <th rowspan="2" style="vertical-align:middle">ชื่อเจ้าของ</th>
+                <th colspan="3" style="text-align:center;background:var(--primary-l);border-bottom:2px solid var(--primary)">&#127749; ครึ่งปีแรก</th>
+                <th colspan="3" style="text-align:center;background:var(--accent-l,#f0fdf4);border-bottom:2px solid var(--accent)">&#127748; ครึ่งปีหลัง</th>
+                <th rowspan="2" style="vertical-align:middle">จัดการ</th>
+              </tr>
+              <tr>
+                <th style="background:var(--primary-l);font-size:.78rem">จำนวนเงิน</th>
+                <th style="background:var(--primary-l);font-size:.78rem">ชำระ</th>
+                <th style="background:var(--primary-l);font-size:.78rem">สถานะ</th>
+                <th style="background:var(--accent-l);font-size:.78rem">จำนวนเงิน</th>
+                <th style="background:var(--accent-l);font-size:.78rem">ชำระ</th>
+                <th style="background:var(--accent-l);font-size:.78rem">สถานะ</th>
+              </tr>
+            </thead><tbody id="feeTbody"><tr><td colspan="11"><div class="skeleton"></div></td></tr></tbody></table></div>
           </div>
         </div>
       </div>
@@ -713,6 +723,29 @@
   function g(id){return document.getElementById(id)?.value||'';}
   function vs(id){return document.getElementById(id)?.value||'';}
 
+  // ── แปลงวันที่จาก API ให้เป็น dd/mm/พ.ศ. ──────────────────────────
+  // GAS มักส่งวันที่เป็น ISO string (CE) หรือ string "dd/mm/yyyy" (พ.ศ.)
+  // ถ้าเป็น ISO → แปลง CE → พ.ศ. (+543), ถ้าเป็น string dd/mm/yyyy → ตรวจสอบว่าปีเป็น CE หรือ พ.ศ.
+  function fmtDate(val){
+    if(!val)return'—';
+    const s=String(val).trim();
+    // ISO format: 2024-03-01T... or 2024-03-01
+    if(/^\d{4}-\d{2}-\d{2}/.test(s)){
+      const d=new Date(s);
+      const dd=String(d.getDate()).padStart(2,'0');
+      const mm=String(d.getMonth()+1).padStart(2,'0');
+      const yyyy=d.getFullYear()+543;
+      return `${dd}/${mm}/${yyyy}`;
+    }
+    // dd/mm/yyyy format — ถ้าปี < 2500 = CE ให้บวก 543
+    const m=s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+    if(m){
+      const yr=parseInt(m[3]);
+      return `${m[1].padStart(2,'0')}/${m[2].padStart(2,'0')}/${yr<2500?yr+543:yr}`;
+    }
+    return s;
+  }
+
   function toBase64(file){return new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result.split(',')[1]);r.onerror=rej;r.readAsDataURL(file);});}
   async function api(params){if(!params.token)params.token=token;const r=await fetch(API_URL+'?'+new URLSearchParams(params));return r.json();}
   // ✅ FIX: ใช้ POST สำหรับ uploadFile เพื่อหลีกเลี่ยง 413 error จาก base64 ขนาดใหญ่
@@ -1076,7 +1109,7 @@
   function renderAnn(list){
     const s=sortState.ann;const sorted=sortArr(list,s.col,s.dir);
     document.getElementById('annTbody').innerHTML=sorted.map(a=>`<tr>
-      <td><strong>${a.title}</strong></td><td>${a.category}</td><td>${a.date}</td>
+      <td><strong>${a.title}</strong></td><td>${a.category}</td><td>${fmtDate(a.date)}</td>
       <td><span class="badge ${a.active==='TRUE'?'paid':'unpaid'}">${a.active==='TRUE'?'แสดง':'ซ่อน'}</span></td>
       <td><div class="actions">
         <button class="btn btn-primary btn-sm" onclick="editAnn('${a.ann_id}')"><i class="fa-solid fa-pen"></i></button>
