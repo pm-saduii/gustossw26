@@ -7,7 +7,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet"/>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
   <style>
     :root{--primary:#4f7ef7;--primary-d:#2f5be8;--primary-l:#e8efff;--accent:#34c88a;--bg:#f0f4fd;--bg2:#e4ecfb;--card:#fff;--card2:#f8faff;--text:#1a2035;--text2:#4a5568;--muted:#8896ab;--border:#d0ddf5;--shadow:rgba(79,126,247,.15);--shadow2:rgba(0,0,0,.06);--sidebar-w:230px;}
     [data-theme="dark"]{--primary:#6b9aff;--primary-d:#4f7ef7;--primary-l:#1a2540;--accent:#3dd68c;--bg:#0f1420;--bg2:#151c2e;--card:#1a2235;--card2:#202840;--text:#e8eeff;--text2:#a0aec0;--muted:#5a6a85;--border:#2a3650;--shadow:rgba(107,154,255,.12);--shadow2:rgba(0,0,0,.3);}
@@ -396,6 +396,11 @@
   if(!token||role!=='admin'){Swal.fire({icon:'warning',title:'ไม่มีสิทธิ์',text:'กรุณาเข้าสู่ระบบด้วยบัญชี Admin'}).then(()=>window.location.href='index.html');}
   if(name)document.getElementById('adminName').textContent=name;
 
+  // ✅ FIX: ประกาศก่อน applyTheme กัน ReferenceError
+  let overviewLoaded=false;
+  let overviewSummary=null;
+  let oDonut=null,oBar=null;
+
   applyTheme(localStorage.getItem('vms_theme')||'light');
   function applyTheme(t){document.documentElement.setAttribute('data-theme',t);document.getElementById('themeIcon').className=t==='dark'?'fa-solid fa-sun':'fa-solid fa-moon';localStorage.setItem('vms_theme',t);if(overviewLoaded)drawOverviewCharts();}
   function toggleTheme(){applyTheme(document.documentElement.getAttribute('data-theme')==='dark'?'light':'dark');}
@@ -443,9 +448,6 @@
   }
 
   // ── OVERVIEW ──────────────────────────────────────────────────
-  let overviewLoaded=false;
-  let overviewSummary=null;
-  let oDonut=null,oBar=null;
 
   async function loadOverview(){
     const[houses,fees,anns,reports,summary]=await Promise.all([
