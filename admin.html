@@ -396,9 +396,9 @@
   if(!token||role!=='admin'){Swal.fire({icon:'warning',title:'ไม่มีสิทธิ์',text:'กรุณาเข้าสู่ระบบด้วยบัญชี Admin'}).then(()=>window.location.href='index.html');}
   if(name)document.getElementById('adminName').textContent=name;
 
-  // ✅ FIX: ประกาศก่อน applyTheme กัน ReferenceError
-  let overviewLoaded=false;
-  let overviewSummary=null;
+  // ✅ FIX: ใช้ var แทน let เพื่อให้ hoisting ทำงานได้ก่อน applyTheme
+  var overviewLoaded=false;
+  var overviewSummary=null;
   let oDonut=null,oBar=null;
 
   applyTheme(localStorage.getItem('vms_theme')||'light');
