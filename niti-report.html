@@ -253,7 +253,7 @@
             <div class="fin-card expense"><i class="fa-solid fa-arrow-circle-down"></i><div><div class="fin-label">รายจ่าย</div><div class="fin-amt">${expense.toLocaleString()} ฿</div></div></div>
             <div class="fin-card balance"><i class="fa-solid fa-scale-balanced"></i><div><div class="fin-label">คงเหลือ</div><div class="fin-amt" style="color:${balColor}">${balance.toLocaleString()} ฿</div></div></div>
           </div>`:''}
-          ${buildPhotoGallery(r.photo_urls)}
+          ${renderPhotoGallery(r.photo_urls)}
           ${buildFileAttachment(r.file_url||r.report_file_url||'',i)}
           ${r.created_date?`<p style="font-size:.74rem;color:var(--muted);margin-top:.75rem"><i class="fa-solid fa-clock"></i> บันทึกเมื่อ ${r.created_date} โดย ${r.created_by}</p>`:''}
         </div>
