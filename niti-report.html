@@ -180,6 +180,8 @@
     if(wrap.classList.contains('open')){wrap.classList.remove('open');wrap.innerHTML='';return;}
     wrap.classList.add('open');wrap.innerHTML=html;
   }
+
+  function renderPhotoGallery(photoUrlsStr){
     if(!photoUrlsStr)return'';
     const urls=photoUrlsStr.split(',').map(u=>u.trim()).filter(Boolean);
     if(!urls.length)return'';
