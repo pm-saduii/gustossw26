@@ -7,228 +7,214 @@
   <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet"/>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="config.js"></script>
   <style>
     :root{--primary:#4f7ef7;--primary-d:#2f5be8;--primary-l:#e8efff;--accent:#34c88a;--bg:#f0f4fd;--bg2:#e4ecfb;--card:#fff;--card2:#f8faff;--text:#1a2035;--text2:#4a5568;--muted:#8896ab;--border:#d0ddf5;--shadow:rgba(79,126,247,.15);--shadow2:rgba(0,0,0,.06);--income-bg:#d1fae5;--income-c:#059669;--expense-bg:#fee2e2;--expense-c:#dc2626;}
-    [data-theme="dark"]{--primary:#6b9aff;--primary-d:#4f7ef7;--primary-l:#1a2540;--accent:#3dd68c;--bg:#0f1420;--bg2:#151c2e;--card:#1a2235;--card2:#202840;--text:#e8eeff;--text2:#a0aec0;--muted:#5a6a85;--border:#2a3650;--shadow:rgba(107,154,255,.12);--shadow2:rgba(0,0,0,.3);--income-bg:#0d2a1e;--income-c:#34d399;--expense-bg:#2a1010;--expense-c:#f87171;}
-    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
-    body{font-family:'Sarabun',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;transition:background .3s,color .3s;}
-    nav{background:linear-gradient(135deg,var(--primary),var(--primary-d));color:#fff;padding:.85rem 1.25rem;display:flex;align-items:center;justify-content:space-between;box-shadow:0 2px 16px var(--shadow);position:sticky;top:0;z-index:100;}
-    .nav-brand{display:flex;align-items:center;gap:.6rem;font-size:1rem;font-weight:700;}
-    .nav-right{display:flex;align-items:center;gap:.5rem;}
-    .btn-nav{background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.3);color:#fff;padding:.35rem .8rem;border-radius:10px;font-family:'Sarabun',sans-serif;font-size:.8rem;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:.3rem;transition:background .15s;}
-    .btn-nav:hover{background:rgba(255,255,255,.28);}
-    .btn-theme{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);color:#fff;width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:.9rem;transition:background .15s;}
-    .btn-theme:hover{background:rgba(255,255,255,.28);}
-    .page-tabs{background:var(--card);border-bottom:1px solid var(--border);padding:0 1rem;display:flex;gap:0;overflow-x:auto;transition:background .3s;}
-    .page-tab{white-space:nowrap;padding:.7rem 1rem;font-size:.82rem;font-weight:600;text-decoration:none;color:var(--muted);border-bottom:2.5px solid transparent;display:flex;align-items:center;gap:.35rem;transition:all .15s;}
-    .page-tab:hover{color:var(--primary);}
-    .page-tab.active{color:var(--primary);border-bottom-color:var(--primary);}
-    main{max-width:900px;margin:0 auto;padding:1.5rem 1rem;}
-    @keyframes fadeSlideIn{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
-    .toolbar{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.75rem;margin-bottom:1.25rem;animation:fadeSlideIn .4s ease both;}
-    .toolbar h2{font-size:1.05rem;font-weight:700;display:flex;align-items:center;gap:.5rem;}
-    .toolbar h2 i{color:var(--primary);}
-    .year-select{display:flex;gap:.4rem;flex-wrap:wrap;}
-    .year-btn{padding:.35rem .85rem;border-radius:20px;border:1.5px solid var(--border);background:var(--card);font-family:'Sarabun',sans-serif;font-size:.82rem;font-weight:600;color:var(--muted);cursor:pointer;transition:all .2s;}
-    .year-btn.active,.year-btn:hover{background:var(--primary);color:#fff;border-color:var(--primary);}
-    .report-card{background:var(--card);border-radius:16px;border:1px solid var(--border);overflow:hidden;box-shadow:0 2px 12px var(--shadow2);margin-bottom:.85rem;transition:box-shadow .2s,transform .2s,background .3s,border-color .3s;animation:fadeSlideIn .4s ease both;}
-    .report-card:hover{box-shadow:0 6px 24px var(--shadow);transform:translateY(-2px);}
-    .report-header{display:flex;align-items:center;justify-content:space-between;padding:1rem 1.2rem;background:var(--card2);border-bottom:1px solid var(--border);cursor:pointer;transition:background .15s;}
-    .report-header:hover{background:var(--bg2);}
-    .report-month-badge{width:50px;height:50px;border-radius:14px;background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:.68rem;font-weight:700;flex-shrink:0;}
-    .report-month-badge span{font-size:1.15rem;line-height:1;}
-    .report-title-wrap{flex:1;margin:0 .85rem;}
-    .report-title{font-size:.97rem;font-weight:700;}
-    .report-sub{font-size:.78rem;color:var(--muted);margin-top:.15rem;}
-    .report-fin{display:flex;gap:.4rem;flex-wrap:wrap;flex-shrink:0;}
-    .fin-tag{font-size:.76rem;padding:.2rem .65rem;border-radius:20px;font-weight:700;display:flex;align-items:center;gap:.25rem;}
-    .fin-tag.income{background:var(--income-bg);color:var(--income-c);}
-    .fin-tag.expense{background:var(--expense-bg);color:var(--expense-c);}
-    .toggle-btn{background:var(--bg2);border:1px solid var(--border);color:var(--muted);cursor:pointer;font-size:.85rem;padding:.3rem .55rem;border-radius:8px;margin-left:.5rem;transition:all .15s;flex-shrink:0;}
-    .toggle-btn:hover{background:var(--primary-l);color:var(--primary);border-color:var(--primary);}
-    .report-body{max-height:0;overflow:hidden;transition:max-height .4s ease,padding .2s;}
-    .report-body.open{max-height:1200px;padding:1.1rem 1.2rem;}
-    .report-content{font-size:.9rem;line-height:1.85;white-space:pre-line;color:var(--text2);}
-    .fin-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.75rem;margin-top:.9rem;}
-    .fin-card{border-radius:12px;padding:.8rem 1rem;border:1.5px solid;display:flex;align-items:center;gap:.65rem;transition:background .3s;}
-    .fin-card.income{background:var(--income-bg);border-color:#6ee7b7;}
-    .fin-card.expense{background:var(--expense-bg);border-color:#fca5a5;}
-    .fin-card.balance{background:#ede9fe;border-color:#c4b5fd;}
-    [data-theme="dark"] .fin-card.balance{background:#1e1530;border-color:#6d28d9;}
-    .fin-card i{font-size:1.25rem;}
-    .fin-card.income i{color:var(--income-c);}
-    .fin-card.expense i{color:var(--expense-c);}
-    .fin-card.balance i{color:#7c3aed;}
-    [data-theme="dark"] .fin-card.balance i{color:#a78bfa;}
-    .fin-label{font-size:.74rem;color:var(--muted);}
-    .fin-amt{font-size:.95rem;font-weight:800;}
-    .empty{text-align:center;padding:3rem 1rem;color:var(--muted);}
-    .empty i{font-size:2.5rem;display:block;margin-bottom:.75rem;opacity:.4;}
-    .skeleton{background:linear-gradient(90deg,var(--bg2) 25%,var(--card2) 50%,var(--bg2) 75%);background-size:200% 100%;animation:shimmer 1.2s infinite;border-radius:8px;}
-    @keyframes shimmer{to{background-position:-200% 0;}}
-    .photo-gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:.6rem;margin-top:.9rem;}
-    .photo-thumb{aspect-ratio:1;border-radius:10px;overflow:hidden;border:2px solid var(--border);cursor:pointer;transition:transform .15s,border-color .15s,box-shadow .15s;background:var(--bg2);}
-    .photo-thumb:hover{transform:scale(1.04);border-color:var(--primary);box-shadow:0 4px 12px var(--shadow);}
-    .photo-thumb img{width:100%;height:100%;object-fit:cover;display:block;}
-    .lightbox{display:none;position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:9999;align-items:center;justify-content:center;flex-direction:column;}
-    .lightbox.open{display:flex;}
-    .lightbox img{max-width:92vw;max-height:80vh;border-radius:12px;object-fit:contain;box-shadow:0 20px 60px rgba(0,0,0,.5);}
-    .lightbox-close{position:absolute;top:1rem;right:1.2rem;background:rgba(255,255,255,.15);border:none;color:#fff;font-size:1.5rem;width:42px;height:42px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .15s;}
-    .lightbox-close:hover{background:rgba(255,255,255,.25);}
-    .lightbox-nav{position:absolute;top:50%;transform:translateY(-50%);background:rgba(255,255,255,.15);border:none;color:#fff;font-size:1.2rem;width:46px;height:46px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .15s;}
-    .lightbox-nav:hover{background:rgba(255,255,255,.25);}
-    .lightbox-nav.prev{left:1rem;}
-    .lightbox-nav.next{right:1rem;}
-    .lightbox-counter{color:rgba(255,255,255,.7);font-size:.85rem;margin-top:.6rem;}
-    @media(max-width:600px){.report-fin{display:none;}.fin-grid{grid-template-columns:1fr;}.photo-gallery{grid-template-columns:repeat(auto-fill,minmax(90px,1fr));}}
+    [data-theme="dark"]{--bg:#0f172a;--bg2:#1e293b;--card:#1e293b;--card2:#334155;--text:#f8fafc;--text2:#cbd5e1;--muted:#94a3b8;--border:#334155;--shadow:rgba(0,0,0,.3);--primary-l:rgba(79,126,247,.1);}
+    *{margin:0;padding:0;box-sizing:border-box;font-family:'Sarabun',sans-serif;}
+    body{background:var(--bg);color:var(--text);min-height:100vh;padding-bottom:100px;}
+    .nav{background:var(--card);padding:1rem 1.5rem;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:100;box-shadow:0 4px 6px -1px var(--shadow2);border-bottom:1px solid var(--border);}
+    .nav-brand{display:flex;align-items:center;gap:12px;font-weight:700;font-size:1.25rem;color:var(--primary);}
+    .container{max-width:800px;margin:20px auto;padding:0 16px;}
+    .page-header{margin-bottom:24px;}
+    .page-header h1{font-size:1.5rem;font-weight:700;margin-bottom:4px;}
+    .page-header p{color:var(--muted);font-size:0.9rem;}
+    
+    .report-card{background:var(--card);border-radius:20px;border:1px solid var(--border);margin-bottom:16px;overflow:hidden;box-shadow:0 4px 6px var(--shadow2);transition:transform 0.2s;}
+    .report-card:hover{transform:translateY(-2px);}
+    .report-header{padding:20px;display:flex;align-items:flex-start;gap:16px;cursor:pointer;}
+    .report-icon{width:48px;height:48px;background:var(--primary-l);color:var(--primary);border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:1.4rem;flex-shrink:0;}
+    .report-title-area{flex:1;}
+    .report-title{font-weight:700;font-size:1.1rem;margin-bottom:4px;display:flex;align-items:center;gap:8px;}
+    .report-date{font-size:0.8rem;color:var(--muted);display:flex;align-items:center;gap:6px;}
+    .toggle-btn{background:none;border:none;color:var(--muted);padding:8px;cursor:pointer;}
+    
+    .report-body{padding:0 20px 20px 84px;display:none;border-top:1px dashed var(--border);padding-top:20px;}
+    .report-content{font-size:0.95rem;line-height:1.6;color:var(--text2);margin-bottom:20px;white-space:pre-wrap;}
+    
+    .fin-grid{display:grid;grid-template-columns:repeat(auto-fit, minmax(140px, 1fr));gap:12px;margin-bottom:20px;}
+    .fin-card{padding:12px;border-radius:14px;display:flex;align-items:center;gap:12px;}
+    .fin-card i{font-size:1.5rem;}
+    .fin-label{font-size:0.75rem;font-weight:600;opacity:0.8;}
+    .fin-amt{font-weight:700;font-size:1rem;}
+    .income{background:var(--income-bg);color:var(--income-c);}
+    .expense{background:var(--expense-bg);color:var(--expense-c);}
+    .balance{background:var(--card2);border:1px solid var(--border);}
+    
+    .photo-gallery{display:grid;grid-template-columns:repeat(auto-fill, minmax(100px, 1fr));gap:10px;margin-top:16px;}
+    .photo-item{aspect-ratio:1;border-radius:10px;overflow:hidden;cursor:pointer;border:1px solid var(--border);}
+    .photo-item img{width:100%;height:100%;object-fit:cover;transition:0.3s;}
+    .photo-item:hover img{transform:scale(1.1);}
+
+    .menu-bar{position:fixed;bottom:0;left:0;right:0;background:var(--card);display:flex;justify-content:space-around;padding:12px;border-top:1px solid var(--border);box-shadow:0 -4px 10px var(--shadow2);z-index:100;}
+    .menu-item{display:flex;flex-direction:column;align-items:center;gap:4px;color:var(--muted);text-decoration:none;font-size:0.75rem;font-weight:500;flex:1;}
+    .menu-item.active{color:var(--primary);}
+    .menu-item i{font-size:1.25rem;}
+
+    .skeleton{background:linear-gradient(90deg,var(--border) 25%,var(--bg2) 50%,var(--border) 75%);background-size:200% 100%;animation:loading 1.5s infinite;height:100px;border-radius:20px;margin-bottom:16px;}
+    @keyframes loading{0%{background-position:200% 0;}100%{background-position:-200% 0;}}
+    @media (max-width:600px){ .report-body{padding-left:20px;} .report-icon{display:none;} }
   </style>
 </head>
 <body>
-<nav>
-  <div class="nav-brand"><i class="fa-solid fa-clipboard-list"></i> ผลงานนิติบุคคล</div>
-  <div class="nav-right">
-    <button class="btn-theme" onclick="toggleTheme()"><i id="themeIcon" class="fa-solid fa-moon"></i></button>
-    <a href="index.html" class="btn-nav" id="homeLink"><i class="fa-solid fa-house"></i> หน้าหลัก</a>
+
+  <nav class="nav">
+    <div class="nav-brand"><i class="fa-solid fa-city"></i> VMS</div>
+    <div style="font-size:0.8rem;font-weight:600" id="userNameDisp">...</div>
+  </nav>
+
+  <div class="container">
+    <div class="page-header">
+      <h1><i class="fa-solid fa-chart-line" style="color:var(--accent)"></i> ผลงานนิติบุคคล</h1>
+      <p>รายงานกิจกรรม รายรับ-รายจ่าย และการปรับปรุงหมู่บ้าน</p>
+    </div>
+
+    <div id="reportList">
+      <div class="skeleton"></div>
+      <div class="skeleton"></div>
+      <div class="skeleton"></div>
+    </div>
   </div>
-</nav>
-<div class="page-tabs">
-  <a href="dashboard.html" class="page-tab" id="dashLink"><i class="fa-solid fa-house"></i> ข้อมูลของฉัน</a>
-  <a href="summary.html" class="page-tab"><i class="fa-solid fa-chart-pie"></i> สรุปค่าส่วนกลาง</a>
-  <a href="announcements.html" class="page-tab"><i class="fa-solid fa-bullhorn"></i> ประกาศ</a>
-  <a href="niti-report.html" class="page-tab active"><i class="fa-solid fa-clipboard-list"></i> ผลงานนิติ</a>
-</div>
-<main>
-  <div class="toolbar">
-    <h2><i class="fa-solid fa-clipboard-check"></i> ผลงานประจำเดือน</h2>
-    <div class="year-select" id="yearBtns"><span style="font-size:.82rem;color:var(--muted)">กำลังโหลด...</span></div>
+
+  <div class="menu-bar">
+    <a href="dashboard.html" class="menu-item"><i class="fa-solid fa-house"></i><span>หน้าหลัก</span></a>
+    <a href="announcements.html" class="menu-item"><i class="fa-solid fa-bullhorn"></i><span>ประกาศ</span></a>
+    <a href="niti-report.html" class="menu-item active"><i class="fa-solid fa-chart-line"></i><span>ผลงานนิติ</span></a>
+    <a href="summary.html" class="menu-item"><i class="fa-solid fa-file-contract"></i><span>สรุปยอด</span></a>
+    <a href="#" class="menu-item" onclick="logout()"><i class="fa-solid fa-arrow-right-from-bracket"></i><span>ออก</span></a>
   </div>
-  <div id="reportList">
-    <div class="report-card"><div class="report-header"><div class="skeleton" style="width:50px;height:50px;border-radius:14px;flex-shrink:0"></div><div style="flex:1;margin:0 .85rem"><div class="skeleton" style="height:18px;width:50%;margin-bottom:.4rem"></div><div class="skeleton" style="height:12px;width:35%"></div></div></div></div>
-    <div class="report-card"><div class="report-header"><div class="skeleton" style="width:50px;height:50px;border-radius:14px;flex-shrink:0"></div><div style="flex:1;margin:0 .85rem"><div class="skeleton" style="height:18px;width:60%;margin-bottom:.4rem"></div><div class="skeleton" style="height:12px;width:40%"></div></div></div></div>
-  </div>
-</main>
 
-<!-- Lightbox -->
-<div class="lightbox" id="lightbox" onclick="closeLightboxBg(event)">
-  <button class="lightbox-close" onclick="closeLightbox()"><i class="fa-solid fa-xmark"></i></button>
-  <button class="lightbox-nav prev" onclick="navPhoto(-1);event.stopPropagation()"><i class="fa-solid fa-chevron-left"></i></button>
-  <img id="lightboxImg" src="" alt=""/>
-  <div class="lightbox-counter" id="lightboxCounter"></div>
-  <button class="lightbox-nav next" onclick="navPhoto(1);event.stopPropagation()"><i class="fa-solid fa-chevron-right"></i></button>
-</div>
+  <script>
+    if(localStorage.getItem('vms_theme')==='dark') document.documentElement.setAttribute('data-theme','dark');
+    document.getElementById('userNameDisp').textContent = localStorage.getItem('vms_name') || 'สมาชิก';
 
-<script>
-  const API_URL='https://script.google.com/macros/s/AKfycbwQbc31pY86tM7EdD41dBsXRQ-OmL6M5m0TJKs_ZJiix2bLEYkHOiQ8eIGazR7ay0_l/exec';
-  const token=localStorage.getItem('vms_token');
-  const role=localStorage.getItem('vms_role');
+    document.addEventListener('DOMContentLoaded', loadReports);
 
-  applyTheme(localStorage.getItem('vms_theme')||'light');
-  function applyTheme(t){document.documentElement.setAttribute('data-theme',t);document.getElementById('themeIcon').className=t==='dark'?'fa-solid fa-sun':'fa-solid fa-moon';localStorage.setItem('vms_theme',t);}
-  function toggleTheme(){applyTheme(document.documentElement.getAttribute('data-theme')==='dark'?'light':'dark');}
-
-  if(!token)document.getElementById('dashLink').style.display='none';
-  if(role==='admin'){document.getElementById('homeLink').href='admin.html';document.getElementById('homeLink').innerHTML='<i class="fa-solid fa-shield-halved"></i> Admin';}
-
-  const MONTHS_TH=['','ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
-  const MONTHS_FULL=['','มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
-
-  // ✅ BUG FIX: ประกาศตัวแปรครั้งเดียวเท่านั้น
-  let allReports=[];
-  let currentYear='';
-  let lightboxPhotos=[];
-  let lightboxIdx=0;
-
-  function extractFileId(url){const m=url.match(/\/d\/([a-zA-Z0-9_-]+)/);return m?m[1]:null;}
-  function driveThumb(fid){return'https://drive.google.com/thumbnail?id='+fid+'&sz=w400';}
-  function drivePreview(fid){return'https://drive.google.com/uc?id='+fid;}
-
-  function buildPhotoGallery(photoUrlsStr){
-    if(!photoUrlsStr)return'';
-    const urls=photoUrlsStr.split(',').map(u=>u.trim()).filter(Boolean);
-    if(!urls.length)return'';
-    const thumbs=urls.map((url,pi)=>{
-      const fid=extractFileId(url);
-      const src=fid?driveThumb(fid):url;
-      return`<div class="photo-thumb" onclick='openLightbox(${JSON.stringify(urls)},${pi})'><img src="${src}" alt="รูป ${pi+1}" loading="lazy" onerror="this.style.display='none'"></div>`;
-    }).join('');
-    return`<div style="margin-top:.75rem;font-size:.8rem;font-weight:700;color:var(--muted)"><i class="fa-solid fa-images"></i> รูปภาพ (${urls.length})</div><div class="photo-gallery">${thumbs}</div>`;
-  }
-
-  function openLightbox(urls,idx){lightboxPhotos=urls;lightboxIdx=idx;showLightboxPhoto();document.getElementById('lightbox').classList.add('open');}
-  function closeLightbox(){document.getElementById('lightbox').classList.remove('open');}
-  function closeLightboxBg(e){if(e.target===document.getElementById('lightbox'))closeLightbox();}
-  function navPhoto(dir){lightboxIdx=(lightboxIdx+dir+lightboxPhotos.length)%lightboxPhotos.length;showLightboxPhoto();}
-  function showLightboxPhoto(){
-    const url=lightboxPhotos[lightboxIdx];
-    const fid=extractFileId(url);
-    document.getElementById('lightboxImg').src=fid?drivePreview(fid):url;
-    document.getElementById('lightboxCounter').textContent=(lightboxIdx+1)+' / '+lightboxPhotos.length;
-  }
-  document.addEventListener('keydown',e=>{if(e.key==='Escape')closeLightbox();if(e.key==='ArrowLeft')navPhoto(-1);if(e.key==='ArrowRight')navPhoto(1);});
-
-  async function loadReports(){
-    const r=await fetch(API_URL+'?'+new URLSearchParams({action:'getNitiReports'}));
-    const d=await r.json();
-    if(d.success){
-      allReports=d.data;
-      const years=[...new Set(allReports.map(r=>String(r.year)).filter(Boolean))].sort((a,b)=>b-a);
-      currentYear=years[0]||'';
-      document.getElementById('yearBtns').innerHTML=years.length
-        ?years.map(y=>`<button class="year-btn ${y===currentYear?'active':''}" onclick="filterYear(this,'${y}')">${y}</button>`).join('')
-        :'<span style="font-size:.82rem;color:var(--muted)">ไม่มีข้อมูล</span>';
-      renderReports();
+    async function loadReports() {
+      try {
+        // ใช้ apiCall แทน fetch แบบเดิม
+        const res = await apiCall({ action: 'getNitiReports' });
+        
+        if (res && res.success) {
+          renderReports(res.data);
+        } else {
+          document.getElementById('reportList').innerHTML = `<div style="text-align:center;padding:40px;color:var(--muted)">ไม่พบข้อมูลรายงานในขณะนี้</div>`;
+        }
+      } catch (e) {
+        console.error(e);
+        document.getElementById('reportList').innerHTML = `<div style="text-align:center;padding:40px;color:red">เกิดข้อผิดพลาดในการโหลดข้อมูล</div>`;
+      }
     }
-  }
 
-  function filterYear(btn,year){
-    document.querySelectorAll('.year-btn').forEach(b=>b.classList.remove('active'));
-    btn.classList.add('active');currentYear=year;renderReports();
-  }
+    function renderReports(data) {
+      const container = document.getElementById('reportList');
+      if (!data || data.length === 0) {
+        container.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted)">ไม่มีรายงาน</div>';
+        return;
+      }
 
-  function renderReports(){
-    const filtered=allReports.filter(r=>String(r.year)===currentYear);
-    if(!filtered.length){document.getElementById('reportList').innerHTML=`<div class="empty"><i class="fa-solid fa-clipboard-list"></i>ยังไม่มีรายงานในปีนี้</div>`;return;}
-    document.getElementById('reportList').innerHTML=filtered.map((r,i)=>{
-      const income=parseFloat(String(r.income||0).replace(/,/g,''))||0;
-      const expense=parseFloat(String(r.expense||0).replace(/,/g,''))||0;
-      const balance=income-expense;
-      const balColor=balance>=0?'#7c3aed':'#dc2626';
-      const m=Number(r.month);
-      return`<div class="report-card" style="animation-delay:${i*0.05}s">
-        <div class="report-header" onclick="toggleReport(this)">
-          <div class="report-month-badge"><span>${m}</span>${MONTHS_TH[m]}</div>
-          <div class="report-title-wrap">
-            <div class="report-title">${r.title}</div>
-            <div class="report-sub"><i class="fa-solid fa-calendar" style="margin-right:.2rem"></i>${MONTHS_FULL[m]} ${r.year}</div>
+      container.innerHTML = data.map((r, i) => {
+        const income = parseFloat(r.income) || 0;
+        const expense = parseFloat(r.expense) || 0;
+        const balance = income - expense;
+        const balColor = balance >= 0 ? 'var(--income-c)' : 'var(--expense-c)';
+        const photoHtml = buildPhotoGallery(r.photo_urls);
+
+        return `
+          <div class="report-card">
+            <div class="report-header" onclick="toggleReport(this)">
+              <div class="report-icon"><i class="fa-solid fa-file-lines"></i></div>
+              <div class="report-title-area">
+                <div class="report-title">${r.title}</div>
+                <div class="report-date">
+                  <span><i class="fa-solid fa-calendar"></i> ${getMonthName(r.month)} ${r.year}</span>
+                  ${r.created_date ? `<span><i class="fa-solid fa-clock"></i> ${r.created_date}</span>` : ''}
+                </div>
+              </div>
+              <button class="toggle-btn"><i class="fa-solid fa-chevron-down" style="transition:0.3s"></i></button>
+            </div>
+            <div class="report-body">
+              <div class="report-content">${r.content}</div>
+              
+              ${(income > 0 || expense > 0) ? `
+              <div class="fin-grid">
+                <div class="fin-card income">
+                  <i class="fa-solid fa-circle-arrow-up"></i>
+                  <div><div class="fin-label">รายรับ</div><div class="fin-amt">${income.toLocaleString()} ฿</div></div>
+                </div>
+                <div class="fin-card expense">
+                  <i class="fa-solid fa-circle-arrow-down"></i>
+                  <div><div class="fin-label">รายจ่าย</div><div class="fin-amt">${expense.toLocaleString()} ฿</div></div>
+                </div>
+                <div class="fin-card balance">
+                  <i class="fa-solid fa-scale-balanced"></i>
+                  <div><div class="fin-label">คงเหลือ</div><div class="fin-amt" style="color:${balColor}">${balance.toLocaleString()} ฿</div></div>
+                </div>
+              </div>` : ''}
+
+              ${photoHtml}
+              
+              ${r.created_by ? `<p style="font-size:0.75rem;color:var(--muted);margin-top:15px;text-align:right">ผู้รายงาน: ${r.created_by}</p>` : ''}
+            </div>
           </div>
-          <div class="report-fin">
-            ${income?`<span class="fin-tag income"><i class="fa-solid fa-arrow-up"></i>${income.toLocaleString()}</span>`:''}
-            ${expense?`<span class="fin-tag expense"><i class="fa-solid fa-arrow-down"></i>${expense.toLocaleString()}</span>`:''}
-          </div>
-          <button class="toggle-btn"><i class="fa-solid fa-chevron-down" style="transition:transform .25s"></i></button>
-        </div>
-        <div class="report-body">
-          <div class="report-content">${r.content}</div>
-          ${(income||expense)?`<div class="fin-grid">
-            <div class="fin-card income"><i class="fa-solid fa-arrow-circle-up"></i><div><div class="fin-label">รายรับ</div><div class="fin-amt">${income.toLocaleString()} ฿</div></div></div>
-            <div class="fin-card expense"><i class="fa-solid fa-arrow-circle-down"></i><div><div class="fin-label">รายจ่าย</div><div class="fin-amt">${expense.toLocaleString()} ฿</div></div></div>
-            <div class="fin-card balance"><i class="fa-solid fa-scale-balanced"></i><div><div class="fin-label">คงเหลือ</div><div class="fin-amt" style="color:${balColor}">${balance.toLocaleString()} ฿</div></div></div>
-          </div>`:''}
-          ${buildPhotoGallery(r.photo_urls)}
-          ${r.created_date?`<p style="font-size:.74rem;color:var(--muted);margin-top:.75rem"><i class="fa-solid fa-clock"></i> บันทึกเมื่อ ${r.created_date} โดย ${r.created_by}</p>`:''}
-        </div>
-      </div>`;
-    }).join('');
-  }
+        `;
+      }).join('');
+    }
 
-  function toggleReport(el){
-    const body=el.nextElementSibling;
-    const icon=el.querySelector('.fa-chevron-down');
-    body.classList.toggle('open');
-    icon.style.transform=body.classList.contains('open')?'rotate(180deg)':'';
-  }
+    function buildPhotoGallery(urls) {
+      if (!urls) return '';
+      const list = urls.split(',').filter(u => u.trim() !== '');
+      if (list.length === 0) return '';
+      
+      return `
+        <div style="font-weight:600;font-size:0.85rem;margin-bottom:8px">รูปภาพประกอบ:</div>
+        <div class="photo-gallery">
+          ${list.map(url => `
+            <div class="photo-item" onclick="viewPhoto('${url.trim()}')">
+              <img src="${url.trim()}" alt="Report Photo" loading="lazy">
+            </div>
+          `).join('')}
+        </div>
+      `;
+    }
 
-  loadReports();
-</script>
+    function viewPhoto(url) {
+      Swal.fire({
+        imageUrl: url,
+        imageAlt: 'Report Photo',
+        showConfirmButton: false,
+        showCloseButton: true,
+        width: 'auto'
+      });
+    }
+
+    function toggleReport(el) {
+      const body = el.nextElementSibling;
+      const icon = el.querySelector('.fa-chevron-down');
+      const isVisible = body.style.display === 'block';
+      body.style.display = isVisible ? 'none' : 'block';
+      icon.style.transform = isVisible ? 'rotate(0deg)' : 'rotate(-180deg)';
+    }
+
+    function getMonthName(m) {
+      const months = ["","มกราคม","กุมภาพันธ์","มีนาคม","เมษายน","พฤษภาคม","มิถุนายน","กรกฎาคม","สิงหาคม","กันยายน","ตุลาคม","พฤศจิกายน","ธันวาคม"];
+      return months[parseInt(m)] || m;
+    }
+
+    function logout() {
+      Swal.fire({
+        title: 'ออกจากระบบ?',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'ตกลง',
+        cancelButtonText: 'ยกเลิก'
+      }).then((result) => {
+        if (result.isConfirmed) {
+          localStorage.clear();
+          window.location.href = 'index.html';
+        }
+      });
+    }
+  </script>
 </body>
 </html>
