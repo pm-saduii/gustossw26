@@ -664,7 +664,8 @@
 
   const MONTHS_TH=['','ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
   const sectionTitles={overview:'<i class="fa-solid fa-gauge"></i> Dashboard',houses:'<i class="fa-solid fa-house"></i> จัดการข้อมูลบ้าน',fees:'<i class="fa-solid fa-receipt"></i> จัดการค่าส่วนกลาง',users:'<i class="fa-solid fa-users"></i> จัดการผู้ใช้งาน',announcements:'<i class="fa-solid fa-bullhorn"></i> จัดการประกาศ',niti:'<i class="fa-solid fa-clipboard-list"></i> จัดการผลงานนิติ'};
-  const sectionLoaders={houses:loadHouses,fees:loadFees,users:loadUsers,announcements:loadAnn,niti:loadNiti};
+  // ✅ FIX: ใช้ arrow function แทนการอ้างอิงตรงๆ กัน crash จาก hoisting
+  const sectionLoaders={houses:()=>loadHouses(),fees:()=>loadFees(),users:()=>loadUsers(),announcements:()=>loadAnn(),niti:()=>loadNiti()};
 
   function showSection(id,btn){
     document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
