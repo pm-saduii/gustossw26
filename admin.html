@@ -855,6 +855,7 @@
     if(r.success){toast('success','อัปเดตสำเร็จ');closeModal('modalHouseEdit');loadHouses();}
     else toast('error',r.message||'เกิดข้อผิดพลาด');
   }
+  async function delHouse(id){
     const c=await Swal.fire({icon:'warning',title:'ลบบ้าน?',text:'จะเปลี่ยนสถานะเป็น inactive',showCancelButton:true,confirmButtonColor:'#dc2626',confirmButtonText:'ลบ',cancelButtonText:'ยกเลิก'});
     if(!c.isConfirmed)return;
     const r=await api({action:'deleteHouse',house_id:id});
