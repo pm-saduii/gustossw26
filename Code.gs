@@ -29,7 +29,16 @@ function doPost(e) {
 }
 
 function handleRequest(e) {
-  const params = e.parameter || {};
+  let params = e.parameter || {};
+
+  // รองรับ POST ที่ส่ง JSON body (เช่น uploadFile ที่มี base64 ขนาดใหญ่)
+  if (e.postData && e.postData.contents) {
+    try {
+      const body = JSON.parse(e.postData.contents);
+      Object.keys(body).forEach(k => { params[k] = body[k]; });
+    } catch (err) { /* ignore */ }
+  }
+
   const action = params['action'] || '';
   const data = params;
 

@@ -1229,7 +1229,7 @@
     const data={action:'addNitiReport',month:g('n_month'),year:g('n_year'),title:g('n_title'),content:g('n_content'),income:g('n_income'),expense:g('n_expense')};
     if(!data.month||!data.title){toast('warning','กรุณากรอกข้อมูลให้ครบ');return;}
     data.photo_urls=await uploadNitiPhotos();
-    const r=await api(data);
+    const r=await apiPost(data);
     if(r.success){toast('success',r.message);toggleForm('nitiForm');loadNiti();}else toast('error',r.message);
   }
   let _editNitiId='';
