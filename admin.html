@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="th">
+<html lang="th" data-theme="light">
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
@@ -7,156 +7,142 @@
   <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet"/>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
   <style>
-    :root {
-      --primary: #5b8dee; --primary-d: #3a6fd8; --primary-l: #dbeafe;
-      --accent: #7ec8a4; --accent2: #f6c26b;
-      --bg: #eef3fb; --card: #fff;
-      --text: #2d3748; --muted: #718096; --border: #d6e4f7;
-      --sidebar-w: 240px;
-    }
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: 'Sarabun', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+    :root{--primary:#4f7ef7;--primary-d:#2f5be8;--primary-l:#e8efff;--accent:#34c88a;--bg:#f0f4fd;--bg2:#e4ecfb;--card:#fff;--card2:#f8faff;--text:#1a2035;--text2:#4a5568;--muted:#8896ab;--border:#d0ddf5;--shadow:rgba(79,126,247,.15);--shadow2:rgba(0,0,0,.06);--sidebar-w:230px;}
+    [data-theme="dark"]{--primary:#6b9aff;--primary-d:#4f7ef7;--primary-l:#1a2540;--accent:#3dd68c;--bg:#0f1420;--bg2:#151c2e;--card:#1a2235;--card2:#202840;--text:#e8eeff;--text2:#a0aec0;--muted:#5a6a85;--border:#2a3650;--shadow:rgba(107,154,255,.12);--shadow2:rgba(0,0,0,.3);}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    body{font-family:'Sarabun',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;transition:background .3s,color .3s;}
+    .layout{display:flex;min-height:100vh;}
 
-    /* === LAYOUT === */
-    .layout { display: flex; min-height: 100vh; }
+    /* SIDEBAR */
+    .sidebar{width:var(--sidebar-w);background:var(--card);border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;top:0;left:0;height:100vh;z-index:200;transition:transform .25s,background .3s,border-color .3s;}
+    .sidebar-brand{padding:1.1rem 1.2rem;background:linear-gradient(135deg,var(--primary),var(--primary-d));color:#fff;}
+    .sidebar-brand h2{font-size:.92rem;font-weight:700;}
+    .sidebar-brand p{font-size:.72rem;opacity:.8;margin-top:.15rem;}
+    .sidebar-nav{flex:1;padding:.6rem 0;overflow-y:auto;}
+    .nav-section{font-size:.65rem;font-weight:700;color:var(--muted);padding:.55rem 1.2rem .25rem;letter-spacing:.06em;text-transform:uppercase;}
+    .nav-item{display:flex;align-items:center;gap:.65rem;padding:.58rem 1.2rem;font-size:.86rem;font-weight:500;color:var(--text2);cursor:pointer;border:none;background:none;width:100%;text-align:left;text-decoration:none;transition:background .12s,color .12s;}
+    .nav-item i{width:17px;text-align:center;flex-shrink:0;}
+    .nav-item:hover{background:var(--bg);color:var(--primary);}
+    .nav-item.active{background:var(--primary-l);color:var(--primary);font-weight:700;}
+    .sidebar-footer{padding:.9rem 1.2rem;border-top:1px solid var(--border);}
+    .main-area{margin-left:var(--sidebar-w);flex:1;display:flex;flex-direction:column;}
+    .topbar{background:var(--card);border-bottom:1px solid var(--border);padding:.7rem 1.4rem;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;transition:background .3s;}
+    .topbar-title{font-size:1rem;font-weight:700;display:flex;align-items:center;gap:.5rem;}
+    .topbar-title i{color:var(--primary);}
+    .topbar-right{display:flex;align-items:center;gap:.65rem;}
+    .admin-badge{font-size:.72rem;background:var(--primary-l);color:var(--primary);padding:.2rem .7rem;border-radius:20px;font-weight:700;}
+    .hamburger{display:none;background:none;border:none;font-size:1.2rem;color:var(--text);cursor:pointer;}
+    .btn-theme-top{background:var(--bg2);border:1.5px solid var(--border);color:var(--text2);width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:.9rem;transition:all .15s;}
+    .btn-theme-top:hover{border-color:var(--primary);color:var(--primary);}
+    main{padding:1.4rem;max-width:1100px;}
+    @keyframes fadeSlideIn{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
 
-    /* Sidebar */
-    .sidebar {
-      width: var(--sidebar-w); background: #fff;
-      border-right: 1px solid var(--border);
-      display: flex; flex-direction: column;
-      position: fixed; top: 0; left: 0; height: 100vh;
-      z-index: 200; transition: transform .25s;
-    }
-    .sidebar-brand {
-      padding: 1.1rem 1.25rem;
-      background: linear-gradient(135deg, var(--primary), var(--primary-d));
-      color: #fff;
-    }
-    .sidebar-brand h2 { font-size: .95rem; font-weight: 700; }
-    .sidebar-brand p  { font-size: .75rem; opacity: .8; margin-top: .15rem; }
-    .sidebar-nav { flex: 1; padding: .75rem 0; overflow-y: auto; }
-    .nav-section { font-size: .68rem; font-weight: 700; color: var(--muted); padding: .6rem 1.25rem .3rem; letter-spacing: .06em; text-transform: uppercase; }
-    .nav-item {
-      display: flex; align-items: center; gap: .7rem;
-      padding: .6rem 1.25rem; font-size: .88rem; font-weight: 500;
-      color: var(--muted); cursor: pointer; border: none; background: none;
-      width: 100%; text-align: left; border-radius: 0;
-      transition: background .12s, color .12s;
-      text-decoration: none;
-    }
-    .nav-item i { width: 18px; text-align: center; }
-    .nav-item:hover  { background: var(--bg); color: var(--primary); }
-    .nav-item.active { background: var(--primary-l); color: var(--primary); font-weight: 700; }
-    .sidebar-footer { padding: 1rem 1.25rem; border-top: 1px solid var(--border); }
+    /* BTN */
+    .btn{display:inline-flex;align-items:center;gap:.4rem;padding:.48rem .95rem;border-radius:9px;border:none;font-family:'Sarabun',sans-serif;font-size:.86rem;font-weight:600;cursor:pointer;transition:all .15s;}
+    .btn-primary{background:var(--primary);color:#fff;box-shadow:0 2px 8px var(--shadow);}
+    .btn-primary:hover{background:var(--primary-d);}
+    .btn-danger{background:#fee2e2;color:#dc2626;}
+    .btn-danger:hover{background:#fca5a5;}
+    [data-theme="dark"] .btn-danger{background:#2a1010;}
+    [data-theme="dark"] .btn-danger:hover{background:#3d1515;}
+    .btn-success{background:#d1fae5;color:#059669;}
+    .btn-success:hover{background:#6ee7b7;}
+    [data-theme="dark"] .btn-success{background:#0d2a1e;color:#34d399;}
+    .btn-outline{background:var(--card);color:var(--text);border:1.5px solid var(--border);}
+    .btn-outline:hover{border-color:var(--primary);color:var(--primary);}
+    .btn-sm{padding:.28rem .65rem;font-size:.76rem;}
 
-    /* Main area */
-    .main-area { margin-left: var(--sidebar-w); flex: 1; display: flex; flex-direction: column; min-height: 100vh; }
-    .topbar {
-      background: #fff; border-bottom: 1px solid var(--border);
-      padding: .75rem 1.5rem;
-      display: flex; align-items: center; justify-content: space-between;
-      position: sticky; top: 0; z-index: 100;
-    }
-    .topbar-title { font-size: 1.05rem; font-weight: 700; display: flex; align-items: center; gap: .5rem; }
-    .topbar-title i { color: var(--primary); }
-    .topbar-right { display: flex; align-items: center; gap: .75rem; }
-    .admin-badge { font-size: .75rem; background: var(--primary-l); color: var(--primary); padding: .2rem .7rem; border-radius: 20px; font-weight: 700; }
-    .hamburger { display: none; background: none; border: none; font-size: 1.2rem; color: var(--text); cursor: pointer; }
+    /* SECTION */
+    .section{display:none;animation:fadeSlideIn .3s ease both;}
+    .section.active{display:block;}
+    .card{background:var(--card);border-radius:16px;border:1px solid var(--border);overflow:hidden;box-shadow:0 2px 12px var(--shadow2);margin-bottom:1.4rem;transition:background .3s,border-color .3s;}
+    .card-header{padding:.85rem 1.2rem;background:var(--card2);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;transition:background .3s;}
+    .card-header h3{font-size:.92rem;font-weight:700;display:flex;align-items:center;gap:.5rem;}
+    .card-header h3 i{color:var(--primary);}
+    .card-body{padding:1.2rem;}
 
-    main { padding: 1.5rem; max-width: 1100px; }
+    /* TABLE */
+    .table-wrap{overflow-x:auto;}
+    table{width:100%;border-collapse:collapse;}
+    th{text-align:left;padding:.55rem .9rem;font-size:.75rem;font-weight:700;color:var(--muted);border-bottom:1px solid var(--border);white-space:nowrap;background:var(--card2);cursor:pointer;user-select:none;transition:background .15s;}
+    th:hover{color:var(--primary);}
+    th .sort-i{margin-left:.25rem;opacity:.4;font-size:.65rem;}
+    th.asc .sort-i,th.desc .sort-i{opacity:1;color:var(--primary);}
+    td{padding:.6rem .9rem;font-size:.83rem;border-bottom:1px solid var(--border);transition:background .1s;}
+    tr:last-child td{border-bottom:none;}
+    tr:hover td{background:var(--bg2);}
+    .actions{display:flex;gap:.35rem;flex-wrap:nowrap;}
 
-    /* Btn */
-    .btn { display: inline-flex; align-items: center; gap: .4rem; padding: .5rem 1rem; border-radius: 8px; border: none; font-family: 'Sarabun', sans-serif; font-size: .88rem; font-weight: 600; cursor: pointer; transition: all .15s; }
-    .btn-primary { background: var(--primary); color: #fff; box-shadow: 0 2px 8px rgba(91,141,238,.3); }
-    .btn-primary:hover { background: var(--primary-d); }
-    .btn-danger  { background: #fee2e2; color: #dc2626; }
-    .btn-danger:hover { background: #fca5a5; }
-    .btn-success { background: #d1fae5; color: #059669; }
-    .btn-success:hover { background: #6ee7b7; }
-    .btn-outline { background: #fff; color: var(--text); border: 1.5px solid var(--border); }
-    .btn-outline:hover { border-color: var(--primary); color: var(--primary); }
-    .btn-sm { padding: .3rem .7rem; font-size: .78rem; }
+    /* FORM */
+    .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:.9rem;}
+    .form-group{margin-bottom:.85rem;}
+    .form-group.full{grid-column:1/-1;}
+    label{display:block;font-size:.8rem;font-weight:700;margin-bottom:.3rem;color:var(--text2);}
+    input[type=text],input[type=number],input[type=date],input[type=file],select,textarea{width:100%;padding:.52rem .8rem;border:1.5px solid var(--border);border-radius:9px;font-family:'Sarabun',sans-serif;font-size:.86rem;color:var(--text);background:var(--card2);outline:none;transition:border-color .2s,background .3s;}
+    input:focus,select:focus,textarea:focus{border-color:var(--primary);background:var(--card);}
+    textarea{resize:vertical;min-height:85px;}
+    .form-actions{display:flex;gap:.6rem;justify-content:flex-end;margin-top:.9rem;}
 
-    /* Section */
-    .section { display: none; }
-    .section.active { display: block; }
+    /* BADGE */
+    .badge{font-size:.7rem;padding:.16rem .58px;border-radius:10px;font-weight:700;}
+    .badge.paid{background:#d1fae5;color:#059669;}
+    .badge.partial{background:#fef3c7;color:#d97706;}
+    .badge.unpaid{background:#fee2e2;color:#dc2626;}
+    .badge.admin{background:var(--primary-l);color:var(--primary);}
+    .badge.resident{background:#d1fae5;color:#059669;}
+    [data-theme="dark"] .badge.paid{background:#0d2a1e;color:#34d399;}
+    [data-theme="dark"] .badge.partial{background:#2a2010;color:#fbbf24;}
+    [data-theme="dark"] .badge.unpaid{background:#2a1010;color:#f87171;}
 
-    /* Card */
-    .card { background: var(--card); border-radius: 14px; border: 1px solid var(--border); overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,.04); margin-bottom: 1.5rem; }
-    .card-header { padding: .9rem 1.25rem; background: linear-gradient(90deg, #f0f7ff, #f0faf5); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
-    .card-header h3 { font-size: .95rem; font-weight: 700; display: flex; align-items: center; gap: .5rem; }
-    .card-header h3 i { color: var(--primary); }
-    .card-body { padding: 1.25rem; }
+    /* MINI STATS */
+    .mini-stats{display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:.75rem;margin-bottom:1.4rem;}
+    .mini-stat{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:.9rem 1rem;transition:transform .2s,box-shadow .2s,background .3s;}
+    .mini-stat:hover{transform:translateY(-2px);box-shadow:0 4px 16px var(--shadow);}
+    .mini-stat-icon{font-size:1.3rem;margin-bottom:.3rem;}
+    .mini-stat-val{font-size:1.45rem;font-weight:800;}
+    .mini-stat-label{font-size:.73rem;color:var(--muted);}
 
-    /* Table */
-    .table-wrap { overflow-x: auto; }
-    table { width: 100%; border-collapse: collapse; }
-    th { text-align: left; padding: .6rem 1rem; font-size: .78rem; font-weight: 700; color: var(--muted); border-bottom: 1px solid var(--border); white-space: nowrap; background: #fafcff; }
-    td { padding: .65rem 1rem; font-size: .85rem; border-bottom: 1px solid var(--border); }
-    tr:last-child td { border-bottom: none; }
-    tr:hover td { background: #f8fbff; }
-    .actions { display: flex; gap: .4rem; flex-wrap: nowrap; }
+    /* SEARCH */
+    .search-box{position:relative;margin-bottom:1rem;}
+    .search-box input{padding-left:2.3rem;}
+    .search-box i{position:absolute;left:.8rem;top:50%;transform:translateY(-50%);color:var(--muted);}
 
-    /* Form */
-    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
-    .form-group { margin-bottom: .9rem; }
-    .form-group.full { grid-column: 1 / -1; }
-    label { display: block; font-size: .82rem; font-weight: 600; margin-bottom: .3rem; }
-    input[type=text], input[type=number], input[type=date], select, textarea {
-      width: 100%; padding: .55rem .85rem; border: 1.5px solid var(--border); border-radius: 8px;
-      font-family: 'Sarabun', sans-serif; font-size: .88rem; color: var(--text);
-      background: #f8fbff; outline: none; transition: border-color .2s;
-    }
-    input:focus, select:focus, textarea:focus { border-color: var(--primary); background: #fff; }
-    textarea { resize: vertical; min-height: 90px; }
-    .form-actions { display: flex; gap: .6rem; justify-content: flex-end; margin-top: 1rem; }
+    /* CHART */
+    .chart-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.4rem;}
+    .chart-card{background:var(--card);border-radius:16px;border:1px solid var(--border);padding:1.1rem;box-shadow:0 2px 12px var(--shadow2);transition:background .3s;}
+    .chart-title{font-size:.85rem;font-weight:700;margin-bottom:.9rem;display:flex;align-items:center;gap:.4rem;}
+    .chart-title i{color:var(--primary);}
+    .chart-wrap{position:relative;height:190px;}
 
-    /* Badge */
-    .badge { font-size: .72rem; padding: .18rem .6rem; border-radius: 12px; font-weight: 600; }
-    .badge.paid     { background: #d1fae5; color: #059669; }
-    .badge.partial  { background: #fef3c7; color: #d97706; }
-    .badge.unpaid   { background: #fee2e2; color: #dc2626; }
-    .badge.admin    { background: var(--primary-l); color: var(--primary); }
-    .badge.resident { background: #f0faf5; color: #059669; }
+    /* FILE UPLOAD */
+    .file-upload-zone{border:2px dashed var(--border);border-radius:10px;padding:1rem;text-align:center;cursor:pointer;transition:border-color .2s,background .2s;margin-top:.3rem;}
+    .file-upload-zone:hover{border-color:var(--primary);background:var(--primary-l);}
+    .file-preview-name{font-size:.8rem;color:var(--muted);margin-top:.4rem;}
 
-    /* Stats mini */
-    .mini-stats { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: .75rem; margin-bottom: 1.5rem; }
-    .mini-stat { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: .9rem 1rem; }
-    .mini-stat-icon { font-size: 1.3rem; margin-bottom: .3rem; }
-    .mini-stat-val { font-size: 1.4rem; font-weight: 700; }
-    .mini-stat-label { font-size: .75rem; color: var(--muted); }
+    /* OVERLAY */
+    .overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:150;}
+    .overlay.open{display:block;}
+    .skeleton{background:linear-gradient(90deg,var(--bg2) 25%,var(--card2) 50%,var(--bg2) 75%);background-size:200% 100%;animation:shimmer 1.2s infinite;border-radius:6px;height:16px;}
+    @keyframes shimmer{to{background-position:-200% 0;}}
+    .empty-row td{text-align:center;color:var(--muted);padding:2rem;}
+    @media(max-width:768px){.sidebar{transform:translateX(-100%)}.sidebar.open{transform:translateX(0)}.main-area{margin-left:0}.hamburger{display:block}.form-grid{grid-template-columns:1fr}main{padding:1rem}.chart-grid{grid-template-columns:1fr}}
 
-    /* Search */
-    .search-box { position: relative; margin-bottom: 1rem; }
-    .search-box input { padding-left: 2.3rem; }
-    .search-box i { position: absolute; left: .8rem; top: 50%; transform: translateY(-50%); color: var(--muted); }
-
-    /* Overlay */
-    .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.3); z-index: 150; }
-    .overlay.open { display: block; }
-
-    /* Responsive */
-    @media (max-width: 768px) {
-      .sidebar { transform: translateX(-100%); }
-      .sidebar.open { transform: translateX(0); }
-      .main-area { margin-left: 0; }
-      .hamburger { display: block; }
-      .form-grid { grid-template-columns: 1fr; }
-      main { padding: 1rem; }
-    }
-
-    .skeleton { background: linear-gradient(90deg, #e2ecf8 25%, #f0f6ff 50%, #e2ecf8 75%); background-size: 200% 100%; animation: shimmer 1.2s infinite; border-radius: 6px; height: 16px; }
-    @keyframes shimmer { to { background-position: -200% 0; } }
-
-    .empty-row td { text-align: center; color: var(--muted); padding: 2rem; }
+    /* Account status colors */
+    .hst-badge{font-size:.72rem;padding:.18rem .65rem;border-radius:12px;font-weight:700;display:inline-block;}
+    .hst-ปกติ{background:#d1fae5;color:#065f46;}
+    .hst-ค้างชำระ{background:#fef9c3;color:#854d0e;}
+    .hst-ระงับกรมที่ดิน{background:#ffedd5;color:#9a3412;}
+    .hst-ฟ้องร้อง{background:#fee2e2;color:#7f1d1d;}
+    [data-theme="dark"] .hst-ปกติ{background:#0d2a1e;color:#34d399;}
+    [data-theme="dark"] .hst-ค้างชำระ{background:#2a2010;color:#fbbf24;}
+    [data-theme="dark"] .hst-ระงับกรมที่ดิน{background:#2a1a08;color:#fb923c;}
+    [data-theme="dark"] .hst-ฟ้องร้อง{background:#2a1010;color:#f87171;}
   </style>
 </head>
 <body>
-
 <div class="overlay" id="overlay" onclick="closeSidebar()"></div>
-
 <div class="layout">
   <!-- SIDEBAR -->
   <aside class="sidebar" id="sidebar">
@@ -167,16 +153,13 @@
     <nav class="sidebar-nav">
       <div class="nav-section">ภาพรวม</div>
       <button class="nav-item active" onclick="showSection('overview',this)"><i class="fa-solid fa-gauge"></i> Dashboard</button>
-
       <div class="nav-section">จัดการข้อมูล</div>
       <button class="nav-item" onclick="showSection('houses',this)"><i class="fa-solid fa-house"></i> ข้อมูลบ้าน</button>
       <button class="nav-item" onclick="showSection('fees',this)"><i class="fa-solid fa-receipt"></i> ค่าส่วนกลาง</button>
       <button class="nav-item" onclick="showSection('users',this)"><i class="fa-solid fa-users"></i> ผู้ใช้งาน</button>
-
       <div class="nav-section">เนื้อหา</div>
       <button class="nav-item" onclick="showSection('announcements',this)"><i class="fa-solid fa-bullhorn"></i> ประกาศ</button>
       <button class="nav-item" onclick="showSection('niti',this)"><i class="fa-solid fa-clipboard-list"></i> ผลงานนิติ</button>
-
       <div class="nav-section">ลิ้งก์</div>
       <a class="nav-item" href="summary.html" target="_blank"><i class="fa-solid fa-chart-pie"></i> สรุปค่าส่วนกลาง</a>
       <a class="nav-item" href="announcements.html" target="_blank"><i class="fa-solid fa-bullhorn"></i> หน้าประกาศ</a>
@@ -189,18 +172,18 @@
   <!-- MAIN -->
   <div class="main-area">
     <div class="topbar">
-      <div style="display:flex;align-items:center;gap:.75rem">
+      <div style="display:flex;align-items:center;gap:.65rem">
         <button class="hamburger" onclick="openSidebar()"><i class="fa-solid fa-bars"></i></button>
         <div class="topbar-title" id="topbarTitle"><i class="fa-solid fa-gauge"></i> Dashboard</div>
       </div>
       <div class="topbar-right">
+        <button class="btn-theme-top" onclick="toggleTheme()"><i id="themeIcon" class="fa-solid fa-moon"></i></button>
         <span class="admin-badge"><i class="fa-solid fa-shield-halved"></i> Admin</span>
       </div>
     </div>
 
     <main>
-
-      <!-- ========================= OVERVIEW ========================= -->
+      <!-- ===== OVERVIEW ===== -->
       <div class="section active" id="sec-overview">
         <div class="mini-stats" id="overviewStats">
           <div class="mini-stat"><div class="skeleton" style="height:80px"></div></div>
@@ -208,10 +191,15 @@
           <div class="mini-stat"><div class="skeleton" style="height:80px"></div></div>
           <div class="mini-stat"><div class="skeleton" style="height:80px"></div></div>
         </div>
+        <!-- Dashboard Charts -->
+        <div class="chart-grid" id="overviewCharts">
+          <div class="chart-card"><div class="skeleton" style="height:190px"></div></div>
+          <div class="chart-card"><div class="skeleton" style="height:190px"></div></div>
+        </div>
         <div class="card">
-          <div class="card-header"><h3><i class="fa-solid fa-clock-rotate-left"></i> ไปยังหน้าจัดการ</h3></div>
+          <div class="card-header"><h3><i class="fa-solid fa-bolt"></i> เข้าถึงด่วน</h3></div>
           <div class="card-body">
-            <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:.75rem">
+            <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:.75rem">
               <button class="btn btn-primary" onclick="showSection('houses',null)"><i class="fa-solid fa-house"></i> จัดการบ้าน</button>
               <button class="btn btn-primary" onclick="showSection('fees',null)"><i class="fa-solid fa-receipt"></i> ค่าส่วนกลาง</button>
               <button class="btn btn-primary" onclick="showSection('announcements',null)"><i class="fa-solid fa-bullhorn"></i> ประกาศ</button>
@@ -222,7 +210,7 @@
         </div>
       </div>
 
-      <!-- ========================= HOUSES ========================= -->
+      <!-- ===== HOUSES ===== -->
       <div class="section" id="sec-houses">
         <div class="card">
           <div class="card-header">
@@ -236,52 +224,42 @@
               <div class="form-group full"><label>ที่อยู่</label><input type="text" id="h_addr" placeholder="ที่อยู่เต็ม"/></div>
               <div class="form-group"><label>พื้นที่ (ตร.ม.)</label><input type="number" id="h_area" placeholder="120"/></div>
               <div class="form-group"><label>ซอย</label><input type="text" id="h_soi" placeholder="เช่น ซอย 1"/></div>
-              <div class="form-group"><label>ประเภทบ้าน</label>
-                <select id="h_type"><option>บ้านเดี่ยว</option><option>ทาวน์โฮม</option><option>บ้านแฝด</option></select>
-              </div>
+              <div class="form-group"><label>ประเภทบ้าน</label><select id="h_type"><option>บ้านเดี่ยว</option><option>ทาวน์โฮม</option><option>บ้านแฝด</option></select></div>
               <div class="form-group"><label>เบอร์โทร</label><input type="text" id="h_phone" placeholder="0812345678"/></div>
               <div class="form-group"><label>ค่าส่วนกลาง/ครึ่งปี (บาท)</label><input type="number" id="h_fee" placeholder="3000"/></div>
-              <div class="form-group">
-                <label>สถานะบัญชี</label>
-                <select id="h_acst">
-                  <option value="ปกติ">ปกติ</option>
-                  <option value="ค้างชำระ">ค้างชำระ</option>
-                  <option value="ระงับกรมที่ดิน">ระงับกรมที่ดิน</option>
-                  <option value="ฟ้องร้อง">ฟ้องร้อง</option>
-                </select>
-              </div>
+              <div class="form-group"><label>สถานะบัญชี</label><select id="h_acst"><option value="ปกติ">ปกติ</option><option value="ค้างชำระ">ค้างชำระ</option><option value="ระงับกรมที่ดิน">ระงับกรมที่ดิน</option><option value="ฟ้องร้อง">ฟ้องร้อง</option></select></div>
               <div class="form-group full"><label>หมายเหตุ</label><input type="text" id="h_note" placeholder="(ถ้ามี)"/></div>
             </div>
-            <div class="form-actions">
-              <button class="btn btn-outline" onclick="toggleForm('houseForm')">ยกเลิก</button>
-              <button class="btn btn-primary" onclick="saveHouse()"><i class="fa-solid fa-floppy-disk"></i> บันทึก</button>
-            </div>
+            <div class="form-actions"><button class="btn btn-outline" onclick="toggleForm('houseForm')">ยกเลิก</button><button class="btn btn-primary" onclick="saveHouse()"><i class="fa-solid fa-floppy-disk"></i> บันทึก</button></div>
           </div>
         </div>
-
         <div class="card">
-          <div class="card-header"><h3><i class="fa-solid fa-list"></i> รายการบ้านทั้งหมด</h3>
-            <button class="btn btn-outline btn-sm" onclick="loadHouses()"><i class="fa-solid fa-rotate"></i> รีโหลด</button>
-          </div>
+          <div class="card-header"><h3><i class="fa-solid fa-list"></i> รายการบ้านทั้งหมด</h3><button class="btn btn-outline btn-sm" onclick="loadHouses()"><i class="fa-solid fa-rotate"></i> รีโหลด</button></div>
           <div class="card-body">
             <div class="search-box"><i class="fa-solid fa-search"></i><input type="text" id="houseSearch" placeholder="ค้นหาบ้านเลขที่ หรือชื่อเจ้าของ" oninput="filterHouses()"/></div>
             <div class="table-wrap">
               <table id="houseTable">
-                <thead><tr><th>บ้านเลขที่</th><th>ชื่อเจ้าของ</th><th>ซอย</th><th>ประเภท</th><th>ค่าส่วนกลาง/ครึ่งปี</th><th>สถานะ</th><th>จัดการ</th></tr></thead>
-                <tbody id="houseTbody"><tr><td colspan="7"><div class="skeleton"></div></td></tr></tbody>
+                <!-- ✅ BUG FIX: columns ตรงกับ renderHouses() — บ้านเลขที่|ชื่อ|ซอย|ประเภท|สถานะบัญชี|ค่าส่วนกลาง|สถานะ|จัดการ -->
+                <thead><tr>
+                  <th onclick="sortTable('houses','house_no',this)">บ้านเลขที่<i class="fa-solid fa-sort sort-i"></i></th>
+                  <th onclick="sortTable('houses','owner_name',this)">ชื่อเจ้าของ<i class="fa-solid fa-sort sort-i"></i></th>
+                  <th onclick="sortTable('houses','soi',this)">ซอย<i class="fa-solid fa-sort sort-i"></i></th>
+                  <th>ประเภท</th>
+                  <th onclick="sortTable('houses','account_status',this)">สถานะบัญชี<i class="fa-solid fa-sort sort-i"></i></th>
+                  <th onclick="sortTable('houses','fee_per_half',this)">ค่าส่วนกลาง/ครึ่งปี<i class="fa-solid fa-sort sort-i"></i></th>
+                  <th>สถานะ</th><th>จัดการ</th>
+                </tr></thead>
+                <tbody id="houseTbody"><tr><td colspan="8"><div class="skeleton"></div></td></tr></tbody>
               </table>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- ========================= FEES ========================= -->
+      <!-- ===== FEES ===== -->
       <div class="section" id="sec-fees">
         <div class="card">
-          <div class="card-header">
-            <h3><i class="fa-solid fa-receipt"></i> บันทึกค่าส่วนกลาง</h3>
-            <button class="btn btn-outline btn-sm" onclick="toggleForm('feeForm')"><i class="fa-solid fa-plus"></i> เพิ่ม</button>
-          </div>
+          <div class="card-header"><h3><i class="fa-solid fa-receipt"></i> บันทึกค่าส่วนกลาง</h3><button class="btn btn-outline btn-sm" onclick="toggleForm('feeForm')"><i class="fa-solid fa-plus"></i> เพิ่ม</button></div>
           <div class="card-body" id="feeForm" style="display:none">
             <div class="form-grid">
               <div class="form-group"><label>รหัสบ้าน (house_id)</label><input type="text" id="f_house" placeholder="H001"/></div>
@@ -289,130 +267,99 @@
               <div class="form-group"><label>ยอดครึ่งปีแรก (บาท)</label><input type="number" id="f_h1amt" placeholder="3000"/></div>
               <div class="form-group"><label>ชำระครึ่งปีแรก (บาท)</label><input type="number" id="f_h1paid" placeholder="0"/></div>
               <div class="form-group"><label>วันที่ชำระครึ่งปีแรก</label><input type="text" id="f_h1date" placeholder="15/01/2567"/></div>
-              <div class="form-group"><label>สถานะครึ่งปีแรก</label>
-                <select id="f_h1status"><option value="paid">ชำระครบ</option><option value="partial">ชำระบางส่วน</option><option value="unpaid" selected>ยังไม่ชำระ</option></select>
-              </div>
+              <div class="form-group"><label>สถานะครึ่งปีแรก</label><select id="f_h1status"><option value="paid">ชำระครบ</option><option value="partial">ชำระบางส่วน</option><option value="unpaid" selected>ยังไม่ชำระ</option></select></div>
               <div class="form-group"><label>ยอดครึ่งปีหลัง (บาท)</label><input type="number" id="f_h2amt" placeholder="3000"/></div>
               <div class="form-group"><label>ชำระครึ่งปีหลัง (บาท)</label><input type="number" id="f_h2paid" placeholder="0"/></div>
               <div class="form-group"><label>วันที่ชำระครึ่งปีหลัง</label><input type="text" id="f_h2date" placeholder="15/07/2567"/></div>
-              <div class="form-group"><label>สถานะครึ่งปีหลัง</label>
-                <select id="f_h2status"><option value="paid">ชำระครบ</option><option value="partial">ชำระบางส่วน</option><option value="unpaid" selected>ยังไม่ชำระ</option></select>
-              </div>
+              <div class="form-group"><label>สถานะครึ่งปีหลัง</label><select id="f_h2status"><option value="paid">ชำระครบ</option><option value="partial">ชำระบางส่วน</option><option value="unpaid" selected>ยังไม่ชำระ</option></select></div>
               <div class="form-group full"><label>หมายเหตุ</label><input type="text" id="f_note" placeholder="(ถ้ามี)"/></div>
             </div>
-            <div class="form-actions">
-              <button class="btn btn-outline" onclick="toggleForm('feeForm')">ยกเลิก</button>
-              <button class="btn btn-primary" onclick="saveFee()"><i class="fa-solid fa-floppy-disk"></i> บันทึก</button>
-            </div>
+            <div class="form-actions"><button class="btn btn-outline" onclick="toggleForm('feeForm')">ยกเลิก</button><button class="btn btn-primary" onclick="saveFee()"><i class="fa-solid fa-floppy-disk"></i> บันทึก</button></div>
           </div>
         </div>
-
         <div class="card">
-          <div class="card-header"><h3><i class="fa-solid fa-table-list"></i> รายการค่าส่วนกลาง</h3>
-            <button class="btn btn-outline btn-sm" onclick="loadFees()"><i class="fa-solid fa-rotate"></i> รีโหลด</button>
-          </div>
+          <div class="card-header"><h3><i class="fa-solid fa-table-list"></i> รายการค่าส่วนกลาง</h3><button class="btn btn-outline btn-sm" onclick="loadFees()"><i class="fa-solid fa-rotate"></i> รีโหลด</button></div>
           <div class="card-body">
             <div class="search-box"><i class="fa-solid fa-search"></i><input type="text" id="feeSearch" placeholder="ค้นหา house_id หรือปี" oninput="filterFees()"/></div>
-            <div class="table-wrap">
-              <table>
-                <thead><tr><th>house_id</th><th>ปี</th><th>ครึ่งปีแรก</th><th>สถานะ H1</th><th>ครึ่งปีหลัง</th><th>สถานะ H2</th><th>จัดการ</th></tr></thead>
-                <tbody id="feeTbody"><tr><td colspan="7"><div class="skeleton"></div></td></tr></tbody>
-              </table>
-            </div>
+            <div class="table-wrap"><table><thead><tr>
+              <th onclick="sortTable('fees','house_id',this)">house_id<i class="fa-solid fa-sort sort-i"></i></th>
+              <th onclick="sortTable('fees','year',this)">ปี<i class="fa-solid fa-sort sort-i"></i></th>
+              <th>ครึ่งปีแรก</th><th>สถานะ H1</th><th>ครึ่งปีหลัง</th><th>สถานะ H2</th><th>จัดการ</th>
+            </tr></thead><tbody id="feeTbody"><tr><td colspan="7"><div class="skeleton"></div></td></tr></tbody></table></div>
           </div>
         </div>
       </div>
 
-      <!-- ========================= USERS ========================= -->
+      <!-- ===== USERS ===== -->
       <div class="section" id="sec-users">
         <div class="card">
-          <div class="card-header">
-            <h3><i class="fa-solid fa-user-plus"></i> เพิ่มผู้ใช้งาน</h3>
-            <button class="btn btn-outline btn-sm" onclick="toggleForm('userForm')"><i class="fa-solid fa-plus"></i> เพิ่ม</button>
-          </div>
+          <div class="card-header"><h3><i class="fa-solid fa-user-plus"></i> เพิ่มผู้ใช้งาน</h3><button class="btn btn-outline btn-sm" onclick="toggleForm('userForm')"><i class="fa-solid fa-plus"></i> เพิ่ม</button></div>
           <div class="card-body" id="userForm" style="display:none">
             <div class="form-grid">
               <div class="form-group"><label>ชื่อผู้ใช้ (username)</label><input type="text" id="u_user" placeholder="house_101"/></div>
               <div class="form-group"><label>รหัสผ่าน</label><input type="text" id="u_pass" placeholder="pass101"/></div>
-              <div class="form-group"><label>สิทธิ์</label>
-                <select id="u_role"><option value="resident">ลูกบ้าน (resident)</option><option value="admin">ผู้ดูแล (admin)</option></select>
-              </div>
-              <div class="form-group"><label>รหัสบ้าน (house_id)</label><input type="text" id="u_house" placeholder="H001 (สำหรับลูกบ้าน)"/></div>
+              <div class="form-group"><label>สิทธิ์</label><select id="u_role"><option value="resident">ลูกบ้าน (resident)</option><option value="admin">ผู้ดูแล (admin)</option></select></div>
+              <div class="form-group"><label>รหัสบ้าน (house_id)</label><input type="text" id="u_house" placeholder="H001"/></div>
               <div class="form-group full"><label>ชื่อ-นามสกุล</label><input type="text" id="u_name" placeholder="นาย สมชาย ใจดี"/></div>
             </div>
-            <div class="form-actions">
-              <button class="btn btn-outline" onclick="toggleForm('userForm')">ยกเลิก</button>
-              <button class="btn btn-primary" onclick="saveUser()"><i class="fa-solid fa-floppy-disk"></i> บันทึก</button>
-            </div>
+            <div class="form-actions"><button class="btn btn-outline" onclick="toggleForm('userForm')">ยกเลิก</button><button class="btn btn-primary" onclick="saveUser()"><i class="fa-solid fa-floppy-disk"></i> บันทึก</button></div>
           </div>
         </div>
-
         <div class="card">
-          <div class="card-header"><h3><i class="fa-solid fa-users"></i> รายการผู้ใช้งาน</h3>
-            <button class="btn btn-outline btn-sm" onclick="loadUsers()"><i class="fa-solid fa-rotate"></i> รีโหลด</button>
-          </div>
-          <div class="card-body">
-            <div class="table-wrap">
-              <table>
-                <thead><tr><th>username</th><th>ชื่อ</th><th>สิทธิ์</th><th>house_id</th><th>สถานะ</th><th>จัดการ</th></tr></thead>
-                <tbody id="userTbody"><tr><td colspan="6"><div class="skeleton"></div></td></tr></tbody>
-              </table>
-            </div>
-          </div>
+          <div class="card-header"><h3><i class="fa-solid fa-users"></i> รายการผู้ใช้งาน</h3><button class="btn btn-outline btn-sm" onclick="loadUsers()"><i class="fa-solid fa-rotate"></i> รีโหลด</button></div>
+          <div class="card-body"><div class="table-wrap"><table><thead><tr>
+            <th onclick="sortTable('users','username',this)">username<i class="fa-solid fa-sort sort-i"></i></th>
+            <th onclick="sortTable('users','full_name',this)">ชื่อ<i class="fa-solid fa-sort sort-i"></i></th>
+            <th>สิทธิ์</th><th>house_id</th><th>สถานะ</th><th>จัดการ</th>
+          </tr></thead><tbody id="userTbody"><tr><td colspan="6"><div class="skeleton"></div></td></tr></tbody></table></div></div>
         </div>
       </div>
 
-      <!-- ========================= ANNOUNCEMENTS ========================= -->
+      <!-- ===== ANNOUNCEMENTS ===== -->
       <div class="section" id="sec-announcements">
         <div class="card">
-          <div class="card-header">
-            <h3><i class="fa-solid fa-bullhorn"></i> เพิ่มประกาศใหม่</h3>
-            <button class="btn btn-outline btn-sm" onclick="toggleForm('annForm')"><i class="fa-solid fa-plus"></i> เพิ่ม</button>
-          </div>
+          <div class="card-header"><h3><i class="fa-solid fa-bullhorn"></i> เพิ่มประกาศใหม่</h3><button class="btn btn-outline btn-sm" onclick="toggleForm('annForm')"><i class="fa-solid fa-plus"></i> เพิ่ม</button></div>
           <div class="card-body" id="annForm" style="display:none">
             <div class="form-grid">
               <div class="form-group full"><label>หัวข้อประกาศ</label><input type="text" id="a_title" placeholder="หัวข้อ..."/></div>
-              <div class="form-group"><label>หมวดหมู่</label>
-                <select id="a_cat"><option>ทั่วไป</option><option>ด่วน</option><option>สำคัญ</option></select>
-              </div>
+              <div class="form-group"><label>หมวดหมู่</label><select id="a_cat"><option>ทั่วไป</option><option>ด่วน</option><option>สำคัญ</option></select></div>
               <div class="form-group"><label>วันที่ประกาศ</label><input type="text" id="a_date" placeholder="01/03/2567"/></div>
               <div class="form-group full"><label>เนื้อหา</label><textarea id="a_content" placeholder="รายละเอียดประกาศ..."></textarea></div>
+              <!-- ✅ BUG FIX: เพิ่ม input file สำหรับแนบไฟล์ประกาศ -->
+              <div class="form-group full">
+                <label><i class="fa-solid fa-paperclip"></i> แนบไฟล์ (PDF หรือรูปภาพ)</label>
+                <input type="file" id="a_file" accept=".pdf,image/*" onchange="previewAnnFile(this)"/>
+                <div id="a_file_preview" style="display:none;margin-top:.4rem">
+                  <span id="a_file_name" style="font-size:.8rem;color:var(--muted)"></span>
+                  <button type="button" class="btn btn-danger btn-sm" style="margin-left:.5rem" onclick="clearAnnFile()"><i class="fa-solid fa-xmark"></i> ล้าง</button>
+                </div>
+                <div id="a_file_progress" style="display:none;margin-top:.4rem;font-size:.8rem;color:var(--primary)"><i class="fa-solid fa-spinner fa-spin"></i> กำลังอัปโหลด...</div>
+              </div>
             </div>
-            <div class="form-actions">
-              <button class="btn btn-outline" onclick="toggleForm('annForm')">ยกเลิก</button>
-              <button class="btn btn-primary" onclick="saveAnn()"><i class="fa-solid fa-floppy-disk"></i> บันทึก</button>
-            </div>
+            <div class="form-actions"><button class="btn btn-outline" onclick="toggleForm('annForm')">ยกเลิก</button><button class="btn btn-primary" onclick="saveAnn()"><i class="fa-solid fa-floppy-disk"></i> บันทึก</button></div>
           </div>
         </div>
-
         <div class="card">
-          <div class="card-header"><h3><i class="fa-solid fa-list"></i> ประกาศทั้งหมด</h3>
-            <button class="btn btn-outline btn-sm" onclick="loadAnn()"><i class="fa-solid fa-rotate"></i> รีโหลด</button>
-          </div>
-          <div class="card-body">
-            <div class="table-wrap">
-              <table>
-                <thead><tr><th>หัวข้อ</th><th>หมวด</th><th>วันที่</th><th>แสดง</th><th>จัดการ</th></tr></thead>
-                <tbody id="annTbody"><tr><td colspan="5"><div class="skeleton"></div></td></tr></tbody>
-              </table>
-            </div>
-          </div>
+          <div class="card-header"><h3><i class="fa-solid fa-list"></i> ประกาศทั้งหมด</h3><button class="btn btn-outline btn-sm" onclick="loadAnn()"><i class="fa-solid fa-rotate"></i> รีโหลด</button></div>
+          <div class="card-body"><div class="table-wrap"><table><thead><tr>
+            <th onclick="sortTable('ann','title',this)">หัวข้อ<i class="fa-solid fa-sort sort-i"></i></th>
+            <th>หมวด</th>
+            <th onclick="sortTable('ann','date',this)">วันที่<i class="fa-solid fa-sort sort-i"></i></th>
+            <th>แสดง</th><th>จัดการ</th>
+          </tr></thead><tbody id="annTbody"><tr><td colspan="5"><div class="skeleton"></div></td></tr></tbody></table></div></div>
         </div>
       </div>
 
-      <!-- ========================= NITI ========================= -->
+      <!-- ===== NITI ===== -->
       <div class="section" id="sec-niti">
         <div class="card">
-          <div class="card-header">
-            <h3><i class="fa-solid fa-clipboard-list"></i> เพิ่มรายงานผลงาน</h3>
-            <button class="btn btn-outline btn-sm" onclick="toggleForm('nitiForm')"><i class="fa-solid fa-plus"></i> เพิ่ม</button>
-          </div>
+          <div class="card-header"><h3><i class="fa-solid fa-clipboard-list"></i> เพิ่มรายงานผลงาน</h3><button class="btn btn-outline btn-sm" onclick="toggleForm('nitiForm')"><i class="fa-solid fa-plus"></i> เพิ่ม</button></div>
           <div class="card-body" id="nitiForm" style="display:none">
             <div class="form-grid">
               <div class="form-group"><label>เดือน (1-12)</label><input type="number" id="n_month" min="1" max="12" placeholder="3"/></div>
               <div class="form-group"><label>ปี พ.ศ.</label><input type="number" id="n_year" placeholder="2567"/></div>
               <div class="form-group full"><label>หัวข้อ</label><input type="text" id="n_title" placeholder="ผลงานประจำเดือน มีนาคม 2567"/></div>
-              <div class="form-group full"><label>รายละเอียดผลงาน</label><textarea id="n_content" style="min-height:120px" placeholder="- ซ่อมแซมไฟทางเดิน&#10;- ตัดแต่งต้นไม้..."></textarea></div>
+              <div class="form-group full"><label>รายละเอียดผลงาน</label><textarea id="n_content" style="min-height:110px" placeholder="- ซ่อมแซมไฟทางเดิน&#10;- ตัดแต่งต้นไม้..."></textarea></div>
               <div class="form-group"><label>รายรับเดือนนี้ (บาท)</label><input type="number" id="n_income" placeholder="0"/></div>
               <div class="form-group"><label>รายจ่ายเดือนนี้ (บาท)</label><input type="number" id="n_expense" placeholder="0"/></div>
               <div class="form-group full">
@@ -422,449 +369,385 @@
                 <div id="n_photos_progress" style="display:none;margin-top:.4rem;font-size:.8rem;color:var(--primary)"><i class="fa-solid fa-spinner fa-spin"></i> กำลังอัปโหลด...</div>
               </div>
             </div>
-            <div class="form-actions">
-              <button class="btn btn-outline" onclick="toggleForm('nitiForm')">ยกเลิก</button>
-              <button class="btn btn-primary" onclick="saveNiti()"><i class="fa-solid fa-floppy-disk"></i> บันทึก</button>
-            </div>
+            <div class="form-actions"><button class="btn btn-outline" onclick="toggleForm('nitiForm')">ยกเลิก</button><button class="btn btn-primary" onclick="saveNiti()"><i class="fa-solid fa-floppy-disk"></i> บันทึก</button></div>
           </div>
         </div>
-
         <div class="card">
-          <div class="card-header"><h3><i class="fa-solid fa-table-list"></i> รายงานทั้งหมด</h3>
-            <button class="btn btn-outline btn-sm" onclick="loadNiti()"><i class="fa-solid fa-rotate"></i> รีโหลด</button>
-          </div>
-          <div class="card-body">
-            <div class="table-wrap">
-              <table>
-                <thead><tr><th>เดือน/ปี</th><th>หัวข้อ</th><th>รายรับ</th><th>รายจ่าย</th><th>จัดการ</th></tr></thead>
-                <tbody id="nitiTbody"><tr><td colspan="5"><div class="skeleton"></div></td></tr></tbody>
-              </table>
-            </div>
-          </div>
+          <div class="card-header"><h3><i class="fa-solid fa-table-list"></i> รายงานทั้งหมด</h3><button class="btn btn-outline btn-sm" onclick="loadNiti()"><i class="fa-solid fa-rotate"></i> รีโหลด</button></div>
+          <div class="card-body"><div class="table-wrap"><table><thead><tr>
+            <th onclick="sortTable('niti','month',this)">เดือน/ปี<i class="fa-solid fa-sort sort-i"></i></th>
+            <th onclick="sortTable('niti','title',this)">หัวข้อ<i class="fa-solid fa-sort sort-i"></i></th>
+            <th onclick="sortTable('niti','income',this)">รายรับ<i class="fa-solid fa-sort sort-i"></i></th>
+            <th onclick="sortTable('niti','expense',this)">รายจ่าย<i class="fa-solid fa-sort sort-i"></i></th>
+            <th>จัดการ</th>
+          </tr></thead><tbody id="nitiTbody"><tr><td colspan="5"><div class="skeleton"></div></td></tr></tbody></table></div></div>
         </div>
       </div>
-
     </main>
   </div>
 </div>
 
 <script>
-  // ============================================================
-  const API_URL = 'https://script.google.com/macros/s/AKfycbwQbc31pY86tM7EdD41dBsXRQ-OmL6M5m0TJKs_ZJiix2bLEYkHOiQ8eIGazR7ay0_l/exec';
-  // ============================================================
+  const API_URL='https://script.google.com/macros/s/AKfycbwQbc31pY86tM7EdD41dBsXRQ-OmL6M5m0TJKs_ZJiix2bLEYkHOiQ8eIGazR7ay0_l/exec';
+  const token=localStorage.getItem('vms_token');
+  const role=localStorage.getItem('vms_role');
+  const name=localStorage.getItem('vms_name');
 
-  const token = localStorage.getItem('vms_token');
-  const role  = localStorage.getItem('vms_role');
-  const name  = localStorage.getItem('vms_name');
+  if(!token||role!=='admin'){Swal.fire({icon:'warning',title:'ไม่มีสิทธิ์',text:'กรุณาเข้าสู่ระบบด้วยบัญชี Admin'}).then(()=>window.location.href='index.html');}
+  if(name)document.getElementById('adminName').textContent=name;
 
-  if (!token || role !== 'admin') {
-    Swal.fire({ icon: 'warning', title: 'ไม่มีสิทธิ์', text: 'กรุณาเข้าสู่ระบบด้วยบัญชี Admin' }).then(() => window.location.href = 'index.html');
-  }
-  if (name) document.getElementById('adminName').textContent = name;
+  applyTheme(localStorage.getItem('vms_theme')||'light');
+  function applyTheme(t){document.documentElement.setAttribute('data-theme',t);document.getElementById('themeIcon').className=t==='dark'?'fa-solid fa-sun':'fa-solid fa-moon';localStorage.setItem('vms_theme',t);if(overviewLoaded)drawOverviewCharts();}
+  function toggleTheme(){applyTheme(document.documentElement.getAttribute('data-theme')==='dark'?'light':'dark');}
 
-  const MONTHS_TH = ['','ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+  const MONTHS_TH=['','ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+  const sectionTitles={overview:'<i class="fa-solid fa-gauge"></i> Dashboard',houses:'<i class="fa-solid fa-house"></i> จัดการข้อมูลบ้าน',fees:'<i class="fa-solid fa-receipt"></i> จัดการค่าส่วนกลาง',users:'<i class="fa-solid fa-users"></i> จัดการผู้ใช้งาน',announcements:'<i class="fa-solid fa-bullhorn"></i> จัดการประกาศ',niti:'<i class="fa-solid fa-clipboard-list"></i> จัดการผลงานนิติ'};
+  const sectionLoaders={houses:loadHouses,fees:loadFees,users:loadUsers,announcements:loadAnn,niti:loadNiti};
 
-  // ── Navigation ────────────────────────────────────────────────
-  const sectionTitles = {
-    overview: '<i class="fa-solid fa-gauge"></i> Dashboard',
-    houses:   '<i class="fa-solid fa-house"></i> จัดการข้อมูลบ้าน',
-    fees:     '<i class="fa-solid fa-receipt"></i> จัดการค่าส่วนกลาง',
-    users:    '<i class="fa-solid fa-users"></i> จัดการผู้ใช้งาน',
-    announcements: '<i class="fa-solid fa-bullhorn"></i> จัดการประกาศ',
-    niti:     '<i class="fa-solid fa-clipboard-list"></i> จัดการผลงานนิติ'
-  };
-  const sectionLoaders = { houses: loadHouses, fees: loadFees, users: loadUsers, announcements: loadAnn, niti: loadNiti };
-
-  function showSection(id, btn) {
-    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-    document.getElementById('sec-' + id).classList.add('active');
-    document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
-    if (btn) btn.classList.add('active');
-    document.getElementById('topbarTitle').innerHTML = sectionTitles[id] || '';
-    if (sectionLoaders[id]) sectionLoaders[id]();
+  function showSection(id,btn){
+    document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+    document.getElementById('sec-'+id).classList.add('active');
+    document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'));
+    if(btn)btn.classList.add('active');
+    document.getElementById('topbarTitle').innerHTML=sectionTitles[id]||'';
+    if(sectionLoaders[id])sectionLoaders[id]();
     closeSidebar();
   }
+  function openSidebar(){document.getElementById('sidebar').classList.add('open');document.getElementById('overlay').classList.add('open');}
+  function closeSidebar(){document.getElementById('sidebar').classList.remove('open');document.getElementById('overlay').classList.remove('open');}
+  function toggleForm(id){const el=document.getElementById(id);el.style.display=el.style.display==='none'?'':'none';}
+  function g(id){return document.getElementById(id)?.value||'';}
+  function vs(id){return document.getElementById(id)?.value||'';}
 
-  function openSidebar()  { document.getElementById('sidebar').classList.add('open'); document.getElementById('overlay').classList.add('open'); }
-  function closeSidebar() { document.getElementById('sidebar').classList.remove('open'); document.getElementById('overlay').classList.remove('open'); }
-  function toggleForm(id) { const el = document.getElementById(id); el.style.display = el.style.display === 'none' ? '' : 'none'; }
+  function toBase64(file){return new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result.split(',')[1]);r.onerror=rej;r.readAsDataURL(file);});}
+  async function api(params){if(!params.token)params.token=token;const r=await fetch(API_URL+'?'+new URLSearchParams(params));return r.json();}
+  function toast(icon,title){Swal.fire({icon,title,toast:true,position:'top-end',showConfirmButton:false,timer:2200});}
 
-  // ── API ───────────────────────────────────────────────────────
-  function toBase64(file) {
-    return new Promise((res, rej) => {
-      const r = new FileReader();
-      r.onload = () => res(r.result.split(',')[1]);
-      r.onerror = rej;
-      r.readAsDataURL(file);
+  // SORT state per table
+  const sortState={houses:{col:'',dir:1},fees:{col:'',dir:1},users:{col:'',dir:1},ann:{col:'',dir:1},niti:{col:'',dir:1}};
+  function sortTable(table,col,th){
+    const s=sortState[table];
+    if(s.col===col)s.dir*=-1;else{s.col=col;s.dir=1;}
+    document.querySelectorAll(`#sec-${table==='ann'?'announcements':table==='niti'?'niti':table} th`).forEach(t=>{t.classList.remove('asc','desc');});
+    th.classList.add(s.dir===1?'asc':'desc');
+    const fn={houses:()=>renderHouses(housesData),fees:()=>renderFees(feesData),users:()=>renderUsers(usersData),ann:()=>renderAnn(annData),niti:()=>renderNiti(nitiData)};
+    if(fn[table])fn[table]();
+  }
+  function sortArr(arr,col,dir){
+    if(!col)return arr;
+    return [...arr].sort((a,b)=>{
+      const va=a[col]||'',vb=b[col]||'';
+      if(!isNaN(va)&&!isNaN(vb))return(Number(va)-Number(vb))*dir;
+      return String(va).localeCompare(String(vb),'th')*dir;
     });
   }
 
-  async function api(params) {
-    if (!params.token) params.token = token;
-    const qs = new URLSearchParams(params).toString();
-    const r = await fetch(API_URL + '?' + qs);
-    return r.json();
-  }
+  // ── OVERVIEW ──────────────────────────────────────────────────
+  let overviewLoaded=false;
+  let overviewSummary=null;
+  let oDonut=null,oBar=null;
 
-  function toast(icon, title) {
-    Swal.fire({ icon, title, toast: true, position: 'top-end', showConfirmButton: false, timer: 2000 });
-  }
-
-  // ── Overview ──────────────────────────────────────────────────
-  async function loadOverview() {
-    const [houses, fees, anns, reports] = await Promise.all([
-      api({ action: 'getHouses' }),
-      api({ action: 'getFees' }),
-      api({ action: 'getAnnouncements' }),
-      api({ action: 'getNitiReports' })
+  async function loadOverview(){
+    const[houses,fees,anns,reports,summary]=await Promise.all([
+      api({action:'getHouses'}),api({action:'getFees'}),api({action:'getAnnouncements'}),
+      api({action:'getNitiReports'}),api({action:'getFeeSummary'})
     ]);
-    document.getElementById('overviewStats').innerHTML = `
-      <div class="mini-stat">
-        <div class="mini-stat-icon" style="color:var(--primary)"><i class="fa-solid fa-house"></i></div>
-        <div class="mini-stat-val">${houses.data?.length || 0}</div>
-        <div class="mini-stat-label">บ้านทั้งหมด</div>
-      </div>
-      <div class="mini-stat">
-        <div class="mini-stat-icon" style="color:#059669"><i class="fa-solid fa-receipt"></i></div>
-        <div class="mini-stat-val">${fees.data?.length || 0}</div>
-        <div class="mini-stat-label">รายการค่าส่วนกลาง</div>
-      </div>
-      <div class="mini-stat">
-        <div class="mini-stat-icon" style="color:#d97706"><i class="fa-solid fa-bullhorn"></i></div>
-        <div class="mini-stat-val">${anns.data?.length || 0}</div>
-        <div class="mini-stat-label">ประกาศ</div>
-      </div>
-      <div class="mini-stat">
-        <div class="mini-stat-icon" style="color:#7c3aed"><i class="fa-solid fa-clipboard-list"></i></div>
-        <div class="mini-stat-val">${reports.data?.length || 0}</div>
-        <div class="mini-stat-label">รายงานนิติ</div>
-      </div>`;
+    overviewSummary=summary.data;
+    document.getElementById('overviewStats').innerHTML=`
+      <div class="mini-stat"><div class="mini-stat-icon" style="color:var(--primary)"><i class="fa-solid fa-house"></i></div><div class="mini-stat-val">${houses.data?.length||0}</div><div class="mini-stat-label">บ้านทั้งหมด</div></div>
+      <div class="mini-stat"><div class="mini-stat-icon" style="color:#059669"><i class="fa-solid fa-receipt"></i></div><div class="mini-stat-val">${fees.data?.length||0}</div><div class="mini-stat-label">รายการค่าส่วนกลาง</div></div>
+      <div class="mini-stat"><div class="mini-stat-icon" style="color:#d97706"><i class="fa-solid fa-bullhorn"></i></div><div class="mini-stat-val">${anns.data?.length||0}</div><div class="mini-stat-label">ประกาศ</div></div>
+      <div class="mini-stat"><div class="mini-stat-icon" style="color:#7c3aed"><i class="fa-solid fa-clipboard-list"></i></div><div class="mini-stat-val">${reports.data?.length||0}</div><div class="mini-stat-label">รายงานนิติ</div></div>`;
+    overviewLoaded=true;
+    drawOverviewCharts();
   }
 
-  // ── Houses ────────────────────────────────────────────────────
-  let housesData = [];
-  async function loadHouses() {
-    document.getElementById('houseTbody').innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--muted)">กำลังโหลด...</td></tr>';
-    const d = await api({ action: 'getHouses' });
-    housesData = d.data || [];
-    renderHouses(housesData);
-  }
-  function renderHouses(list) {
-    if (!list.length) { document.getElementById('houseTbody').innerHTML = '<tr class="empty-row"><td colspan="7">ไม่มีข้อมูล</td></tr>'; return; }
-    const ST_BG = {'ปกติ':'#d1fae5','ค้างชำระ':'#fef9c3','ระงับกรมที่ดิน':'#ffedd5','ฟ้องร้อง':'#fee2e2'};
-    const ST_C  = {'ปกติ':'#065f46','ค้างชำระ':'#854d0e','ระงับกรมที่ดิน':'#9a3412','ฟ้องร้อง':'#7f1d1d'};
-    document.getElementById('houseTbody').innerHTML = list.map(h => {
-    const hst = h.account_status || 'ปกติ';
-    return `<tr>
-      <td><strong>${h.house_no}</strong></td>
-      <td>${h.owner_name}</td>
-      <td>${h.soi}</td>
-      <td>${h.house_type}</td>
-      <td><span style="background:${ST_BG[hst]||'#d1fae5'};color:${ST_C[hst]||'#065f46'};padding:.2rem .7rem;border-radius:20px;font-size:.78rem;font-weight:700">${hst}</span></td>
-      <td>${Number(h.fee_per_half).toLocaleString()} ฿</td>
-      <td><span class="badge ${h.status === 'active' ? 'paid' : 'unpaid'}">${h.status}</span></td>
-      <td><div class="actions">
-        <button class="btn btn-outline btn-sm" onclick="editHouse('${h.house_id}')"><i class="fa-solid fa-pen"></i></button>
-        <button class="btn btn-danger btn-sm" onclick="delHouse('${h.house_id}')"><i class="fa-solid fa-trash"></i></button>
-      </div></td>
-    </tr>`;}).join('');
-  }
-  function filterHouses() {
-    const q = document.getElementById('houseSearch').value.toLowerCase();
-    renderHouses(housesData.filter(h => h.house_no.toLowerCase().includes(q) || h.owner_name.toLowerCase().includes(q)));
+  function drawOverviewCharts(){
+    if(!overviewSummary)return;
+    const d=overviewSummary;
+    const isDark=document.documentElement.getAttribute('data-theme')==='dark';
+    const textC=isDark?'#a0aec0':'#8896ab';
+    const gridC=isDark?'rgba(255,255,255,.06)':'rgba(0,0,0,.06)';
+    document.getElementById('overviewCharts').innerHTML=`
+      <div class="chart-card"><div class="chart-title"><i class="fa-solid fa-chart-pie"></i> สัดส่วนการชำระ ปี ${d.year}</div><div class="chart-wrap"><canvas id="ovDonut"></canvas></div></div>
+      <div class="chart-card"><div class="chart-title"><i class="fa-solid fa-chart-bar"></i> ชำระแยกซอย</div><div class="chart-wrap"><canvas id="ovBar"></canvas></div></div>`;
+    if(oDonut){oDonut.destroy();oDonut=null;}
+    if(oBar){oBar.destroy();oBar=null;}
+    oDonut=new Chart(document.getElementById('ovDonut').getContext('2d'),{type:'doughnut',data:{labels:['ชำระครบ','บางส่วน','ยังไม่ชำระ'],datasets:[{data:[d.hFullPaid,d.hPartial,d.hUnpaid],backgroundColor:['#34c88a','#f6c26b','#f87171'],borderWidth:0,hoverOffset:5}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{color:textC,font:{family:'Sarabun',size:11},padding:12}}},cutout:'62%'}});
+    const soiEntries=Object.entries(d.bySoi||{}).slice(0,7);
+    oBar=new Chart(document.getElementById('ovBar').getContext('2d'),{type:'bar',data:{labels:soiEntries.map(([s])=>s),datasets:[{label:'ชำระครบ',data:soiEntries.map(([,v])=>v.fullPaid),backgroundColor:'#34c88a',borderRadius:5},{label:'ค้างชำระ',data:soiEntries.map(([,v])=>v.unpaid+v.partial),backgroundColor:'#f87171',borderRadius:5}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{color:textC,font:{family:'Sarabun',size:11},padding:12}}},scales:{x:{stacked:true,ticks:{color:textC,font:{family:'Sarabun'}},grid:{color:gridC}},y:{stacked:true,ticks:{color:textC,font:{family:'Sarabun'},stepSize:1},grid:{color:gridC}}}}});
   }
 
-  async function saveHouse() {
-    const data = { action: 'addHouse', house_no: g('h_no'), owner_name: g('h_owner'), address: g('h_addr'), area_sqm: g('h_area'), soi: g('h_soi'), house_type: g('h_type'), phone: g('h_phone'), fee_per_half: g('h_fee'), account_status: g('h_acst'), note: g('h_note') };
-    if (!data.house_no || !data.owner_name) { toast('warning', 'กรุณากรอกข้อมูลให้ครบ'); return; }
-    const r = await api(data);
-    if (r.success) { toast('success', r.message); toggleForm('houseForm'); loadHouses(); }
-    else toast('error', r.message);
+  // ── HOUSES ────────────────────────────────────────────────────
+  let housesData=[];
+  let housesFiltered=[];
+  async function loadHouses(){
+    document.getElementById('houseTbody').innerHTML='<tr><td colspan="8" style="text-align:center;color:var(--muted)">กำลังโหลด...</td></tr>';
+    const d=await api({action:'getHouses'});
+    housesData=d.data||[];housesFiltered=[...housesData];renderHouses(housesFiltered);
   }
-
-  function editHouse(id) {
-    const h = housesData.find(x => x.house_id === id);
-    if (!h) return;
+  function renderHouses(list){
+    const s=sortState.houses;
+    const sorted=sortArr(list,s.col,s.dir);
+    if(!sorted.length){document.getElementById('houseTbody').innerHTML='<tr class="empty-row"><td colspan="8">ไม่มีข้อมูล</td></tr>';return;}
+    // ✅ BUG FIX: ลำดับคอลัมน์ตรงกับ header ทั้ง 8 คอลัมน์
+    document.getElementById('houseTbody').innerHTML=sorted.map(h=>{
+      const hst=h.account_status||'ปกติ';
+      return`<tr>
+        <td><strong>${h.house_no}</strong></td>
+        <td>${h.owner_name}</td>
+        <td>${h.soi}</td>
+        <td>${h.house_type}</td>
+        <td><span class="hst-badge hst-${hst}">${hst}</span></td>
+        <td>${Number(h.fee_per_half).toLocaleString()} ฿</td>
+        <td><span class="badge ${h.status==='active'?'paid':'unpaid'}">${h.status}</span></td>
+        <td><div class="actions">
+          <button class="btn btn-outline btn-sm" onclick="editHouse('${h.house_id}')"><i class="fa-solid fa-pen"></i></button>
+          <button class="btn btn-danger btn-sm" onclick="delHouse('${h.house_id}')"><i class="fa-solid fa-trash"></i></button>
+        </div></td>
+      </tr>`;
+    }).join('');
+  }
+  function filterHouses(){
+    const q=document.getElementById('houseSearch').value.toLowerCase();
+    housesFiltered=housesData.filter(h=>h.house_no.toLowerCase().includes(q)||h.owner_name.toLowerCase().includes(q));
+    renderHouses(housesFiltered);
+  }
+  async function saveHouse(){
+    const data={action:'addHouse',house_no:g('h_no'),owner_name:g('h_owner'),address:g('h_addr'),area_sqm:g('h_area'),soi:g('h_soi'),house_type:g('h_type'),phone:g('h_phone'),fee_per_half:g('h_fee'),account_status:g('h_acst'),note:g('h_note')};
+    if(!data.house_no||!data.owner_name){toast('warning','กรุณากรอกข้อมูลให้ครบ');return;}
+    const r=await api(data);
+    if(r.success){toast('success',r.message);toggleForm('houseForm');loadHouses();}else toast('error',r.message);
+  }
+  function editHouse(id){
+    const h=housesData.find(x=>x.house_id===id);if(!h)return;
     Swal.fire({
-      title: 'แก้ไขข้อมูลบ้าน ' + h.house_no,
-      html: `
-        <input id="eh_no"    class="swal2-input" placeholder="บ้านเลขที่" value="${h.house_no}">
+      title:'แก้ไขข้อมูลบ้าน '+h.house_no,
+      html:`<input id="eh_no" class="swal2-input" placeholder="บ้านเลขที่" value="${h.house_no}">
         <input id="eh_owner" class="swal2-input" placeholder="เจ้าของ" value="${h.owner_name}">
-        <input id="eh_soi"   class="swal2-input" placeholder="ซอย" value="${h.soi}">
-        <input id="eh_fee"   class="swal2-input" type="number" placeholder="ค่าส่วนกลาง" value="${h.fee_per_half}">
-        <input id="eh_phone" class="swal2-input" placeholder="เบอร์โทร" value="${h.phone}">`,
-      showCancelButton: true, confirmButtonText: 'บันทึก', cancelButtonText: 'ยกเลิก',
-      confirmButtonColor: '#5b8dee',
-      preConfirm: async () => {
-        const r = await api({ action: 'updateHouse', house_id: id, house_no: vs('eh_no'), owner_name: vs('eh_owner'), address: h.address, area_sqm: h.area_sqm, soi: vs('eh_soi'), house_type: h.house_type, phone: vs('eh_phone'), fee_per_half: vs('eh_fee'), status: h.status });
-        if (!r.success) Swal.showValidationMessage(r.message);
-        return r;
+        <input id="eh_soi" class="swal2-input" placeholder="ซอย" value="${h.soi}">
+        <input id="eh_fee" class="swal2-input" type="number" placeholder="ค่าส่วนกลาง" value="${h.fee_per_half}">
+        <input id="eh_phone" class="swal2-input" placeholder="เบอร์โทร" value="${h.phone||''}">
+        <!-- ✅ BUG FIX: เพิ่ม account_status ในฟอร์ม edit -->
+        <select id="eh_acst" class="swal2-input">
+          <option value="ปกติ" ${h.account_status==='ปกติ'?'selected':''}>ปกติ</option>
+          <option value="ค้างชำระ" ${h.account_status==='ค้างชำระ'?'selected':''}>ค้างชำระ</option>
+          <option value="ระงับกรมที่ดิน" ${h.account_status==='ระงับกรมที่ดิน'?'selected':''}>ระงับกรมที่ดิน</option>
+          <option value="ฟ้องร้อง" ${h.account_status==='ฟ้องร้อง'?'selected':''}>ฟ้องร้อง</option>
+        </select>`,
+      showCancelButton:true,confirmButtonText:'บันทึก',cancelButtonText:'ยกเลิก',confirmButtonColor:'#4f7ef7',
+      preConfirm:async()=>{
+        const r=await api({action:'updateHouse',house_id:id,house_no:vs('eh_no'),owner_name:vs('eh_owner'),address:h.address,area_sqm:h.area_sqm,soi:vs('eh_soi'),house_type:h.house_type,phone:vs('eh_phone'),fee_per_half:vs('eh_fee'),status:h.status,account_status:vs('eh_acst')});
+        if(!r.success)Swal.showValidationMessage(r.message);return r;
       }
-    }).then(res => { if (res.isConfirmed) { toast('success', 'อัปเดตสำเร็จ'); loadHouses(); } });
+    }).then(res=>{if(res.isConfirmed){toast('success','อัปเดตสำเร็จ');loadHouses();}});
+  }
+  async function delHouse(id){
+    const c=await Swal.fire({icon:'warning',title:'ลบบ้าน?',text:'จะเปลี่ยนสถานะเป็น inactive',showCancelButton:true,confirmButtonColor:'#dc2626',confirmButtonText:'ลบ',cancelButtonText:'ยกเลิก'});
+    if(!c.isConfirmed)return;
+    const r=await api({action:'deleteHouse',house_id:id});
+    if(r.success){toast('success',r.message);loadHouses();}else toast('error',r.message);
   }
 
-  async function delHouse(id) {
-    const c = await Swal.fire({ icon: 'warning', title: 'ลบบ้าน?', text: 'จะเปลี่ยนสถานะเป็น inactive', showCancelButton: true, confirmButtonColor: '#dc2626', confirmButtonText: 'ลบ', cancelButtonText: 'ยกเลิก' });
-    if (!c.isConfirmed) return;
-    const r = await api({ action: 'deleteHouse', house_id: id });
-    if (r.success) { toast('success', r.message); loadHouses(); }
-    else toast('error', r.message);
+  // ── FEES ──────────────────────────────────────────────────────
+  let feesData=[];
+  let feesFiltered=[];
+  async function loadFees(){
+    document.getElementById('feeTbody').innerHTML='<tr><td colspan="7" style="text-align:center;color:var(--muted)">กำลังโหลด...</td></tr>';
+    const d=await api({action:'getFees'});feesData=d.data||[];feesFiltered=[...feesData];renderFees(feesFiltered);
   }
-
-  // ── Fees ──────────────────────────────────────────────────────
-  let feesData = [];
-  async function loadFees() {
-    document.getElementById('feeTbody').innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--muted)">กำลังโหลด...</td></tr>';
-    const d = await api({ action: 'getFees' });
-    feesData = d.data || [];
-    renderFees(feesData);
-  }
-  function renderFees(list) {
-    if (!list.length) { document.getElementById('feeTbody').innerHTML = '<tr class="empty-row"><td colspan="7">ไม่มีข้อมูล</td></tr>'; return; }
-    document.getElementById('feeTbody').innerHTML = list.map(f => `<tr>
-      <td>${f.house_id}</td>
-      <td>${f.year}</td>
+  function renderFees(list){
+    const s=sortState.fees;const sorted=sortArr(list,s.col,s.dir);
+    if(!sorted.length){document.getElementById('feeTbody').innerHTML='<tr class="empty-row"><td colspan="7">ไม่มีข้อมูล</td></tr>';return;}
+    document.getElementById('feeTbody').innerHTML=sorted.map(f=>`<tr>
+      <td>${f.house_id}</td><td>${f.year}</td>
       <td>${Number(f.h1_paid).toLocaleString()} / ${Number(f.h1_amount).toLocaleString()}</td>
       <td><span class="badge ${f.h1_status}">${{paid:'ครบ',partial:'บางส่วน',unpaid:'ยังไม่ชำระ'}[f.h1_status]||f.h1_status}</span></td>
       <td>${Number(f.h2_paid).toLocaleString()} / ${Number(f.h2_amount).toLocaleString()}</td>
       <td><span class="badge ${f.h2_status}">${{paid:'ครบ',partial:'บางส่วน',unpaid:'ยังไม่ชำระ'}[f.h2_status]||f.h2_status}</span></td>
-      <td><div class="actions">
-        <button class="btn btn-outline btn-sm" onclick="editFee('${f.fee_id}')"><i class="fa-solid fa-pen"></i></button>
-      </div></td>
+      <td><button class="btn btn-outline btn-sm" onclick="editFee('${f.fee_id}')"><i class="fa-solid fa-pen"></i></button></td>
     </tr>`).join('');
   }
-  function filterFees() {
-    const q = document.getElementById('feeSearch').value.toLowerCase();
-    renderFees(feesData.filter(f => String(f.house_id).toLowerCase().includes(q) || String(f.year).includes(q)));
+  function filterFees(){
+    const q=document.getElementById('feeSearch').value.toLowerCase();
+    feesFiltered=feesData.filter(f=>String(f.house_id).toLowerCase().includes(q)||String(f.year).includes(q));
+    renderFees(feesFiltered);
   }
-
-  async function saveFee() {
-    const data = { action: 'addFee', house_id: g('f_house'), year: g('f_year'), h1_amount: g('f_h1amt'), h1_paid: g('f_h1paid'), h1_date: g('f_h1date'), h1_status: g('f_h1status'), h2_amount: g('f_h2amt'), h2_paid: g('f_h2paid'), h2_date: g('f_h2date'), h2_status: g('f_h2status'), note: g('f_note') };
-    if (!data.house_id || !data.year) { toast('warning', 'กรุณากรอกข้อมูลให้ครบ'); return; }
-    const r = await api(data);
-    if (r.success) { toast('success', r.message); toggleForm('feeForm'); loadFees(); }
-    else toast('error', r.message);
+  async function saveFee(){
+    const data={action:'addFee',house_id:g('f_house'),year:g('f_year'),h1_amount:g('f_h1amt'),h1_paid:g('f_h1paid'),h1_date:g('f_h1date'),h1_status:g('f_h1status'),h2_amount:g('f_h2amt'),h2_paid:g('f_h2paid'),h2_date:g('f_h2date'),h2_status:g('f_h2status'),note:g('f_note')};
+    if(!data.house_id||!data.year){toast('warning','กรุณากรอกข้อมูลให้ครบ');return;}
+    const r=await api(data);
+    if(r.success){toast('success',r.message);toggleForm('feeForm');loadFees();}else toast('error',r.message);
   }
-
-  function editFee(id) {
-    const f = feesData.find(x => x.fee_id === id);
-    if (!f) return;
+  function editFee(id){
+    const f=feesData.find(x=>x.fee_id===id);if(!f)return;
     Swal.fire({
-      title: 'แก้ไขค่าส่วนกลาง',
-      html: `
-        <select id="ef_h1s" class="swal2-input">
-          <option value="paid" ${f.h1_status==='paid'?'selected':''}>H1: ชำระครบ</option>
-          <option value="partial" ${f.h1_status==='partial'?'selected':''}>H1: บางส่วน</option>
-          <option value="unpaid" ${f.h1_status==='unpaid'?'selected':''}>H1: ยังไม่ชำระ</option>
-        </select>
+      title:'แก้ไขค่าส่วนกลาง',
+      html:`<select id="ef_h1s" class="swal2-input"><option value="paid" ${f.h1_status==='paid'?'selected':''}>H1: ชำระครบ</option><option value="partial" ${f.h1_status==='partial'?'selected':''}>H1: บางส่วน</option><option value="unpaid" ${f.h1_status==='unpaid'?'selected':''}>H1: ยังไม่ชำระ</option></select>
         <input id="ef_h1p" class="swal2-input" type="number" placeholder="ชำระครึ่งปีแรก" value="${f.h1_paid}">
         <input id="ef_h1d" class="swal2-input" placeholder="วันที่ H1" value="${f.h1_date}">
-        <select id="ef_h2s" class="swal2-input">
-          <option value="paid" ${f.h2_status==='paid'?'selected':''}>H2: ชำระครบ</option>
-          <option value="partial" ${f.h2_status==='partial'?'selected':''}>H2: บางส่วน</option>
-          <option value="unpaid" ${f.h2_status==='unpaid'?'selected':''}>H2: ยังไม่ชำระ</option>
-        </select>
+        <select id="ef_h2s" class="swal2-input"><option value="paid" ${f.h2_status==='paid'?'selected':''}>H2: ชำระครบ</option><option value="partial" ${f.h2_status==='partial'?'selected':''}>H2: บางส่วน</option><option value="unpaid" ${f.h2_status==='unpaid'?'selected':''}>H2: ยังไม่ชำระ</option></select>
         <input id="ef_h2p" class="swal2-input" type="number" placeholder="ชำระครึ่งปีหลัง" value="${f.h2_paid}">
         <input id="ef_h2d" class="swal2-input" placeholder="วันที่ H2" value="${f.h2_date}">`,
-      showCancelButton: true, confirmButtonText: 'บันทึก', cancelButtonText: 'ยกเลิก', confirmButtonColor: '#5b8dee',
-      preConfirm: async () => {
-        const r = await api({ action: 'updateFee', fee_id: id, house_id: f.house_id, year: f.year,
-          h1_amount: f.h1_amount, h1_paid: vs('ef_h1p'), h1_date: vs('ef_h1d'), h1_status: vs('ef_h1s'),
-          h2_amount: f.h2_amount, h2_paid: vs('ef_h2p'), h2_date: vs('ef_h2d'), h2_status: vs('ef_h2s'), note: f.note });
-        if (!r.success) Swal.showValidationMessage(r.message);
-        return r;
+      showCancelButton:true,confirmButtonText:'บันทึก',cancelButtonText:'ยกเลิก',confirmButtonColor:'#4f7ef7',
+      preConfirm:async()=>{
+        const r=await api({action:'updateFee',fee_id:id,house_id:f.house_id,year:f.year,h1_amount:f.h1_amount,h1_paid:vs('ef_h1p'),h1_date:vs('ef_h1d'),h1_status:vs('ef_h1s'),h2_amount:f.h2_amount,h2_paid:vs('ef_h2p'),h2_date:vs('ef_h2d'),h2_status:vs('ef_h2s'),note:f.note});
+        if(!r.success)Swal.showValidationMessage(r.message);return r;
       }
-    }).then(res => { if (res.isConfirmed) { toast('success', 'อัปเดตสำเร็จ'); loadFees(); } });
+    }).then(res=>{if(res.isConfirmed){toast('success','อัปเดตสำเร็จ');loadFees();}});
   }
 
-  // ── Users ─────────────────────────────────────────────────────
-  let usersData = [];
-  async function loadUsers() {
-    document.getElementById('userTbody').innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--muted)">กำลังโหลด...</td></tr>';
-    const d = await api({ action: 'getUsers' });
-    usersData = d.data || [];
-    document.getElementById('userTbody').innerHTML = usersData.map(u => `<tr>
-      <td><strong>${u.username}</strong></td>
-      <td>${u.full_name}</td>
+  // ── USERS ─────────────────────────────────────────────────────
+  let usersData=[];
+  async function loadUsers(){
+    document.getElementById('userTbody').innerHTML='<tr><td colspan="6" style="text-align:center;color:var(--muted)">กำลังโหลด...</td></tr>';
+    const d=await api({action:'getUsers'});usersData=d.data||[];renderUsers(usersData);
+  }
+  function renderUsers(list){
+    const s=sortState.users;const sorted=sortArr(list,s.col,s.dir);
+    document.getElementById('userTbody').innerHTML=sorted.map(u=>`<tr>
+      <td><strong>${u.username}</strong></td><td>${u.full_name}</td>
       <td><span class="badge ${u.role}">${u.role}</span></td>
-      <td>${u.house_id || '—'}</td>
+      <td>${u.house_id||'—'}</td>
       <td><span class="badge ${u.active==='TRUE'?'paid':'unpaid'}">${u.active==='TRUE'?'เปิดใช้':'ปิด'}</span></td>
       <td><button class="btn btn-outline btn-sm" onclick="editUser('${u.user_id}')"><i class="fa-solid fa-pen"></i></button></td>
-    </tr>`).join('');
+    </tr>`).join('')||'<tr class="empty-row"><td colspan="6">ไม่มีข้อมูล</td></tr>';
   }
-
-  async function saveUser() {
-    const data = { action: 'addUser', username: g('u_user'), password: g('u_pass'), role: g('u_role'), house_id: g('u_house'), full_name: g('u_name') };
-    if (!data.username || !data.password) { toast('warning', 'กรุณากรอกข้อมูลให้ครบ'); return; }
-    const r = await api(data);
-    if (r.success) { toast('success', r.message); toggleForm('userForm'); loadUsers(); }
-    else toast('error', r.message);
+  async function saveUser(){
+    const data={action:'addUser',username:g('u_user'),password:g('u_pass'),role:g('u_role'),house_id:g('u_house'),full_name:g('u_name')};
+    if(!data.username||!data.password){toast('warning','กรุณากรอกข้อมูลให้ครบ');return;}
+    const r=await api(data);
+    if(r.success){toast('success',r.message);toggleForm('userForm');loadUsers();}else toast('error',r.message);
   }
-
-  function editUser(id) {
-    const u = usersData.find(x => x.user_id === id);
-    if (!u) return;
+  function editUser(id){
+    const u=usersData.find(x=>x.user_id===id);if(!u)return;
     Swal.fire({
-      title: 'แก้ไขผู้ใช้ ' + u.username,
-      html: `
-        <input id="eu_name" class="swal2-input" placeholder="ชื่อ-นามสกุล" value="${u.full_name}">
+      title:'แก้ไขผู้ใช้ '+u.username,
+      html:`<input id="eu_name" class="swal2-input" placeholder="ชื่อ-นามสกุล" value="${u.full_name}">
         <input id="eu_pass" class="swal2-input" placeholder="รหัสผ่านใหม่ (เว้นว่างถ้าไม่เปลี่ยน)">
         <input id="eu_house" class="swal2-input" placeholder="house_id" value="${u.house_id||''}">
-        <select id="eu_active" class="swal2-input">
-          <option value="TRUE" ${u.active==='TRUE'?'selected':''}>เปิดใช้งาน</option>
-          <option value="FALSE" ${u.active!=='TRUE'?'selected':''}>ปิดใช้งาน</option>
-        </select>`,
-      showCancelButton: true, confirmButtonText: 'บันทึก', cancelButtonText: 'ยกเลิก', confirmButtonColor: '#5b8dee',
-      preConfirm: async () => {
-        const r = await api({ action: 'updateUser', user_id: id, username: u.username, password: vs('eu_pass') || '***', role: u.role, house_id: vs('eu_house'), full_name: vs('eu_name'), active: vs('eu_active') });
-        if (!r.success) Swal.showValidationMessage(r.message);
-        return r;
+        <select id="eu_active" class="swal2-input"><option value="TRUE" ${u.active==='TRUE'?'selected':''}>เปิดใช้งาน</option><option value="FALSE" ${u.active!=='TRUE'?'selected':''}>ปิดใช้งาน</option></select>`,
+      showCancelButton:true,confirmButtonText:'บันทึก',cancelButtonText:'ยกเลิก',confirmButtonColor:'#4f7ef7',
+      preConfirm:async()=>{
+        const r=await api({action:'updateUser',user_id:id,username:u.username,password:vs('eu_pass')||'***',role:u.role,house_id:vs('eu_house'),full_name:vs('eu_name'),active:vs('eu_active')});
+        if(!r.success)Swal.showValidationMessage(r.message);return r;
       }
-    }).then(res => { if (res.isConfirmed) { toast('success', 'อัปเดตสำเร็จ'); loadUsers(); } });
+    }).then(res=>{if(res.isConfirmed){toast('success','อัปเดตสำเร็จ');loadUsers();}});
   }
 
-  // ── Announcements ─────────────────────────────────────────────
-  let annData = [];
-  async function loadAnn() {
-    document.getElementById('annTbody').innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--muted)">กำลังโหลด...</td></tr>';
-    const d = await api({ action: 'getAnnouncements' });
-    annData = d.data || [];
-    document.getElementById('annTbody').innerHTML = annData.map(a => `<tr>
-      <td><strong>${a.title}</strong></td>
-      <td>${a.category}</td>
-      <td>${a.date}</td>
+  // ── ANNOUNCEMENTS ─────────────────────────────────────────────
+  let annData=[];
+  async function loadAnn(){
+    document.getElementById('annTbody').innerHTML='<tr><td colspan="5" style="text-align:center;color:var(--muted)">กำลังโหลด...</td></tr>';
+    const d=await api({action:'getAnnouncements'});annData=d.data||[];renderAnn(annData);
+  }
+  function renderAnn(list){
+    const s=sortState.ann;const sorted=sortArr(list,s.col,s.dir);
+    document.getElementById('annTbody').innerHTML=sorted.map(a=>`<tr>
+      <td><strong>${a.title}</strong></td><td>${a.category}</td><td>${a.date}</td>
       <td><span class="badge ${a.active==='TRUE'?'paid':'unpaid'}">${a.active==='TRUE'?'แสดง':'ซ่อน'}</span></td>
-      <td><div class="actions">
-        <button class="btn btn-danger btn-sm" onclick="delAnn('${a.ann_id}')"><i class="fa-solid fa-trash"></i></button>
-      </div></td>
-    </tr>`).join('') || '<tr class="empty-row"><td colspan="5">ไม่มีข้อมูล</td></tr>';
+      <td><button class="btn btn-danger btn-sm" onclick="delAnn('${a.ann_id}')"><i class="fa-solid fa-trash"></i></button></td>
+    </tr>`).join('')||'<tr class="empty-row"><td colspan="5">ไม่มีข้อมูล</td></tr>';
   }
 
-  let annFileUrl = '';
-
-  function previewAnnFile(input) {
-    if (!input.files.length) return;
-    const f = input.files[0];
-    document.getElementById('a_file_name').textContent = f.name + ' (' + (f.size/1024).toFixed(1) + ' KB)';
-    document.getElementById('a_file_preview').style.display = 'block';
+  // ✅ BUG FIX: ฟังก์ชัน preview/clear ไฟล์ประกาศ (มี HTML รองรับแล้ว)
+  function previewAnnFile(input){
+    if(!input.files.length)return;
+    const f=input.files[0];
+    document.getElementById('a_file_name').textContent=f.name+' ('+(f.size/1024).toFixed(1)+' KB)';
+    document.getElementById('a_file_preview').style.display='block';
   }
-  function clearAnnFile() {
-    document.getElementById('a_file').value = '';
-    document.getElementById('a_file_preview').style.display = 'none';
-    annFileUrl = '';
+  function clearAnnFile(){document.getElementById('a_file').value='';document.getElementById('a_file_preview').style.display='none';}
+  async function uploadAnnFile(){
+    const input=document.getElementById('a_file');if(!input.files.length)return'';
+    const file=input.files[0];const prog=document.getElementById('a_file_progress');
+    prog.style.display='block';
+    const base64=await toBase64(file);
+    const r=await api({action:'uploadFile',base64Data:base64,fileName:file.name,mimeType:file.type});
+    prog.style.display='none';
+    if(r.success)return r.fileUrl;
+    toast('error','อัปโหลดไฟล์ไม่สำเร็จ');return'';
   }
-
-  async function uploadAnnFile() {
-    const input = document.getElementById('a_file');
-    if (!input.files.length) return '';
-    const file = input.files[0];
-    const prog = document.getElementById('a_file_progress');
-    prog.style.display = 'block';
-    const base64 = await toBase64(file);
-    const r = await api({ action: 'uploadFile', base64Data: base64, fileName: file.name, mimeType: file.type });
-    prog.style.display = 'none';
-    if (r.success) return r.fileUrl;
-    toast('error', 'อัปโหลดไฟล์ไม่สำเร็จ'); return '';
+  async function saveAnn(){
+    const data={action:'addAnnouncement',title:g('a_title'),content:g('a_content'),category:g('a_cat'),date:g('a_date')};
+    if(!data.title||!data.content){toast('warning','กรุณากรอกข้อมูลให้ครบ');return;}
+    data.file_url=await uploadAnnFile();
+    const r=await api(data);
+    if(r.success){toast('success',r.message);toggleForm('annForm');loadAnn();}else toast('error',r.message);
   }
-
-  async function saveAnn() {
-    const data = { action: 'addAnnouncement', title: g('a_title'), content: g('a_content'), category: g('a_cat'), date: g('a_date') };
-    if (!data.title || !data.content) { toast('warning', 'กรุณากรอกข้อมูลให้ครบ'); return; }
-    data.file_url = await uploadAnnFile();
-    const r = await api(data);
-    if (r.success) { toast('success', r.message); toggleForm('annForm'); loadAnn(); }
-    else toast('error', r.message);
+  async function delAnn(id){
+    const c=await Swal.fire({icon:'warning',title:'ลบประกาศ?',showCancelButton:true,confirmButtonColor:'#dc2626',confirmButtonText:'ลบ',cancelButtonText:'ยกเลิก'});
+    if(!c.isConfirmed)return;
+    const r=await api({action:'deleteAnnouncement',ann_id:id});
+    if(r.success){toast('success',r.message);loadAnn();}
   }
 
-  async function delAnn(id) {
-    const c = await Swal.fire({ icon: 'warning', title: 'ลบประกาศ?', showCancelButton: true, confirmButtonColor: '#dc2626', confirmButtonText: 'ลบ', cancelButtonText: 'ยกเลิก' });
-    if (!c.isConfirmed) return;
-    const r = await api({ action: 'deleteAnnouncement', ann_id: id });
-    if (r.success) { toast('success', r.message); loadAnn(); }
+  // ── NITI ──────────────────────────────────────────────────────
+  let nitiData=[];
+  async function loadNiti(){
+    document.getElementById('nitiTbody').innerHTML='<tr><td colspan="5" style="text-align:center;color:var(--muted)">กำลังโหลด...</td></tr>';
+    const d=await api({action:'getNitiReports'});nitiData=d.data||[];renderNiti(nitiData);
   }
-
-  // ── Niti ──────────────────────────────────────────────────────
-  let nitiData = [];
-  async function loadNiti() {
-    document.getElementById('nitiTbody').innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--muted)">กำลังโหลด...</td></tr>';
-    const d = await api({ action: 'getNitiReports' });
-    nitiData = d.data || [];
-    document.getElementById('nitiTbody').innerHTML = nitiData.map(r => `<tr>
+  function renderNiti(list){
+    const s=sortState.niti;const sorted=sortArr(list,s.col,s.dir);
+    document.getElementById('nitiTbody').innerHTML=sorted.map(r=>`<tr>
       <td>${MONTHS_TH[r.month]} ${r.year}</td>
       <td>${r.title}</td>
       <td style="color:#059669">${Number(r.income||0).toLocaleString()} ฿</td>
       <td style="color:#dc2626">${Number(r.expense||0).toLocaleString()} ฿</td>
-      <td><div class="actions">
-        <button class="btn btn-danger btn-sm" onclick="delNiti('${r.report_id}')"><i class="fa-solid fa-trash"></i></button>
-      </div></td>
-    </tr>`).join('') || '<tr class="empty-row"><td colspan="5">ไม่มีข้อมูล</td></tr>';
+      <td><button class="btn btn-danger btn-sm" onclick="delNiti('${r.report_id}')"><i class="fa-solid fa-trash"></i></button></td>
+    </tr>`).join('')||'<tr class="empty-row"><td colspan="5">ไม่มีข้อมูล</td></tr>';
   }
 
-  let nitiPhotoUrls = [];
-
-  async function previewNitiPhotos(input) {
-    const files = Array.from(input.files).slice(0,10);
-    const prev = document.getElementById('n_photos_preview');
-    prev.innerHTML = files.map((f,i) => {
-      const url = URL.createObjectURL(f);
-      return `<div style="position:relative;width:70px;height:70px">
+  async function previewNitiPhotos(input){
+    const files=Array.from(input.files).slice(0,10);
+    const prev=document.getElementById('n_photos_preview');
+    prev.innerHTML=files.map((f,i)=>{
+      const url=URL.createObjectURL(f);
+      return`<div style="position:relative;width:70px;height:70px">
         <img src="${url}" style="width:70px;height:70px;object-fit:cover;border-radius:8px;border:1.5px solid var(--border)">
         <span style="position:absolute;top:-4px;right:-4px;background:#dc2626;color:#fff;border-radius:50%;width:18px;height:18px;font-size:.65rem;display:flex;align-items:center;justify-content:center;cursor:pointer" onclick="removeNitiPhoto(${i})">${i+1}</span>
       </div>`;
     }).join('');
   }
-  function removeNitiPhoto(idx) {
-    const dt = new DataTransfer();
-    const input = document.getElementById('n_photos');
-    Array.from(input.files).forEach((f,i) => { if(i!==idx) dt.items.add(f); });
-    input.files = dt.files;
-    previewNitiPhotos(input);
+  function removeNitiPhoto(idx){
+    const dt=new DataTransfer();const input=document.getElementById('n_photos');
+    Array.from(input.files).forEach((f,i)=>{if(i!==idx)dt.items.add(f);});
+    input.files=dt.files;previewNitiPhotos(input);
   }
-
-  async function uploadNitiPhotos() {
-    const input = document.getElementById('n_photos');
-    if (!input.files.length) return '';
-    const files = Array.from(input.files).slice(0,10);
-    const prog = document.getElementById('n_photos_progress');
-    prog.style.display = 'block';
-    prog.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> กำลังอัปโหลด 0/' + files.length + '...';
-    const urls = [];
-    for (let i=0; i<files.length; i++) {
-      prog.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> กำลังอัปโหลด ' + (i+1) + '/' + files.length + '...';
-      const base64 = await toBase64(files[i]);
-      const r = await api({ action: 'uploadFile', base64Data: base64, fileName: files[i].name, mimeType: files[i].type });
-      if (r.success) urls.push(r.fileUrl);
+  async function uploadNitiPhotos(){
+    const input=document.getElementById('n_photos');if(!input.files.length)return'';
+    const files=Array.from(input.files).slice(0,10);
+    const prog=document.getElementById('n_photos_progress');prog.style.display='block';
+    prog.innerHTML='<i class="fa-solid fa-spinner fa-spin"></i> กำลังอัปโหลด 0/'+files.length+'...';
+    const urls=[];
+    for(let i=0;i<files.length;i++){
+      prog.innerHTML='<i class="fa-solid fa-spinner fa-spin"></i> กำลังอัปโหลด '+(i+1)+'/'+files.length+'...';
+      const base64=await toBase64(files[i]);
+      const r=await api({action:'uploadFile',base64Data:base64,fileName:files[i].name,mimeType:files[i].type});
+      if(r.success)urls.push(r.fileUrl);
     }
-    prog.style.display = 'none';
-    return urls.join(',');
+    prog.style.display='none';return urls.join(',');
+  }
+  async function saveNiti(){
+    const data={action:'addNitiReport',month:g('n_month'),year:g('n_year'),title:g('n_title'),content:g('n_content'),income:g('n_income'),expense:g('n_expense')};
+    if(!data.month||!data.title){toast('warning','กรุณากรอกข้อมูลให้ครบ');return;}
+    data.photo_urls=await uploadNitiPhotos();
+    const r=await api(data);
+    if(r.success){toast('success',r.message);toggleForm('nitiForm');loadNiti();}else toast('error',r.message);
+  }
+  async function delNiti(id){
+    const c=await Swal.fire({icon:'warning',title:'ลบรายงาน?',showCancelButton:true,confirmButtonColor:'#dc2626',confirmButtonText:'ลบ',cancelButtonText:'ยกเลิก'});
+    if(!c.isConfirmed)return;
+    const r=await api({action:'deleteNitiReport',report_id:id});
+    if(r.success){toast('success',r.message);loadNiti();}
   }
 
-  async function saveNiti() {
-    const data = { action: 'addNitiReport', month: g('n_month'), year: g('n_year'), title: g('n_title'), content: g('n_content'), income: g('n_income'), expense: g('n_expense') };
-    if (!data.month || !data.title) { toast('warning', 'กรุณากรอกข้อมูลให้ครบ'); return; }
-    data.photo_urls = await uploadNitiPhotos();
-    const r = await api(data);
-    if (r.success) { toast('success', r.message); toggleForm('nitiForm'); loadNiti(); }
-    else toast('error', r.message);
+  function logout(){
+    Swal.fire({icon:'question',title:'ออกจากระบบ?',showCancelButton:true,confirmButtonColor:'#dc2626',confirmButtonText:'ออก',cancelButtonText:'ยกเลิก'})
+    .then(r=>{if(r.isConfirmed){localStorage.removeItem('vms_token');localStorage.removeItem('vms_role');localStorage.removeItem('vms_name');localStorage.removeItem('vms_house');window.location.href='index.html';}});
   }
 
-  async function delNiti(id) {
-    const c = await Swal.fire({ icon: 'warning', title: 'ลบรายงาน?', showCancelButton: true, confirmButtonColor: '#dc2626', confirmButtonText: 'ลบ', cancelButtonText: 'ยกเลิก' });
-    if (!c.isConfirmed) return;
-    const r = await api({ action: 'deleteNitiReport', report_id: id });
-    if (r.success) { toast('success', r.message); loadNiti(); }
-  }
-
-  // ── Helpers ───────────────────────────────────────────────────
-  function g(id)  { return document.getElementById(id)?.value || ''; }
-  function vs(id) { return document.getElementById(id)?.value || ''; }
-
-  function logout() {
-    Swal.fire({ icon: 'question', title: 'ออกจากระบบ?', showCancelButton: true, confirmButtonColor: '#dc2626', confirmButtonText: 'ออก', cancelButtonText: 'ยกเลิก' })
-      .then(r => { if (r.isConfirmed) { localStorage.clear(); window.location.href = 'index.html'; } });
-  }
-
-  // ── Init ──────────────────────────────────────────────────────
   loadOverview();
 </script>
 </body>

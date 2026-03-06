@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="th">
+<html lang="th" data-theme="light">
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
@@ -8,144 +8,85 @@
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet"/>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <style>
-    :root {
-      --primary: #5b8dee; --primary-d: #3a6fd8;
-      --accent: #7ec8a4; --bg: #eef3fb; --card: #fff;
-      --text: #2d3748; --muted: #718096; --border: #d6e4f7;
-    }
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: 'Sarabun', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
-
-    nav {
-      background: linear-gradient(135deg, var(--primary), var(--primary-d));
-      color: #fff; padding: .85rem 1.5rem;
-      display: flex; align-items: center; justify-content: space-between;
-      box-shadow: 0 2px 12px rgba(91,141,238,.3);
-      position: sticky; top: 0; z-index: 100;
-    }
-    .nav-brand { display: flex; align-items: center; gap: .6rem; font-size: 1.05rem; font-weight: 700; }
-    .btn-nav {
-      background: rgba(255,255,255,.2); border: 1px solid rgba(255,255,255,.35);
-      color: #fff; padding: .35rem .8rem; border-radius: 8px;
-      font-family: 'Sarabun', sans-serif; font-size: .82rem;
-      cursor: pointer; text-decoration: none;
-      display: inline-flex; align-items: center; gap: .3rem;
-    }
-    .btn-nav:hover { background: rgba(255,255,255,.3); }
-
-    .page-links {
-      background: #fff; border-bottom: 1px solid var(--border);
-      padding: .5rem 1.5rem; display: flex; gap: .5rem; overflow-x: auto;
-    }
-    .page-link {
-      white-space: nowrap; padding: .4rem .9rem; border-radius: 20px;
-      font-size: .82rem; font-weight: 500; text-decoration: none;
-      color: var(--muted); border: 1.5px solid transparent; transition: all .15s;
-    }
-    .page-link:hover, .page-link.active { background: var(--bg); border-color: var(--border); color: var(--primary); }
-
-    main { max-width: 860px; margin: 0 auto; padding: 1.5rem 1rem; }
-
-    .toolbar {
-      display: flex; align-items: center; justify-content: space-between;
-      flex-wrap: wrap; gap: .75rem; margin-bottom: 1.5rem;
-    }
-    .toolbar h2 { font-size: 1.1rem; font-weight: 700; display: flex; align-items: center; gap: .5rem; }
-    .toolbar h2 i { color: var(--primary); }
-
-    .filter-btns { display: flex; gap: .4rem; flex-wrap: wrap; }
-    .filter-btn {
-      padding: .35rem .85rem; border-radius: 20px; border: 1.5px solid var(--border);
-      background: #fff; font-family: 'Sarabun', sans-serif; font-size: .82rem;
-      color: var(--muted); cursor: pointer; transition: all .15s;
-    }
-    .filter-btn.active, .filter-btn:hover { background: var(--primary); color: #fff; border-color: var(--primary); }
-
-    /* Ann card */
-    .ann-list { display: flex; flex-direction: column; gap: 1rem; }
-    .ann-card {
-      background: var(--card); border-radius: 14px; border: 1px solid var(--border);
-      overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,.04);
-      transition: box-shadow .15s;
-    }
-    .ann-card:hover { box-shadow: 0 4px 18px rgba(91,141,238,.12); }
-    .ann-top {
-      padding: 1rem 1.25rem;
-      display: flex; align-items: flex-start; gap: .85rem;
-    }
-    .ann-icon {
-      width: 44px; height: 44px; border-radius: 12px; flex-shrink: 0;
-      display: flex; align-items: center; justify-content: center; font-size: 1.15rem;
-    }
-    .ann-icon.ทั่วไป   { background: #dbeafe; color: var(--primary); }
-    .ann-icon.ด่วน     { background: #fee2e2; color: #dc2626; }
-    .ann-icon.สำคัญ   { background: #fef3c7; color: #d97706; }
-
-    .ann-title { font-size: 1rem; font-weight: 700; margin-bottom: .25rem; }
-    .ann-meta  { font-size: .78rem; color: var(--muted); display: flex; gap: .75rem; flex-wrap: wrap; }
-    .ann-meta i { margin-right: .2rem; }
-    .ann-toggle {
-      margin-left: auto; flex-shrink: 0;
-      background: none; border: none; color: var(--muted); cursor: pointer; font-size: 1rem;
-      padding: .2rem;
-    }
-    .ann-body {
-      padding: 0 1.25rem;
-      max-height: 0; overflow: hidden; transition: max-height .3s ease, padding .2s;
-    }
-    .ann-body.open { max-height: 600px; padding: 0 1.25rem 1rem; }
-    .ann-body p { font-size: .9rem; line-height: 1.7; white-space: pre-line; }
-
-    .cat-badge {
-      font-size: .72rem; padding: .15rem .55rem; border-radius: 12px; font-weight: 600; margin-left: .3rem;
-    }
-    .cat-badge.ทั่วไป { background: #dbeafe; color: var(--primary); }
-    .cat-badge.ด่วน   { background: #fee2e2; color: #dc2626; }
-    .cat-badge.สำคัญ  { background: #fef3c7; color: #d97706; }
-
-    .empty { text-align: center; padding: 3rem 1rem; color: var(--muted); }
-    .empty i { font-size: 2.5rem; margin-bottom: .75rem; opacity: .4; display: block; }
-
-    .skeleton { background: linear-gradient(90deg, #e2ecf8 25%, #f0f6ff 50%, #e2ecf8 75%); background-size: 200% 100%; animation: shimmer 1.2s infinite; border-radius: 8px; }
-    @keyframes shimmer { to { background-position: -200% 0; } }
-
-    /* File attachment */
-    .ann-file-btn {
-      display: inline-flex; align-items: center; gap: .4rem;
-      margin: .5rem 0 0; padding: .35rem .85rem; border-radius: 20px;
-      border: 1.5px solid var(--border); background: #f8fbff;
-      font-size: .8rem; font-weight: 600; color: var(--primary);
-      cursor: pointer; transition: all .15s; text-decoration: none;
-    }
-    .ann-file-btn:hover { background: var(--primary); color: #fff; border-color: var(--primary); }
-    .ann-file-btn.pdf { color: #dc2626; border-color: #fca5a5; background: #fff5f5; }
-    .ann-file-btn.pdf:hover { background: #dc2626; color: #fff; border-color: #dc2626; }
-    .file-viewer-wrap {
-      margin-top: .75rem; border-radius: 12px; overflow: hidden;
-      border: 1px solid var(--border); background: #f0f4f8;
-      display: none;
-    }
-    .file-viewer-wrap.open { display: block; }
-    .file-viewer-wrap iframe {
-      width: 100%; height: 480px; border: none; display: block;
-    }
-    .file-viewer-wrap img {
-      width: 100%; max-height: 480px; object-fit: contain; display: block;
-    }
+    :root{--primary:#4f7ef7;--primary-d:#2f5be8;--primary-l:#e8efff;--accent:#34c88a;--bg:#f0f4fd;--bg2:#e4ecfb;--card:#fff;--card2:#f8faff;--text:#1a2035;--text2:#4a5568;--muted:#8896ab;--border:#d0ddf5;--shadow:rgba(79,126,247,.15);--shadow2:rgba(0,0,0,.06);}
+    [data-theme="dark"]{--primary:#6b9aff;--primary-d:#4f7ef7;--primary-l:#1a2540;--accent:#3dd68c;--bg:#0f1420;--bg2:#151c2e;--card:#1a2235;--card2:#202840;--text:#e8eeff;--text2:#a0aec0;--muted:#5a6a85;--border:#2a3650;--shadow:rgba(107,154,255,.12);--shadow2:rgba(0,0,0,.3);}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    body{font-family:'Sarabun',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;transition:background .3s,color .3s;}
+    nav{background:linear-gradient(135deg,var(--primary),var(--primary-d));color:#fff;padding:.85rem 1.25rem;display:flex;align-items:center;justify-content:space-between;box-shadow:0 2px 16px var(--shadow);position:sticky;top:0;z-index:100;}
+    .nav-brand{display:flex;align-items:center;gap:.6rem;font-size:1rem;font-weight:700;}
+    .nav-right{display:flex;align-items:center;gap:.5rem;}
+    .btn-nav{background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.3);color:#fff;padding:.35rem .8rem;border-radius:10px;font-family:'Sarabun',sans-serif;font-size:.8rem;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:.3rem;transition:background .15s;}
+    .btn-nav:hover{background:rgba(255,255,255,.28);}
+    .btn-theme{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);color:#fff;width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:.9rem;transition:background .15s;}
+    .btn-theme:hover{background:rgba(255,255,255,.28);}
+    .page-tabs{background:var(--card);border-bottom:1px solid var(--border);padding:0 1rem;display:flex;gap:0;overflow-x:auto;transition:background .3s;}
+    .page-tab{white-space:nowrap;padding:.7rem 1rem;font-size:.82rem;font-weight:600;text-decoration:none;color:var(--muted);border-bottom:2.5px solid transparent;display:flex;align-items:center;gap:.35rem;transition:all .15s;}
+    .page-tab:hover{color:var(--primary);}
+    .page-tab.active{color:var(--primary);border-bottom-color:var(--primary);}
+    main{max-width:860px;margin:0 auto;padding:1.5rem 1rem;}
+    .toolbar{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.75rem;margin-bottom:1.25rem;animation:fadeSlideIn .4s ease both;}
+    .toolbar h2{font-size:1.05rem;font-weight:700;display:flex;align-items:center;gap:.5rem;}
+    .toolbar h2 i{color:var(--primary);}
+    .filter-btns{display:flex;gap:.4rem;flex-wrap:wrap;}
+    .filter-btn{padding:.35rem .85rem;border-radius:20px;border:1.5px solid var(--border);background:var(--card);font-family:'Sarabun',sans-serif;font-size:.8rem;font-weight:600;color:var(--muted);cursor:pointer;transition:all .2s;}
+    .filter-btn.active,.filter-btn:hover{border-color:var(--primary);color:var(--primary);background:var(--primary-l);}
+    .filter-btn.ด่วน.active,.filter-btn.ด่วน:hover{background:#fee2e2;border-color:#fca5a5;color:#dc2626;}
+    .filter-btn.สำคัญ.active,.filter-btn.สำคัญ:hover{background:#fef3c7;border-color:#fcd34d;color:#d97706;}
+    @keyframes fadeSlideIn{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
+    .ann-list{display:flex;flex-direction:column;gap:.85rem;}
+    .ann-card{background:var(--card);border-radius:16px;border:1px solid var(--border);overflow:hidden;box-shadow:0 2px 12px var(--shadow2);transition:box-shadow .2s,transform .2s,background .3s,border-color .3s;animation:fadeSlideIn .4s ease both;}
+    .ann-card:hover{box-shadow:0 6px 24px var(--shadow);transform:translateY(-2px);}
+    .ann-top{padding:1rem 1.2rem;display:flex;align-items:flex-start;gap:.85rem;}
+    .ann-icon{width:44px;height:44px;border-radius:12px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:1.1rem;}
+    .ann-icon.ทั่วไป{background:var(--primary-l);color:var(--primary);}
+    .ann-icon.ด่วน{background:#fee2e2;color:#dc2626;}
+    .ann-icon.สำคัญ{background:#fef3c7;color:#d97706;}
+    [data-theme="dark"] .ann-icon.ด่วน{background:#2a1010;color:#f87171;}
+    [data-theme="dark"] .ann-icon.สำคัญ{background:#2a2010;color:#fbbf24;}
+    .ann-title{font-size:.97rem;font-weight:700;margin-bottom:.25rem;}
+    .ann-meta{font-size:.77rem;color:var(--muted);display:flex;gap:.75rem;flex-wrap:wrap;}
+    .ann-meta i{margin-right:.2rem;}
+    .ann-toggle{margin-left:auto;flex-shrink:0;background:var(--bg2);border:1px solid var(--border);color:var(--muted);cursor:pointer;font-size:.85rem;padding:.3rem .55rem;border-radius:8px;transition:all .15s;}
+    .ann-toggle:hover{background:var(--primary-l);color:var(--primary);border-color:var(--primary);}
+    .ann-body{padding:0 1.2rem;max-height:0;overflow:hidden;transition:max-height .35s ease,padding .2s;}
+    .ann-body.open{max-height:700px;padding:0 1.2rem 1rem;}
+    .ann-body p{font-size:.9rem;line-height:1.8;white-space:pre-line;color:var(--text2);}
+    .cat-badge{font-size:.7rem;padding:.12rem .5rem;border-radius:10px;font-weight:700;margin-left:.3rem;}
+    .cat-badge.ทั่วไป{background:var(--primary-l);color:var(--primary);}
+    .cat-badge.ด่วน{background:#fee2e2;color:#dc2626;}
+    .cat-badge.สำคัญ{background:#fef3c7;color:#d97706;}
+    [data-theme="dark"] .cat-badge.ด่วน{background:#2a1010;color:#f87171;}
+    [data-theme="dark"] .cat-badge.สำคัญ{background:#2a2010;color:#fbbf24;}
+    .empty{text-align:center;padding:3rem 1rem;color:var(--muted);}
+    .empty i{font-size:2.5rem;margin-bottom:.75rem;opacity:.4;display:block;}
+    .skeleton{background:linear-gradient(90deg,var(--bg2) 25%,var(--card2) 50%,var(--bg2) 75%);background-size:200% 100%;animation:shimmer 1.2s infinite;border-radius:8px;}
+    @keyframes shimmer{to{background-position:-200% 0;}}
+    .ann-file-btn{display:inline-flex;align-items:center;gap:.4rem;margin:.5rem 0 0;padding:.35rem .85rem;border-radius:20px;border:1.5px solid var(--border);background:var(--card2);font-size:.8rem;font-weight:700;color:var(--primary);cursor:pointer;transition:all .15s;text-decoration:none;}
+    .ann-file-btn:hover{background:var(--primary);color:#fff;border-color:var(--primary);}
+    .ann-file-btn.pdf{color:#dc2626;border-color:#fca5a5;background:#fff5f5;}
+    .ann-file-btn.pdf:hover{background:#dc2626;color:#fff;border-color:#dc2626;}
+    [data-theme="dark"] .ann-file-btn.pdf{background:#2a1010;}
+    .file-viewer-wrap{margin-top:.75rem;border-radius:12px;overflow:hidden;border:1px solid var(--border);background:var(--bg2);display:none;}
+    .file-viewer-wrap.open{display:block;}
+    .file-viewer-wrap iframe{width:100%;height:480px;border:none;display:block;}
+    .file-viewer-wrap img{width:100%;max-height:480px;object-fit:contain;display:block;}
   </style>
 </head>
 <body>
 
 <nav>
   <div class="nav-brand"><i class="fa-solid fa-bullhorn"></i> ประกาศหมู่บ้าน</div>
-  <a href="index.html" class="btn-nav" id="homeLink"><i class="fa-solid fa-house"></i> หน้าหลัก</a>
+  <div class="nav-right">
+    <button class="btn-theme" onclick="toggleTheme()"><i id="themeIcon" class="fa-solid fa-moon"></i></button>
+    <a href="index.html" class="btn-nav" id="homeLink"><i class="fa-solid fa-house"></i> หน้าหลัก</a>
+  </div>
 </nav>
 
-<div class="page-links">
-  <a href="dashboard.html" class="page-link" id="dashLink"><i class="fa-solid fa-house"></i> ข้อมูลของฉัน</a>
-  <a href="summary.html" class="page-link"><i class="fa-solid fa-chart-pie"></i> สรุปค่าส่วนกลาง</a>
-  <a href="announcements.html" class="page-link active"><i class="fa-solid fa-bullhorn"></i> ประกาศ</a>
-  <a href="niti-report.html" class="page-link"><i class="fa-solid fa-clipboard-list"></i> ผลงานนิติ</a>
+<div class="page-tabs">
+  <a href="dashboard.html" class="page-tab" id="dashLink"><i class="fa-solid fa-house"></i> ข้อมูลของฉัน</a>
+  <a href="summary.html" class="page-tab"><i class="fa-solid fa-chart-pie"></i> สรุปค่าส่วนกลาง</a>
+  <a href="announcements.html" class="page-tab active"><i class="fa-solid fa-bullhorn"></i> ประกาศ</a>
+  <a href="niti-report.html" class="page-tab"><i class="fa-solid fa-clipboard-list"></i> ผลงานนิติ</a>
 </div>
 
 <main>
@@ -153,8 +94,8 @@
     <h2><i class="fa-solid fa-bullhorn"></i> ประกาศทั้งหมด</h2>
     <div class="filter-btns">
       <button class="filter-btn active" onclick="filterCat(this,'')">ทั้งหมด</button>
-      <button class="filter-btn" onclick="filterCat(this,'ด่วน')"><i class="fa-solid fa-circle-exclamation"></i> ด่วน</button>
-      <button class="filter-btn" onclick="filterCat(this,'สำคัญ')"><i class="fa-solid fa-star"></i> สำคัญ</button>
+      <button class="filter-btn ด่วน" onclick="filterCat(this,'ด่วน')"><i class="fa-solid fa-circle-exclamation"></i> ด่วน</button>
+      <button class="filter-btn สำคัญ" onclick="filterCat(this,'สำคัญ')"><i class="fa-solid fa-star"></i> สำคัญ</button>
       <button class="filter-btn" onclick="filterCat(this,'ทั่วไป')"><i class="fa-solid fa-info-circle"></i> ทั่วไป</button>
     </div>
   </div>
@@ -162,110 +103,80 @@
   <div class="ann-list" id="annList">
     <div class="ann-card"><div class="ann-top"><div class="skeleton" style="width:44px;height:44px;border-radius:12px;flex-shrink:0"></div><div style="flex:1"><div class="skeleton" style="height:18px;width:60%;margin-bottom:.5rem"></div><div class="skeleton" style="height:12px;width:40%"></div></div></div></div>
     <div class="ann-card"><div class="ann-top"><div class="skeleton" style="width:44px;height:44px;border-radius:12px;flex-shrink:0"></div><div style="flex:1"><div class="skeleton" style="height:18px;width:50%;margin-bottom:.5rem"></div><div class="skeleton" style="height:12px;width:35%"></div></div></div></div>
-    <div class="ann-card"><div class="ann-top"><div class="skeleton" style="width:44px;height:44px;border-radius:12px;flex-shrink:0"></div><div style="flex:1"><div class="skeleton" style="height:18px;width:70%;margin-bottom:.5rem"></div><div class="skeleton" style="height:12px;width:45%"></div></div></div></div>
   </div>
 </main>
 
 <script>
-  const API_URL = 'https://script.google.com/macros/s/AKfycbwQbc31pY86tM7EdD41dBsXRQ-OmL6M5m0TJKs_ZJiix2bLEYkHOiQ8eIGazR7ay0_l/exec';
-  const token = localStorage.getItem('vms_token');
-  const role  = localStorage.getItem('vms_role');
+  const API_URL='https://script.google.com/macros/s/AKfycbwQbc31pY86tM7EdD41dBsXRQ-OmL6M5m0TJKs_ZJiix2bLEYkHOiQ8eIGazR7ay0_l/exec';
+  const token=localStorage.getItem('vms_token');
+  const role=localStorage.getItem('vms_role');
 
-  if (!token) document.getElementById('dashLink').style.display = 'none';
-  if (role === 'admin') {
-    document.getElementById('homeLink').href = 'admin.html';
-    document.getElementById('homeLink').innerHTML = '<i class="fa-solid fa-shield-halved"></i> Admin';
+  // Theme
+  applyTheme(localStorage.getItem('vms_theme')||'light');
+  function applyTheme(t){document.documentElement.setAttribute('data-theme',t);document.getElementById('themeIcon').className=t==='dark'?'fa-solid fa-sun':'fa-solid fa-moon';localStorage.setItem('vms_theme',t);}
+  function toggleTheme(){applyTheme(document.documentElement.getAttribute('data-theme')==='dark'?'light':'dark');}
+
+  if(!token)document.getElementById('dashLink').style.display='none';
+  if(role==='admin'){document.getElementById('homeLink').href='admin.html';document.getElementById('homeLink').innerHTML='<i class="fa-solid fa-shield-halved"></i> Admin';}
+
+  let allAnn=[];
+  let currentCat='';
+  const catIcon={'ทั่วไป':'fa-info-circle','ด่วน':'fa-circle-exclamation','สำคัญ':'fa-star'};
+
+  async function loadAnnouncements(){
+    const r=await fetch(API_URL+'?'+new URLSearchParams({action:'getAnnouncements'}));
+    const d=await r.json();
+    if(d.success){allAnn=d.data;renderList();}
   }
 
-  let allAnn = [];
-  let currentCat = '';
+  function filterCat(btn,cat){
+    document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');currentCat=cat;renderList();
+  }
 
-  const catIcon = { 'ทั่วไป': 'fa-info-circle', 'ด่วน': 'fa-circle-exclamation', 'สำคัญ': 'fa-star' };
-
-  async function loadAnnouncements() {
-    const qs = new URLSearchParams({ action: 'getAnnouncements' }).toString();
-    const r = await fetch(API_URL + '?' + qs);
-    const d = await r.json();
-    if (d.success) {
-      allAnn = d.data;
-      renderList();
+  function renderList(){
+    const filtered=currentCat?allAnn.filter(a=>a.category===currentCat):allAnn;
+    if(!filtered.length){
+      document.getElementById('annList').innerHTML=`<div class="empty"><i class="fa-solid fa-bullhorn"></i>ยังไม่มีประกาศ</div>`;return;
     }
-  }
-
-  function filterCat(btn, cat) {
-    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    currentCat = cat;
-    renderList();
-  }
-
-  function renderList() {
-    const filtered = currentCat ? allAnn.filter(a => a.category === currentCat) : allAnn;
-    if (!filtered.length) {
-      document.getElementById('annList').innerHTML = `<div class="empty"><i class="fa-solid fa-bullhorn"></i>ยังไม่มีประกาศ</div>`;
-      return;
-    }
-    document.getElementById('annList').innerHTML = filtered.map((a, i) => {
-      const cat = a.category || 'ทั่วไป';
-      const fileUrl = a.file_url || '';
-      const isPdf = fileUrl && fileUrl.includes('drive.google.com');
-      const isImg = fileUrl && /\.(jpg|jpeg|png|gif|webp)/i.test(fileUrl);
-      let fileHtml = '';
-      if (fileUrl) {
-        const fileIcon = isPdf ? 'fa-file-pdf' : 'fa-image';
-        const fileLabel = isPdf ? 'ดูเอกสาร PDF' : 'ดูรูปภาพแนบ';
-        const btnCls = isPdf ? 'pdf' : '';
-        fileHtml = `
-          <button class="ann-file-btn ${btnCls}" onclick="toggleFile(this,'viewer${i}','${fileUrl}',${isPdf})">
-            <i class="fa-solid ${fileIcon}"></i> ${fileLabel}
-          </button>
-          <div class="file-viewer-wrap" id="viewer${i}"></div>`;
+    document.getElementById('annList').innerHTML=filtered.map((a,i)=>{
+      const cat=a.category||'ทั่วไป';
+      const fileUrl=a.file_url||'';
+      const isPdf=fileUrl&&fileUrl.includes('drive.google.com');
+      let fileHtml='';
+      if(fileUrl){
+        const fileIcon=isPdf?'fa-file-pdf':'fa-image';
+        const fileLabel=isPdf?'ดูเอกสาร PDF':'ดูรูปภาพแนบ';
+        const btnCls=isPdf?'pdf':'';
+        fileHtml=`<button class="ann-file-btn ${btnCls}" onclick="toggleFile(this,'viewer${i}','${fileUrl}',${isPdf})"><i class="fa-solid ${fileIcon}"></i> ${fileLabel}</button><div class="file-viewer-wrap" id="viewer${i}"></div>`;
       }
-      return `
-      <div class="ann-card">
+      return`<div class="ann-card" style="animation-delay:${i*0.05}s">
         <div class="ann-top">
-          <div class="ann-icon ${cat}"><i class="fa-solid ${catIcon[cat] || 'fa-info-circle'}"></i></div>
+          <div class="ann-icon ${cat}"><i class="fa-solid ${catIcon[cat]||'fa-info-circle'}"></i></div>
           <div style="flex:1">
             <div class="ann-title">${a.title} <span class="cat-badge ${cat}">${cat}</span></div>
-            <div class="ann-meta">
-              <span><i class="fa-solid fa-calendar"></i>${a.date}</span>
-              <span><i class="fa-solid fa-user"></i>${a.created_by}</span>
-            </div>
+            <div class="ann-meta"><span><i class="fa-solid fa-calendar"></i>${a.date}</span><span><i class="fa-solid fa-user"></i>${a.created_by}</span></div>
           </div>
-          <button class="ann-toggle" onclick="toggleAnn(this)" title="ขยาย/ย่อ">
-            <i class="fa-solid fa-chevron-down"></i>
-          </button>
+          <button class="ann-toggle" onclick="toggleAnn(this)"><i class="fa-solid fa-chevron-down"></i></button>
         </div>
-        <div class="ann-body" id="annBody${i}">
-          <p>${a.content}</p>
-          ${fileHtml}
-        </div>
+        <div class="ann-body" id="annBody${i}"><p>${a.content}</p>${fileHtml}</div>
       </div>`;
     }).join('');
   }
 
-  function toggleFile(btn, viewerId, fileUrl, isPdf) {
-    const wrap = document.getElementById(viewerId);
-    if (wrap.classList.contains('open')) {
-      wrap.classList.remove('open');
-      wrap.innerHTML = '';
-      btn.innerHTML = btn.innerHTML.replace('ซ่อน', btn.dataset.label || 'ดูไฟล์');
-      return;
-    }
+  function toggleFile(btn,viewerId,fileUrl,isPdf){
+    const wrap=document.getElementById(viewerId);
+    if(wrap.classList.contains('open')){wrap.classList.remove('open');wrap.innerHTML='';return;}
     wrap.classList.add('open');
-    if (isPdf) {
-      wrap.innerHTML = `<iframe src="${fileUrl}" allowfullscreen></iframe>`;
-    } else {
-      // Try direct image first, fallback to iframe
-      wrap.innerHTML = `<img src="${fileUrl.replace('/preview','').replace('drive.google.com/file/d/','drive.google.com/uc?id=').replace('/view','')}" onerror="this.parentNode.innerHTML='<iframe src=\'${fileUrl}\' allowfullscreen style=\'width:100%;height:480px;border:none\'></iframe>'">`;
-    }
+    if(isPdf){wrap.innerHTML=`<iframe src="${fileUrl}" allowfullscreen></iframe>`;}
+    else{wrap.innerHTML=`<img src="${fileUrl.replace('/preview','').replace('drive.google.com/file/d/','drive.google.com/uc?id=').replace('/view','')}" onerror="this.parentNode.innerHTML='<iframe src=\'${fileUrl}\' allowfullscreen style=\'width:100%;height:480px;border:none\'></iframe>'">`;}
   }
 
-  function toggleAnn(btn) {
-    const body = btn.closest('.ann-card').querySelector('.ann-body');
-    const icon = btn.querySelector('i');
+  function toggleAnn(btn){
+    const body=btn.closest('.ann-card').querySelector('.ann-body');
+    const icon=btn.querySelector('i');
     body.classList.toggle('open');
-    icon.style.transform = body.classList.contains('open') ? 'rotate(180deg)' : '';
+    icon.style.transform=body.classList.contains('open')?'rotate(180deg)':'';
   }
 
   loadAnnouncements();

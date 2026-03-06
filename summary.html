@@ -1,81 +1,117 @@
 <!DOCTYPE html>
-<html lang="th">
+<html lang="th" data-theme="light">
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>สรุปค่าส่วนกลาง — ระบบบริหารหมู่บ้าน</title>
   <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet"/>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
   <style>
-    :root{--primary:#5b8dee;--primary-d:#3a6fd8;--accent:#7ec8a4;--bg:#eef3fb;--card:#fff;--text:#2d3748;--muted:#718096;--border:#d6e4f7;--paid:#d1fae5;--paid-c:#059669;--partial:#fef3c7;--partial-c:#d97706;--unpaid:#fee2e2;--unpaid-c:#dc2626;}
+    :root{--primary:#4f7ef7;--primary-d:#2f5be8;--primary-l:#e8efff;--accent:#34c88a;--accent-d:#1ea870;--bg:#f0f4fd;--bg2:#e4ecfb;--card:#fff;--card2:#f8faff;--text:#1a2035;--text2:#4a5568;--muted:#8896ab;--border:#d0ddf5;--shadow:rgba(79,126,247,.15);--shadow2:rgba(0,0,0,.06);--paid:#d1fae5;--paid-c:#059669;--partial:#fef3c7;--partial-c:#d97706;--unpaid:#fee2e2;--unpaid-c:#dc2626;}
+    [data-theme="dark"]{--primary:#6b9aff;--primary-d:#4f7ef7;--primary-l:#1a2540;--accent:#3dd68c;--bg:#0f1420;--bg2:#151c2e;--card:#1a2235;--card2:#202840;--text:#e8eeff;--text2:#a0aec0;--muted:#5a6a85;--border:#2a3650;--shadow:rgba(107,154,255,.12);--shadow2:rgba(0,0,0,.3);--paid:#0d2a1e;--paid-c:#34d399;--partial:#2a2010;--partial-c:#fbbf24;--unpaid:#2a1010;--unpaid-c:#f87171;}
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
-    body{font-family:'Sarabun',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
-    nav{background:linear-gradient(135deg,var(--primary),var(--primary-d));color:#fff;padding:.85rem 1.5rem;display:flex;align-items:center;justify-content:space-between;box-shadow:0 2px 12px rgba(91,141,238,.3);position:sticky;top:0;z-index:100;}
-    .nav-brand{display:flex;align-items:center;gap:.6rem;font-size:1.05rem;font-weight:700;}
-    .btn-nav{background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.35);color:#fff;padding:.35rem .8rem;border-radius:8px;font-family:'Sarabun',sans-serif;font-size:.82rem;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:.3rem;}
-    .btn-nav:hover{background:rgba(255,255,255,.3);}
-    .page-links{background:#fff;border-bottom:1px solid var(--border);padding:.5rem 1.5rem;display:flex;gap:.5rem;overflow-x:auto;}
-    .page-link{white-space:nowrap;padding:.4rem .9rem;border-radius:20px;font-size:.82rem;font-weight:500;text-decoration:none;color:var(--muted);border:1.5px solid transparent;transition:all .15s;}
-    .page-link:hover,.page-link.active{background:var(--bg);border-color:var(--border);color:var(--primary);}
-    main{max-width:960px;margin:0 auto;padding:1.5rem 1rem;}
-    .toolbar{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.75rem;margin-bottom:1.5rem;}
-    .toolbar h2{font-size:1.1rem;font-weight:700;display:flex;align-items:center;gap:.5rem;}
+    body{font-family:'Sarabun',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;transition:background .3s,color .3s;}
+    nav{background:linear-gradient(135deg,var(--primary),var(--primary-d));color:#fff;padding:.85rem 1.25rem;display:flex;align-items:center;justify-content:space-between;box-shadow:0 2px 16px var(--shadow);position:sticky;top:0;z-index:100;}
+    .nav-brand{display:flex;align-items:center;gap:.6rem;font-size:1rem;font-weight:700;}
+    .nav-right{display:flex;align-items:center;gap:.5rem;}
+    .btn-nav{background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.3);color:#fff;padding:.35rem .8rem;border-radius:10px;font-family:'Sarabun',sans-serif;font-size:.8rem;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:.3rem;transition:background .15s;}
+    .btn-nav:hover{background:rgba(255,255,255,.28);}
+    .btn-theme{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);color:#fff;width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:.9rem;transition:background .15s;}
+    .btn-theme:hover{background:rgba(255,255,255,.28);}
+    .page-tabs{background:var(--card);border-bottom:1px solid var(--border);padding:0 1rem;display:flex;gap:0;overflow-x:auto;transition:background .3s;}
+    .page-tab{white-space:nowrap;padding:.7rem 1rem;font-size:.82rem;font-weight:600;text-decoration:none;color:var(--muted);border-bottom:2.5px solid transparent;display:flex;align-items:center;gap:.35rem;transition:all .15s;}
+    .page-tab:hover{color:var(--primary);}
+    .page-tab.active{color:var(--primary);border-bottom-color:var(--primary);}
+    main{max-width:980px;margin:0 auto;padding:1.5rem 1rem;}
+    @keyframes fadeSlideIn{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}}
+    .toolbar{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.75rem;margin-bottom:1.5rem;animation:fadeSlideIn .4s ease both;}
+    .toolbar h2{font-size:1.05rem;font-weight:700;display:flex;align-items:center;gap:.5rem;}
     .toolbar h2 i{color:var(--primary);}
     .year-select{display:flex;gap:.4rem;flex-wrap:wrap;}
-    .year-btn{padding:.38rem .9rem;border-radius:20px;border:1.5px solid var(--border);background:#fff;font-family:'Sarabun',sans-serif;font-size:.85rem;color:var(--muted);cursor:pointer;transition:all .15s;}
+    .year-btn{padding:.38rem .9rem;border-radius:20px;border:1.5px solid var(--border);background:var(--card);font-family:'Sarabun',sans-serif;font-size:.85rem;font-weight:600;color:var(--muted);cursor:pointer;transition:all .2s;}
     .year-btn.active,.year-btn:hover{background:var(--primary);color:#fff;border-color:var(--primary);}
+
+    /* STAT CARDS */
     .top-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(185px,1fr));gap:1rem;margin-bottom:1.5rem;}
-    .stat-card{background:var(--card);border-radius:14px;border:1px solid var(--border);padding:1.1rem 1.25rem;box-shadow:0 2px 10px rgba(0,0,0,.04);}
-    .stat-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;margin-bottom:.6rem;}
-    .stat-label{font-size:.78rem;color:var(--muted);margin-bottom:.15rem;}
-    .stat-value{font-size:1.45rem;font-weight:700;line-height:1.2;}
-    .stat-sub{font-size:.75rem;color:var(--muted);margin-top:.1rem;}
-    .section-title{font-size:.95rem;font-weight:700;display:flex;align-items:center;gap:.5rem;margin-bottom:.75rem;}
+    .stat-card{background:var(--card);border-radius:16px;border:1px solid var(--border);padding:1.1rem 1.2rem;box-shadow:0 2px 12px var(--shadow2);transition:transform .2s,box-shadow .2s,background .3s;animation:fadeSlideIn .4s ease both;}
+    .stat-card:hover{transform:translateY(-3px);box-shadow:0 6px 24px var(--shadow);}
+    .stat-icon{width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;margin-bottom:.6rem;}
+    .stat-label{font-size:.77rem;color:var(--muted);margin-bottom:.15rem;font-weight:600;}
+    .stat-value{font-size:1.5rem;font-weight:800;line-height:1.2;}
+    .stat-sub{font-size:.74rem;color:var(--muted);margin-top:.1rem;}
+
+    /* CHART SECTION */
+    .chart-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.5rem;}
+    .chart-card{background:var(--card);border-radius:16px;border:1px solid var(--border);padding:1.2rem;box-shadow:0 2px 12px var(--shadow2);animation:fadeSlideIn .4s .1s ease both;transition:background .3s,border-color .3s;}
+    .chart-title{font-size:.88rem;font-weight:700;color:var(--text);margin-bottom:1rem;display:flex;align-items:center;gap:.4rem;}
+    .chart-title i{color:var(--primary);}
+    .chart-wrap{position:relative;height:200px;}
+
+    /* HALF YEAR */
+    .section-title{font-size:.92rem;font-weight:700;display:flex;align-items:center;gap:.5rem;margin-bottom:.75rem;color:var(--text);}
     .section-title i{color:var(--primary);}
     .half-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.5rem;}
-    .half-card{background:var(--card);border-radius:14px;border:1px solid var(--border);padding:1rem 1.25rem;box-shadow:0 2px 8px rgba(0,0,0,.04);}
+    .half-card{background:var(--card);border-radius:16px;border:1px solid var(--border);padding:1rem 1.2rem;box-shadow:0 2px 10px var(--shadow2);transition:background .3s;}
     .half-card-title{font-size:.85rem;font-weight:700;color:var(--primary);margin-bottom:.75rem;display:flex;align-items:center;gap:.4rem;}
     .half-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:.45rem;}
-    .half-lbl{font-size:.83rem;color:var(--muted);}
-    .half-val{font-size:1rem;font-weight:700;}
-    .progress-wrap{background:var(--card);border-radius:14px;border:1px solid var(--border);padding:1.1rem 1.25rem;margin-bottom:1.5rem;box-shadow:0 2px 8px rgba(0,0,0,.04);}
+    .half-lbl{font-size:.82rem;color:var(--muted);}
+    .half-val{font-size:.95rem;font-weight:700;}
+
+    /* PROGRESS */
+    .progress-wrap{background:var(--card);border-radius:16px;border:1px solid var(--border);padding:1.2rem;margin-bottom:1.5rem;box-shadow:0 2px 10px var(--shadow2);animation:fadeSlideIn .4s .15s ease both;transition:background .3s;}
     .progress-top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:.75rem;}
     .progress-title{font-size:.9rem;font-weight:700;display:flex;align-items:center;gap:.4rem;}
     .progress-title i{color:var(--primary);}
-    .progress-pct{font-size:1.5rem;font-weight:800;color:var(--primary);}
-    .progress-bar{height:16px;background:#e2ecf8;border-radius:20px;overflow:hidden;margin-bottom:.5rem;}
-    .progress-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--primary));border-radius:20px;transition:width 1s ease;width:0%;}
+    .progress-pct{font-size:1.6rem;font-weight:800;color:var(--primary);}
+    .progress-bar{height:18px;background:var(--bg2);border-radius:20px;overflow:hidden;margin-bottom:.5rem;}
+    .progress-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--primary));border-radius:20px;transition:width 1.2s cubic-bezier(.34,1,.64,1);width:0%;}
     .progress-detail{display:flex;justify-content:space-between;font-size:.8rem;color:var(--muted);}
-    .soi-card{background:var(--card);border-radius:14px;border:1px solid var(--border);overflow:hidden;box-shadow:0 2px 10px rgba(0,0,0,.04);}
-    .soi-header{padding:.9rem 1.25rem;background:linear-gradient(90deg,#f0f7ff,#f0faf5);border-bottom:1px solid var(--border);font-weight:700;display:flex;align-items:center;gap:.5rem;}
-    .soi-header i{color:var(--primary);}
+
+    /* SOI TABLE */
+    .soi-card{background:var(--card);border-radius:16px;border:1px solid var(--border);overflow:hidden;box-shadow:0 2px 12px var(--shadow2);animation:fadeSlideIn .4s .2s ease both;transition:background .3s;}
+    .soi-header{padding:.9rem 1.2rem;background:var(--card2);border-bottom:1px solid var(--border);font-weight:700;display:flex;align-items:center;justify-content:space-between;transition:background .3s;}
+    .soi-header-left{display:flex;align-items:center;gap:.5rem;font-size:.92rem;}
+    .soi-header-left i{color:var(--primary);}
     .table-wrap{overflow-x:auto;}
     table{width:100%;border-collapse:collapse;}
-    th{text-align:left;padding:.65rem 1rem;font-size:.78rem;font-weight:700;color:var(--muted);border-bottom:1px solid var(--border);background:#fafcff;white-space:nowrap;}
-    td{padding:.7rem 1rem;font-size:.88rem;border-bottom:1px solid var(--border);}
+    th{text-align:left;padding:.6rem 1rem;font-size:.76rem;font-weight:700;color:var(--muted);border-bottom:1px solid var(--border);background:var(--card2);white-space:nowrap;}
+    td{padding:.65rem 1rem;font-size:.86rem;border-bottom:1px solid var(--border);transition:background .15s;}
     tr:last-child td{border-bottom:none;}
-    tr:hover td{background:#f8fbff;}
-    .badge{font-size:.75rem;padding:.18rem .65rem;border-radius:12px;font-weight:700;display:inline-block;}
+    tr:hover td{background:var(--bg2);}
+    .badge{font-size:.74rem;padding:.18rem .65rem;border-radius:12px;font-weight:700;display:inline-block;}
     .badge.paid{background:var(--paid);color:var(--paid-c);}
     .badge.partial{background:var(--partial);color:var(--partial-c);}
     .badge.unpaid{background:var(--unpaid);color:var(--unpaid-c);}
-    .bar-mini{height:7px;background:#e2ecf8;border-radius:10px;min-width:70px;overflow:hidden;}
+    .bar-mini{height:7px;background:var(--bg2);border-radius:10px;min-width:70px;overflow:hidden;}
     .bar-mini-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--primary));border-radius:10px;}
-    .skeleton{background:linear-gradient(90deg,#e2ecf8 25%,#f0f6ff 50%,#e2ecf8 75%);background-size:200% 100%;animation:shimmer 1.2s infinite;border-radius:8px;min-height:80px;}
+
+    /* SORT */
+    th.sortable{cursor:pointer;user-select:none;}
+    th.sortable:hover{color:var(--primary);}
+    th.sortable .sort-icon{margin-left:.3rem;opacity:.4;font-size:.7rem;}
+    th.sortable.asc .sort-icon::before{content:'\f106';}
+    th.sortable.desc .sort-icon::before{content:'\f107';}
+    th.sortable.asc .sort-icon,th.sortable.desc .sort-icon{opacity:1;color:var(--primary);}
+
+    .skeleton{background:linear-gradient(90deg,var(--bg2) 25%,var(--card2) 50%,var(--bg2) 75%);background-size:200% 100%;animation:shimmer 1.2s infinite;border-radius:8px;min-height:80px;}
     @keyframes shimmer{to{background-position:-200% 0;}}
-    @media(max-width:600px){.half-grid{grid-template-columns:1fr;}.top-grid{grid-template-columns:1fr 1fr;}}
+    @media(max-width:640px){.half-grid{grid-template-columns:1fr;}.chart-grid{grid-template-columns:1fr;}.top-grid{grid-template-columns:1fr 1fr;}}
   </style>
 </head>
 <body>
 <nav>
   <div class="nav-brand"><i class="fa-solid fa-chart-pie"></i> สรุปค่าส่วนกลาง</div>
-  <a href="index.html" class="btn-nav" id="homeLink"><i class="fa-solid fa-house"></i> หน้าหลัก</a>
+  <div class="nav-right">
+    <button class="btn-theme" onclick="toggleTheme()"><i id="themeIcon" class="fa-solid fa-moon"></i></button>
+    <a href="index.html" class="btn-nav" id="homeLink"><i class="fa-solid fa-house"></i> หน้าหลัก</a>
+  </div>
 </nav>
-<div class="page-links">
-  <a href="dashboard.html" class="page-link" id="dashLink"><i class="fa-solid fa-house"></i> ข้อมูลของฉัน</a>
-  <a href="summary.html" class="page-link active"><i class="fa-solid fa-chart-pie"></i> สรุปค่าส่วนกลาง</a>
-  <a href="announcements.html" class="page-link"><i class="fa-solid fa-bullhorn"></i> ประกาศ</a>
-  <a href="niti-report.html" class="page-link"><i class="fa-solid fa-clipboard-list"></i> ผลงานนิติ</a>
+<div class="page-tabs">
+  <a href="dashboard.html" class="page-tab" id="dashLink"><i class="fa-solid fa-house"></i> ข้อมูลของฉัน</a>
+  <a href="summary.html" class="page-tab active"><i class="fa-solid fa-chart-pie"></i> สรุปค่าส่วนกลาง</a>
+  <a href="announcements.html" class="page-tab"><i class="fa-solid fa-bullhorn"></i> ประกาศ</a>
+  <a href="niti-report.html" class="page-tab"><i class="fa-solid fa-clipboard-list"></i> ผลงานนิติ</a>
 </div>
 <main>
   <div class="toolbar">
@@ -88,6 +124,13 @@
     <div class="stat-card"><div class="skeleton"></div></div>
     <div class="stat-card"><div class="skeleton"></div></div>
   </div>
+
+  <!-- CHARTS -->
+  <div class="chart-grid" id="chartGrid">
+    <div class="chart-card"><div class="skeleton" style="height:220px"></div></div>
+    <div class="chart-card"><div class="skeleton" style="height:220px"></div></div>
+  </div>
+
   <div class="section-title"><i class="fa-solid fa-calendar-days"></i> ชำระแยกตามครึ่งปี (จำนวนหลัง)</div>
   <div class="half-grid" id="halfGrid">
     <div class="half-card"><div class="skeleton"></div></div>
@@ -105,212 +148,215 @@
     </div>
   </div>
   <div class="soi-card" id="soiCard">
-    <div class="soi-header"><i class="fa-solid fa-road"></i> รายละเอียดแยกตามซอย</div>
+    <div class="soi-header"><div class="soi-header-left"><i class="fa-solid fa-road"></i> รายละเอียดแยกตามซอย</div></div>
     <div class="skeleton" style="margin:1rem"></div>
   </div>
 </main>
+
 <script>
 const API_URL='https://script.google.com/macros/s/AKfycbwQbc31pY86tM7EdD41dBsXRQ-OmL6M5m0TJKs_ZJiix2bLEYkHOiQ8eIGazR7ay0_l/exec';
 const token=localStorage.getItem('vms_token');
 const role=localStorage.getItem('vms_role');
-if(!token) document.getElementById('dashLink').style.display='none';
+
+applyTheme(localStorage.getItem('vms_theme')||'light');
+function applyTheme(t){
+  document.documentElement.setAttribute('data-theme',t);
+  document.getElementById('themeIcon').className=t==='dark'?'fa-solid fa-sun':'fa-solid fa-moon';
+  localStorage.setItem('vms_theme',t);
+  redrawCharts();
+}
+function toggleTheme(){applyTheme(document.documentElement.getAttribute('data-theme')==='dark'?'light':'dark');}
+
+if(!token)document.getElementById('dashLink').style.display='none';
 if(role==='admin'){document.getElementById('homeLink').href='admin.html';document.getElementById('homeLink').innerHTML='<i class="fa-solid fa-shield-halved"></i> Admin';}
 
 let currentYear='';
+let lastData=null;
+let donutChart=null,barChart=null;
 
-async function api(p){const r=await fetch(API_URL+'?'+new URLSearchParams(p).toString());return r.json();}
+async function api(p){const r=await fetch(API_URL+'?'+new URLSearchParams(p));return r.json();}
 function fmt(n){return Number(n||0).toLocaleString('th-TH');}
 function pct(a,b){return b>0?Math.round(a/b*100):0;}
-function barHtml(p){return `<div class="bar-mini"><div class="bar-mini-fill" style="width:${p}%"></div></div>`;}
+function barHtml(p){return`<div class="bar-mini"><div class="bar-mini-fill" style="width:${p}%"></div></div>`;}
+
+// Sort state
+let sortCol='', sortDir=1;
 
 async function init(){
   const d=await api({action:'getFeeSummary'});
   if(!d.success)return;
   const years=d.data.years||[];
-  // ใช้ปีล่าสุดที่มีข้อมูลจริงเสมอ
-  currentYear = years.length > 0 ? years[0] : '';
-  // สร้างปุ่มปีจากข้อมูลจริงใน Sheet
+  currentYear=years.length>0?years[0]:'';
   document.getElementById('yearBtns').innerHTML=years.length
-    ? years.map(y=>`<button class="year-btn ${y===currentYear?'active':''}" onclick="selectYear(this,'${y}')">${y}</button>`).join('')
-    : '<span style="font-size:.82rem;color:var(--muted)">ไม่มีข้อมูล</span>';
-  // โหลดข้อมูลของปีล่าสุด
-  if(currentYear && currentYear !== d.data.year) {
-    const d2 = await api({action:'getFeeSummary', year:currentYear});
-    if(d2.success) renderSummary(d2.data);
-  } else {
-    renderSummary(d.data);
-  }
+    ?years.map(y=>`<button class="year-btn ${y===currentYear?'active':''}" onclick="selectYear(this,'${y}')">${y}</button>`).join('')
+    :'<span style="font-size:.82rem;color:var(--muted)">ไม่มีข้อมูล</span>';
+  if(currentYear&&currentYear!==d.data.year){const d2=await api({action:'getFeeSummary',year:currentYear});if(d2.success)renderSummary(d2.data);}
+  else renderSummary(d.data);
 }
 
 async function selectYear(btn,year){
   document.querySelectorAll('.year-btn').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active');
-  currentYear=year;
-  setLoading();
+  btn.classList.add('active');currentYear=year;setLoading();
   const d=await api({action:'getFeeSummary',year});
   if(d.success)renderSummary(d.data);
 }
 
 function renderSummary(d){
+  lastData=d;
   const{year,totalHouses,h1Paid,h1Unpaid,h2Paid,h2Unpaid,hFullPaid,hPartial,hUnpaid,amtDue,amtPaid,paidPct,housePaidPct,bySoi}=d;
 
-  // ── stat cards ──────────────────────────────────────
+  // STAT CARDS
   document.getElementById('topGrid').innerHTML=`
-    <div class="stat-card">
-      <div class="stat-icon" style="background:#dbeafe;color:var(--primary)"><i class="fa-solid fa-house"></i></div>
-      <div class="stat-label">บ้านทั้งหมด</div>
-      <div class="stat-value">${totalHouses}</div>
-      <div class="stat-sub">หลัง</div>
+    <div class="stat-card" style="animation-delay:.0s">
+      <div class="stat-icon" style="background:var(--primary-l);color:var(--primary)"><i class="fa-solid fa-house"></i></div>
+      <div class="stat-label">บ้านทั้งหมด</div><div class="stat-value">${totalHouses}</div><div class="stat-sub">หลัง</div>
     </div>
-    <div class="stat-card">
+    <div class="stat-card" style="animation-delay:.05s">
       <div class="stat-icon" style="background:var(--paid);color:var(--paid-c)"><i class="fa-solid fa-circle-check"></i></div>
-      <div class="stat-label">ชำระครบทั้งปี</div>
-      <div class="stat-value" style="color:var(--paid-c)">${hFullPaid}</div>
-      <div class="stat-sub">หลัง &nbsp;·&nbsp; ${housePaidPct}% ของทั้งหมด</div>
+      <div class="stat-label">ชำระครบทั้งปี</div><div class="stat-value" style="color:var(--paid-c)">${hFullPaid}</div><div class="stat-sub">หลัง · ${housePaidPct}%</div>
     </div>
-    <div class="stat-card">
+    <div class="stat-card" style="animation-delay:.1s">
       <div class="stat-icon" style="background:var(--partial);color:var(--partial-c)"><i class="fa-solid fa-circle-half-stroke"></i></div>
-      <div class="stat-label">ชำระบางส่วน</div>
-      <div class="stat-value" style="color:var(--partial-c)">${hPartial}</div>
-      <div class="stat-sub">หลัง</div>
+      <div class="stat-label">ชำระบางส่วน</div><div class="stat-value" style="color:var(--partial-c)">${hPartial}</div><div class="stat-sub">หลัง</div>
     </div>
-    <div class="stat-card">
+    <div class="stat-card" style="animation-delay:.15s">
       <div class="stat-icon" style="background:var(--unpaid);color:var(--unpaid-c)"><i class="fa-solid fa-circle-xmark"></i></div>
-      <div class="stat-label">ยังไม่ชำระ</div>
-      <div class="stat-value" style="color:var(--unpaid-c)">${hUnpaid}</div>
-      <div class="stat-sub">หลัง</div>
+      <div class="stat-label">ยังไม่ชำระ</div><div class="stat-value" style="color:var(--unpaid-c)">${hUnpaid}</div><div class="stat-sub">หลัง</div>
     </div>`;
 
-  // ── half-year ───────────────────────────────────────
-  const h1pct=pct(h1Paid,totalHouses), h2pct=pct(h2Paid,totalHouses);
+  // CHARTS
+  renderCharts(d);
+
+  // HALF YEAR
+  const h1pct=pct(h1Paid,totalHouses),h2pct=pct(h2Paid,totalHouses);
   document.getElementById('halfGrid').innerHTML=`
     <div class="half-card">
       <div class="half-card-title"><i class="fa-solid fa-calendar-days"></i> ครึ่งปีแรก (ม.ค.–มิ.ย.) ปี ${year}</div>
-      <div class="half-row">
-        <span class="half-lbl"><i class="fa-solid fa-circle-check" style="color:var(--paid-c)"></i> ชำระครบแล้ว</span>
-        <span class="half-val" style="color:var(--paid-c)">${h1Paid} หลัง</span>
-      </div>
-      <div class="half-row">
-        <span class="half-lbl"><i class="fa-solid fa-circle-xmark" style="color:var(--unpaid-c)"></i> ยังไม่ชำระ</span>
-        <span class="half-val" style="color:var(--unpaid-c)">${h1Unpaid} หลัง</span>
-      </div>
-      <div style="margin-top:.6rem">
-        <div style="display:flex;justify-content:space-between;font-size:.78rem;color:var(--muted);margin-bottom:.3rem">
-          <span>อัตราชำระ (จำนวนหลัง)</span><span style="font-weight:700;color:var(--primary)">${h1pct}%</span>
-        </div>
-        ${barHtml(h1pct)}
-      </div>
+      <div class="half-row"><span class="half-lbl"><i class="fa-solid fa-circle-check" style="color:var(--paid-c)"></i> ชำระครบแล้ว</span><span class="half-val" style="color:var(--paid-c)">${h1Paid} หลัง</span></div>
+      <div class="half-row"><span class="half-lbl"><i class="fa-solid fa-circle-xmark" style="color:var(--unpaid-c)"></i> ยังไม่ชำระ</span><span class="half-val" style="color:var(--unpaid-c)">${h1Unpaid} หลัง</span></div>
+      <div style="margin-top:.6rem"><div style="display:flex;justify-content:space-between;font-size:.77rem;color:var(--muted);margin-bottom:.3rem"><span>อัตราชำระ</span><span style="font-weight:700;color:var(--primary)">${h1pct}%</span></div>${barHtml(h1pct)}</div>
     </div>
     <div class="half-card">
       <div class="half-card-title"><i class="fa-solid fa-calendar-days"></i> ครึ่งปีหลัง (ก.ค.–ธ.ค.) ปี ${year}</div>
-      <div class="half-row">
-        <span class="half-lbl"><i class="fa-solid fa-circle-check" style="color:var(--paid-c)"></i> ชำระครบแล้ว</span>
-        <span class="half-val" style="color:var(--paid-c)">${h2Paid} หลัง</span>
-      </div>
-      <div class="half-row">
-        <span class="half-lbl"><i class="fa-solid fa-circle-xmark" style="color:var(--unpaid-c)"></i> ยังไม่ชำระ</span>
-        <span class="half-val" style="color:var(--unpaid-c)">${h2Unpaid} หลัง</span>
-      </div>
-      <div style="margin-top:.6rem">
-        <div style="display:flex;justify-content:space-between;font-size:.78rem;color:var(--muted);margin-bottom:.3rem">
-          <span>อัตราชำระ (จำนวนหลัง)</span><span style="font-weight:700;color:var(--primary)">${h2pct}%</span>
-        </div>
-        ${barHtml(h2pct)}
-      </div>
+      <div class="half-row"><span class="half-lbl"><i class="fa-solid fa-circle-check" style="color:var(--paid-c)"></i> ชำระครบแล้ว</span><span class="half-val" style="color:var(--paid-c)">${h2Paid} หลัง</span></div>
+      <div class="half-row"><span class="half-lbl"><i class="fa-solid fa-circle-xmark" style="color:var(--unpaid-c)"></i> ยังไม่ชำระ</span><span class="half-val" style="color:var(--unpaid-c)">${h2Unpaid} หลัง</span></div>
+      <div style="margin-top:.6rem"><div style="display:flex;justify-content:space-between;font-size:.77rem;color:var(--muted);margin-bottom:.3rem"><span>อัตราชำระ</span><span style="font-weight:700;color:var(--primary)">${h2pct}%</span></div>${barHtml(h2pct)}</div>
     </div>`;
 
-  // ── progress (จากยอดเงิน) ──────────────────────────
+  // PROGRESS
   document.getElementById('progressPct').textContent=paidPct+'%';
   document.getElementById('amtPaid').textContent=fmt(amtPaid);
   document.getElementById('amtDue').textContent=fmt(amtDue);
-  setTimeout(()=>{document.getElementById('progressFill').style.width=paidPct+'%';},100);
+  setTimeout(()=>{document.getElementById('progressFill').style.width=paidPct+'%';},150);
 
-  // ── soi table ──────────────────────────────────────
-  // ค้างชำระ = ยังไม่ชำระ + ชำระบางส่วน (ไม่ครบ)
-  // % ชำระ = จำนวนหลังที่ชำระแล้ว / จำนวนหลังทั้งหมดในซอย
-  const entries=Object.entries(bySoi||{}).sort((a,b)=>a[0].localeCompare(b[0],'th'));
+  // SOI TABLE
+  renderSoiTable(d,sortCol,sortDir);
+}
+
+function renderCharts(d){
+  const{hFullPaid,hPartial,hUnpaid,bySoi,year}=d;
+  const isDark=document.documentElement.getAttribute('data-theme')==='dark';
+  const textC=isDark?'#a0aec0':'#8896ab';
+  const gridC=isDark?'rgba(255,255,255,.06)':'rgba(0,0,0,.06)';
+
+  // DONUT
+  document.getElementById('chartGrid').innerHTML=`
+    <div class="chart-card">
+      <div class="chart-title"><i class="fa-solid fa-chart-pie"></i> สัดส่วนการชำระ (จำนวนหลัง) ปี ${year}</div>
+      <div class="chart-wrap"><canvas id="donutChart"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title"><i class="fa-solid fa-chart-bar"></i> เปรียบเทียบการชำระแยกซอย</div>
+      <div class="chart-wrap"><canvas id="barChart"></canvas></div>
+    </div>`;
+
+  if(donutChart){donutChart.destroy();donutChart=null;}
+  if(barChart){barChart.destroy();barChart=null;}
+
+  // Donut chart
+  const dCtx=document.getElementById('donutChart').getContext('2d');
+  donutChart=new Chart(dCtx,{
+    type:'doughnut',
+    data:{
+      labels:['ชำระครบ','ชำระบางส่วน','ยังไม่ชำระ'],
+      datasets:[{data:[hFullPaid,hPartial,hUnpaid],backgroundColor:['#34c88a','#f6c26b','#f87171'],borderWidth:0,hoverOffset:6}]
+    },
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{color:textC,font:{family:'Sarabun',size:12},padding:14}},tooltip:{callbacks:{label:ctx=>`${ctx.label}: ${ctx.raw} หลัง`}}},cutout:'65%',animation:{animateScale:true}}
+  });
+
+  // Bar chart by soi
+  const soiEntries=Object.entries(bySoi||{}).slice(0,8);
+  const bCtx=document.getElementById('barChart').getContext('2d');
+  barChart=new Chart(bCtx,{
+    type:'bar',
+    data:{
+      labels:soiEntries.map(([s])=>s),
+      datasets:[
+        {label:'ชำระครบ',data:soiEntries.map(([,v])=>v.fullPaid),backgroundColor:'#34c88a',borderRadius:6},
+        {label:'ค้างชำระ',data:soiEntries.map(([,v])=>v.unpaid+v.partial),backgroundColor:'#f87171',borderRadius:6}
+      ]
+    },
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{color:textC,font:{family:'Sarabun',size:12},padding:14}}},scales:{x:{stacked:true,ticks:{color:textC,font:{family:'Sarabun'}},grid:{color:gridC}},y:{stacked:true,ticks:{color:textC,font:{family:'Sarabun'},stepSize:1},grid:{color:gridC}}},animation:{duration:900,easing:'easeOutQuart'}}
+  });
+}
+
+function redrawCharts(){if(lastData)renderCharts(lastData);}
+
+function renderSoiTable(d,col,dir){
+  const{year,bySoi}=d;
+  let entries=Object.entries(bySoi||{});
+  if(col){
+    entries.sort((a,b)=>{
+      const va=col==='soi'?a[0]:col==='total'?a[1].total:col==='fullPaid'?a[1].fullPaid:col==='unpaid'?a[1].unpaid:0;
+      const vb=col==='soi'?b[0]:col==='total'?b[1].total:col==='fullPaid'?b[1].fullPaid:col==='unpaid'?b[1].unpaid:0;
+      return typeof va==='string'?va.localeCompare(vb,'th')*dir:(va-vb)*dir;
+    });
+  }else{entries.sort((a,b)=>a[0].localeCompare(b[0],'th'));}
+
+  const sortIcon='<i class="fa-solid sort-icon" style="font-family:\'Font Awesome 6 Free\'"></i>';
+  function sth(label,colKey){const cls=sortCol===colKey?(sortDir===1?'asc':'desc'):'';return`<th class="sortable ${cls}" onclick="doSort('${colKey}')">${label}${sortIcon}</th>`;}
+
   const rows=entries.map(([soi,s])=>{
-    // ครึ่งปีแรก
-    const h1PaidCount   = s.h1Paid   || 0;
-    const h1UnpaidCount = s.h1Unpaid || 0;  // ยังไม่ชำระหรือไม่ครบ
-    const h1Pct = pct(h1PaidCount, s.total);
-    // ครึ่งปีหลัง
-    const h2PaidCount   = s.h2Paid   || 0;
-    const h2UnpaidCount = s.h2Unpaid || 0;
-    const h2Pct = pct(h2PaidCount, s.total);
-    // ชำระครบทั้งปี
-    const fullPct = pct(s.fullPaid, s.total);
-
-    return `<tr>
+    const h1Pct=pct(s.h1Paid,s.total),h2Pct=pct(s.h2Paid,s.total),fullPct=pct(s.fullPaid,s.total);
+    return`<tr>
       <td><strong>${soi}</strong></td>
-      <td style="text-align:center;font-weight:600">${s.total} หลัง</td>
-      <td style="text-align:center">
-        <span class="badge paid" style="font-size:.8rem">${s.fullPaid} หลัง</span>
-        <div style="font-size:.72rem;color:var(--paid-c);margin-top:.2rem">${fullPct}%</div>
-      </td>
-      <td style="text-align:center">
-        <div style="font-size:.82rem;font-weight:600;color:var(--paid-c)">${h1PaidCount} หลัง</div>
-        <div style="font-size:.72rem;color:var(--muted)">ชำระแล้ว</div>
-      </td>
-      <td style="text-align:center">
-        <div style="font-size:.82rem;font-weight:600;color:var(--unpaid-c)">${h1UnpaidCount} หลัง</div>
-        <div style="font-size:.72rem;color:var(--muted)">ค้างชำระ</div>
-      </td>
-      <td style="text-align:center">
-        <div style="display:flex;align-items:center;justify-content:center;gap:.4rem">
-          ${barHtml(h1Pct)}
-          <span style="font-size:.8rem;font-weight:700;color:var(--primary);white-space:nowrap">${h1Pct}%</span>
-        </div>
-      </td>
-      <td style="text-align:center">
-        <div style="font-size:.82rem;font-weight:600;color:var(--paid-c)">${h2PaidCount} หลัง</div>
-        <div style="font-size:.72rem;color:var(--muted)">ชำระแล้ว</div>
-      </td>
-      <td style="text-align:center">
-        <div style="font-size:.82rem;font-weight:600;color:var(--unpaid-c)">${h2UnpaidCount} หลัง</div>
-        <div style="font-size:.72rem;color:var(--muted)">ค้างชำระ</div>
-      </td>
-      <td style="text-align:center">
-        <div style="display:flex;align-items:center;justify-content:center;gap:.4rem">
-          ${barHtml(h2Pct)}
-          <span style="font-size:.8rem;font-weight:700;color:var(--primary);white-space:nowrap">${h2Pct}%</span>
-        </div>
-      </td>
+      <td style="text-align:center;font-weight:700">${s.total} หลัง</td>
+      <td style="text-align:center"><span class="badge paid">${s.fullPaid} หลัง</span><div style="font-size:.7rem;color:var(--paid-c);margin-top:.15rem">${fullPct}%</div></td>
+      <td style="text-align:center"><div style="font-size:.82rem;font-weight:700;color:var(--paid-c)">${s.h1Paid}</div><div style="font-size:.7rem;color:var(--muted)">ชำระแล้ว</div></td>
+      <td style="text-align:center"><div style="font-size:.82rem;font-weight:700;color:var(--unpaid-c)">${s.h1Unpaid}</div><div style="font-size:.7rem;color:var(--muted)">ค้างชำระ</div></td>
+      <td style="text-align:center"><div style="display:flex;align-items:center;justify-content:center;gap:.4rem">${barHtml(h1Pct)}<span style="font-size:.78rem;font-weight:700;color:var(--primary)">${h1Pct}%</span></div></td>
+      <td style="text-align:center"><div style="font-size:.82rem;font-weight:700;color:var(--paid-c)">${s.h2Paid}</div><div style="font-size:.7rem;color:var(--muted)">ชำระแล้ว</div></td>
+      <td style="text-align:center"><div style="font-size:.82rem;font-weight:700;color:var(--unpaid-c)">${s.h2Unpaid}</div><div style="font-size:.7rem;color:var(--muted)">ค้างชำระ</div></td>
+      <td style="text-align:center"><div style="display:flex;align-items:center;justify-content:center;gap:.4rem">${barHtml(h2Pct)}<span style="font-size:.78rem;font-weight:700;color:var(--primary)">${h2Pct}%</span></div></td>
     </tr>`;
   }).join('');
 
   document.getElementById('soiCard').innerHTML=`
-    <div class="soi-header"><i class="fa-solid fa-road"></i> รายละเอียดแยกตามซอย — ปี พ.ศ. ${year}</div>
+    <div class="soi-header"><div class="soi-header-left"><i class="fa-solid fa-road"></i> รายละเอียดแยกตามซอย — ปี ${year}</div><span style="font-size:.75rem;color:var(--muted)">คลิกหัวตารางเพื่อเรียง</span></div>
     <div class="table-wrap"><table>
-      <thead>
-        <tr>
-          <th rowspan="2" style="vertical-align:middle">ซอย</th>
-          <th rowspan="2" style="text-align:center;vertical-align:middle">ทั้งหมด</th>
-          <th rowspan="2" style="text-align:center;vertical-align:middle">ชำระครบ<br>ทั้งปี</th>
-          <th colspan="3" style="text-align:center;border-left:2px solid var(--border);background:#f0f7ff">ครึ่งปีแรก (ม.ค.–มิ.ย.)</th>
-          <th colspan="3" style="text-align:center;border-left:2px solid var(--border);background:#f0faf5">ครึ่งปีหลัง (ก.ค.–ธ.ค.)</th>
-        </tr>
-        <tr>
-          <th style="text-align:center;border-left:2px solid var(--border);background:#f0f7ff">ชำระแล้ว</th>
-          <th style="text-align:center;background:#f0f7ff">ค้างชำระ</th>
-          <th style="text-align:center;background:#f0f7ff">% ชำระ</th>
-          <th style="text-align:center;border-left:2px solid var(--border);background:#f0faf5">ชำระแล้ว</th>
-          <th style="text-align:center;background:#f0faf5">ค้างชำระ</th>
-          <th style="text-align:center;background:#f0faf5">% ชำระ</th>
-        </tr>
-      </thead>
+      <thead><tr>
+        ${sth('ซอย','soi')}${sth('ทั้งหมด','total')}${sth('ชำระครบทั้งปี','fullPaid')}
+        <th style="text-align:center;border-left:2px solid var(--border)">H1 ชำระแล้ว</th><th style="text-align:center">H1 ค้างชำระ</th><th style="text-align:center">H1 %</th>
+        <th style="text-align:center;border-left:2px solid var(--border)">H2 ชำระแล้ว</th><th style="text-align:center">H2 ค้างชำระ</th><th style="text-align:center">H2 %</th>
+      </tr></thead>
       <tbody>${rows||'<tr><td colspan="9" style="text-align:center;color:var(--muted);padding:2rem">ไม่มีข้อมูลในปีนี้</td></tr>'}</tbody>
     </table></div>`;
 }
 
+function doSort(col){
+  if(sortCol===col)sortDir*=-1;else{sortCol=col;sortDir=1;}
+  if(lastData)renderSoiTable(lastData,sortCol,sortDir);
+}
+
 function setLoading(){
   document.getElementById('topGrid').innerHTML=Array(4).fill('<div class="stat-card"><div class="skeleton"></div></div>').join('');
+  document.getElementById('chartGrid').innerHTML='<div class="chart-card"><div class="skeleton" style="height:220px"></div></div><div class="chart-card"><div class="skeleton" style="height:220px"></div></div>';
   document.getElementById('halfGrid').innerHTML='<div class="half-card"><div class="skeleton"></div></div><div class="half-card"><div class="skeleton"></div></div>';
   document.getElementById('progressFill').style.width='0%';
   document.getElementById('progressPct').textContent='—%';
   document.getElementById('amtPaid').textContent='—';
   document.getElementById('amtDue').textContent='—';
-  document.getElementById('soiCard').innerHTML='<div class="soi-header"><i class="fa-solid fa-road"></i> รายละเอียดแยกตามซอย</div><div class="skeleton" style="margin:1rem"></div>';
+  document.getElementById('soiCard').innerHTML='<div class="soi-header"><div class="soi-header-left"><i class="fa-solid fa-road"></i> รายละเอียดแยกตามซอย</div></div><div class="skeleton" style="margin:1rem"></div>';
 }
 
 init();

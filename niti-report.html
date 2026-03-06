@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="th">
+<html lang="th" data-theme="light">
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
@@ -8,360 +8,227 @@
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet"/>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <style>
-    :root {
-      --primary: #5b8dee; --primary-d: #3a6fd8;
-      --accent: #7ec8a4; --accent2: #f6c26b;
-      --bg: #eef3fb; --card: #fff;
-      --text: #2d3748; --muted: #718096; --border: #d6e4f7;
-      --income-bg: #d1fae5; --income-c: #059669;
-      --expense-bg: #fee2e2; --expense-c: #dc2626;
-    }
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: 'Sarabun', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
-
-    nav {
-      background: linear-gradient(135deg, var(--primary), var(--primary-d));
-      color: #fff; padding: .85rem 1.5rem;
-      display: flex; align-items: center; justify-content: space-between;
-      box-shadow: 0 2px 12px rgba(91,141,238,.3);
-      position: sticky; top: 0; z-index: 100;
-    }
-    .nav-brand { display: flex; align-items: center; gap: .6rem; font-size: 1.05rem; font-weight: 700; }
-    .btn-nav {
-      background: rgba(255,255,255,.2); border: 1px solid rgba(255,255,255,.35);
-      color: #fff; padding: .35rem .8rem; border-radius: 8px;
-      font-family: 'Sarabun', sans-serif; font-size: .82rem;
-      cursor: pointer; text-decoration: none;
-      display: inline-flex; align-items: center; gap: .3rem;
-    }
-    .btn-nav:hover { background: rgba(255,255,255,.3); }
-
-    .page-links {
-      background: #fff; border-bottom: 1px solid var(--border);
-      padding: .5rem 1.5rem; display: flex; gap: .5rem; overflow-x: auto;
-    }
-    .page-link {
-      white-space: nowrap; padding: .4rem .9rem; border-radius: 20px;
-      font-size: .82rem; font-weight: 500; text-decoration: none;
-      color: var(--muted); border: 1.5px solid transparent; transition: all .15s;
-    }
-    .page-link:hover, .page-link.active { background: var(--bg); border-color: var(--border); color: var(--primary); }
-
-    main { max-width: 900px; margin: 0 auto; padding: 1.5rem 1rem; }
-
-    .toolbar {
-      display: flex; align-items: center; justify-content: space-between;
-      flex-wrap: wrap; gap: .75rem; margin-bottom: 1.5rem;
-    }
-    .toolbar h2 { font-size: 1.1rem; font-weight: 700; display: flex; align-items: center; gap: .5rem; }
-    .toolbar h2 i { color: var(--primary); }
-
-    .year-select { display: flex; gap: .4rem; flex-wrap: wrap; }
-    .year-btn {
-      padding: .35rem .85rem; border-radius: 20px; border: 1.5px solid var(--border);
-      background: #fff; font-family: 'Sarabun', sans-serif; font-size: .82rem;
-      color: var(--muted); cursor: pointer; transition: all .15s;
-    }
-    .year-btn.active, .year-btn:hover { background: var(--primary); color: #fff; border-color: var(--primary); }
-
-    /* Report card */
-    .report-card {
-      background: var(--card); border-radius: 14px; border: 1px solid var(--border);
-      overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,.04);
-      margin-bottom: 1rem; transition: box-shadow .15s;
-    }
-    .report-card:hover { box-shadow: 0 4px 18px rgba(91,141,238,.12); }
-    .report-header {
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 1rem 1.25rem;
-      background: linear-gradient(90deg, #f0f7ff, #f0faf5);
-      border-bottom: 1px solid var(--border);
-      cursor: pointer;
-    }
-    .report-month-badge {
-      width: 48px; height: 48px; border-radius: 12px;
-      background: linear-gradient(135deg, var(--primary), var(--accent));
-      color: #fff; display: flex; flex-direction: column;
-      align-items: center; justify-content: center;
-      font-size: .7rem; font-weight: 700; flex-shrink: 0;
-    }
-    .report-month-badge span { font-size: 1.1rem; line-height: 1; }
-    .report-title-wrap { flex: 1; margin: 0 .85rem; }
-    .report-title { font-size: 1rem; font-weight: 700; }
-    .report-sub { font-size: .8rem; color: var(--muted); margin-top: .15rem; }
-    .report-fin {
-      display: flex; gap: .5rem; flex-wrap: wrap; flex-shrink: 0;
-    }
-    .fin-tag {
-      font-size: .78rem; padding: .2rem .7rem; border-radius: 20px; font-weight: 600;
-      display: flex; align-items: center; gap: .25rem;
-    }
-    .fin-tag.income  { background: var(--income-bg); color: var(--income-c); }
-    .fin-tag.expense { background: var(--expense-bg); color: var(--expense-c); }
-
-    .report-body {
-      max-height: 0; overflow: hidden; transition: max-height .35s ease, padding .2s;
-    }
-    .report-body.open { max-height: 1000px; padding: 1.1rem 1.25rem; }
-    .report-content { font-size: .9rem; line-height: 1.8; white-space: pre-line; }
-
-    .fin-grid {
-      display: grid; grid-template-columns: 1fr 1fr 1fr; gap: .75rem; margin-top: .9rem;
-    }
-    .fin-card {
-      border-radius: 10px; padding: .75rem 1rem; border: 1.5px solid;
-      display: flex; align-items: center; gap: .6rem;
-    }
-    .fin-card.income  { background: var(--income-bg);  border-color: #6ee7b7; }
-    .fin-card.expense { background: var(--expense-bg); border-color: #fca5a5; }
-    .fin-card.balance { background: #ede9fe; border-color: #c4b5fd; }
-    .fin-card i { font-size: 1.2rem; }
-    .fin-card.income  i { color: var(--income-c); }
-    .fin-card.expense i { color: var(--expense-c); }
-    .fin-card.balance i { color: #7c3aed; }
-    .fin-label { font-size: .75rem; color: var(--muted); }
-    .fin-amt { font-size: .95rem; font-weight: 700; }
-
-    .toggle-btn { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 1rem; }
-
-    .empty { text-align: center; padding: 3rem 1rem; color: var(--muted); }
-    .empty i { font-size: 2.5rem; display: block; margin-bottom: .75rem; opacity: .4; }
-    .skeleton { background: linear-gradient(90deg, #e2ecf8 25%, #f0f6ff 50%, #e2ecf8 75%); background-size: 200% 100%; animation: shimmer 1.2s infinite; border-radius: 8px; }
-    @keyframes shimmer { to { background-position: -200% 0; } }
-
-    /* Photo gallery */
-    .photo-gallery {
-      display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
-      gap: .6rem; margin-top: .9rem;
-    }
-    .photo-thumb {
-      aspect-ratio: 1; border-radius: 10px; overflow: hidden;
-      border: 2px solid var(--border); cursor: pointer;
-      transition: transform .15s, border-color .15s;
-      background: #f0f4f8;
-    }
-    .photo-thumb:hover { transform: scale(1.03); border-color: var(--primary); }
-    .photo-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
-
-    /* Lightbox */
-    .lightbox {
-      display: none; position: fixed; inset: 0;
-      background: rgba(0,0,0,.85); z-index: 9999;
-      align-items: center; justify-content: center; flex-direction: column;
-    }
-    .lightbox.open { display: flex; }
-    .lightbox img { max-width: 92vw; max-height: 82vh; border-radius: 12px; object-fit: contain; }
-    .lightbox-close {
-      position: absolute; top: 1rem; right: 1.2rem;
-      background: rgba(255,255,255,.15); border: none; color: #fff;
-      font-size: 1.5rem; width: 40px; height: 40px; border-radius: 50%;
-      cursor: pointer; display: flex; align-items: center; justify-content: center;
-    }
-    .lightbox-nav {
-      position: absolute; top: 50%; transform: translateY(-50%);
-      background: rgba(255,255,255,.15); border: none; color: #fff;
-      font-size: 1.3rem; width: 44px; height: 44px; border-radius: 50%;
-      cursor: pointer; display: flex; align-items: center; justify-content: center;
-    }
-    .lightbox-nav.prev { left: 1rem; }
-    .lightbox-nav.next { right: 1rem; }
-    .lightbox-counter {
-      color: rgba(255,255,255,.7); font-size: .85rem; margin-top: .6rem;
-    }
-
-    @media (max-width: 600px) {
-      .report-fin { display: none; }
-      .fin-grid { grid-template-columns: 1fr; }
-      .photo-gallery { grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); }
-    }
+    :root{--primary:#4f7ef7;--primary-d:#2f5be8;--primary-l:#e8efff;--accent:#34c88a;--bg:#f0f4fd;--bg2:#e4ecfb;--card:#fff;--card2:#f8faff;--text:#1a2035;--text2:#4a5568;--muted:#8896ab;--border:#d0ddf5;--shadow:rgba(79,126,247,.15);--shadow2:rgba(0,0,0,.06);--income-bg:#d1fae5;--income-c:#059669;--expense-bg:#fee2e2;--expense-c:#dc2626;}
+    [data-theme="dark"]{--primary:#6b9aff;--primary-d:#4f7ef7;--primary-l:#1a2540;--accent:#3dd68c;--bg:#0f1420;--bg2:#151c2e;--card:#1a2235;--card2:#202840;--text:#e8eeff;--text2:#a0aec0;--muted:#5a6a85;--border:#2a3650;--shadow:rgba(107,154,255,.12);--shadow2:rgba(0,0,0,.3);--income-bg:#0d2a1e;--income-c:#34d399;--expense-bg:#2a1010;--expense-c:#f87171;}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    body{font-family:'Sarabun',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;transition:background .3s,color .3s;}
+    nav{background:linear-gradient(135deg,var(--primary),var(--primary-d));color:#fff;padding:.85rem 1.25rem;display:flex;align-items:center;justify-content:space-between;box-shadow:0 2px 16px var(--shadow);position:sticky;top:0;z-index:100;}
+    .nav-brand{display:flex;align-items:center;gap:.6rem;font-size:1rem;font-weight:700;}
+    .nav-right{display:flex;align-items:center;gap:.5rem;}
+    .btn-nav{background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.3);color:#fff;padding:.35rem .8rem;border-radius:10px;font-family:'Sarabun',sans-serif;font-size:.8rem;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:.3rem;transition:background .15s;}
+    .btn-nav:hover{background:rgba(255,255,255,.28);}
+    .btn-theme{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);color:#fff;width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:.9rem;transition:background .15s;}
+    .btn-theme:hover{background:rgba(255,255,255,.28);}
+    .page-tabs{background:var(--card);border-bottom:1px solid var(--border);padding:0 1rem;display:flex;gap:0;overflow-x:auto;transition:background .3s;}
+    .page-tab{white-space:nowrap;padding:.7rem 1rem;font-size:.82rem;font-weight:600;text-decoration:none;color:var(--muted);border-bottom:2.5px solid transparent;display:flex;align-items:center;gap:.35rem;transition:all .15s;}
+    .page-tab:hover{color:var(--primary);}
+    .page-tab.active{color:var(--primary);border-bottom-color:var(--primary);}
+    main{max-width:900px;margin:0 auto;padding:1.5rem 1rem;}
+    @keyframes fadeSlideIn{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
+    .toolbar{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.75rem;margin-bottom:1.25rem;animation:fadeSlideIn .4s ease both;}
+    .toolbar h2{font-size:1.05rem;font-weight:700;display:flex;align-items:center;gap:.5rem;}
+    .toolbar h2 i{color:var(--primary);}
+    .year-select{display:flex;gap:.4rem;flex-wrap:wrap;}
+    .year-btn{padding:.35rem .85rem;border-radius:20px;border:1.5px solid var(--border);background:var(--card);font-family:'Sarabun',sans-serif;font-size:.82rem;font-weight:600;color:var(--muted);cursor:pointer;transition:all .2s;}
+    .year-btn.active,.year-btn:hover{background:var(--primary);color:#fff;border-color:var(--primary);}
+    .report-card{background:var(--card);border-radius:16px;border:1px solid var(--border);overflow:hidden;box-shadow:0 2px 12px var(--shadow2);margin-bottom:.85rem;transition:box-shadow .2s,transform .2s,background .3s,border-color .3s;animation:fadeSlideIn .4s ease both;}
+    .report-card:hover{box-shadow:0 6px 24px var(--shadow);transform:translateY(-2px);}
+    .report-header{display:flex;align-items:center;justify-content:space-between;padding:1rem 1.2rem;background:var(--card2);border-bottom:1px solid var(--border);cursor:pointer;transition:background .15s;}
+    .report-header:hover{background:var(--bg2);}
+    .report-month-badge{width:50px;height:50px;border-radius:14px;background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:.68rem;font-weight:700;flex-shrink:0;}
+    .report-month-badge span{font-size:1.15rem;line-height:1;}
+    .report-title-wrap{flex:1;margin:0 .85rem;}
+    .report-title{font-size:.97rem;font-weight:700;}
+    .report-sub{font-size:.78rem;color:var(--muted);margin-top:.15rem;}
+    .report-fin{display:flex;gap:.4rem;flex-wrap:wrap;flex-shrink:0;}
+    .fin-tag{font-size:.76rem;padding:.2rem .65rem;border-radius:20px;font-weight:700;display:flex;align-items:center;gap:.25rem;}
+    .fin-tag.income{background:var(--income-bg);color:var(--income-c);}
+    .fin-tag.expense{background:var(--expense-bg);color:var(--expense-c);}
+    .toggle-btn{background:var(--bg2);border:1px solid var(--border);color:var(--muted);cursor:pointer;font-size:.85rem;padding:.3rem .55rem;border-radius:8px;margin-left:.5rem;transition:all .15s;flex-shrink:0;}
+    .toggle-btn:hover{background:var(--primary-l);color:var(--primary);border-color:var(--primary);}
+    .report-body{max-height:0;overflow:hidden;transition:max-height .4s ease,padding .2s;}
+    .report-body.open{max-height:1200px;padding:1.1rem 1.2rem;}
+    .report-content{font-size:.9rem;line-height:1.85;white-space:pre-line;color:var(--text2);}
+    .fin-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.75rem;margin-top:.9rem;}
+    .fin-card{border-radius:12px;padding:.8rem 1rem;border:1.5px solid;display:flex;align-items:center;gap:.65rem;transition:background .3s;}
+    .fin-card.income{background:var(--income-bg);border-color:#6ee7b7;}
+    .fin-card.expense{background:var(--expense-bg);border-color:#fca5a5;}
+    .fin-card.balance{background:#ede9fe;border-color:#c4b5fd;}
+    [data-theme="dark"] .fin-card.balance{background:#1e1530;border-color:#6d28d9;}
+    .fin-card i{font-size:1.25rem;}
+    .fin-card.income i{color:var(--income-c);}
+    .fin-card.expense i{color:var(--expense-c);}
+    .fin-card.balance i{color:#7c3aed;}
+    [data-theme="dark"] .fin-card.balance i{color:#a78bfa;}
+    .fin-label{font-size:.74rem;color:var(--muted);}
+    .fin-amt{font-size:.95rem;font-weight:800;}
+    .empty{text-align:center;padding:3rem 1rem;color:var(--muted);}
+    .empty i{font-size:2.5rem;display:block;margin-bottom:.75rem;opacity:.4;}
+    .skeleton{background:linear-gradient(90deg,var(--bg2) 25%,var(--card2) 50%,var(--bg2) 75%);background-size:200% 100%;animation:shimmer 1.2s infinite;border-radius:8px;}
+    @keyframes shimmer{to{background-position:-200% 0;}}
+    .photo-gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:.6rem;margin-top:.9rem;}
+    .photo-thumb{aspect-ratio:1;border-radius:10px;overflow:hidden;border:2px solid var(--border);cursor:pointer;transition:transform .15s,border-color .15s,box-shadow .15s;background:var(--bg2);}
+    .photo-thumb:hover{transform:scale(1.04);border-color:var(--primary);box-shadow:0 4px 12px var(--shadow);}
+    .photo-thumb img{width:100%;height:100%;object-fit:cover;display:block;}
+    .lightbox{display:none;position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:9999;align-items:center;justify-content:center;flex-direction:column;}
+    .lightbox.open{display:flex;}
+    .lightbox img{max-width:92vw;max-height:80vh;border-radius:12px;object-fit:contain;box-shadow:0 20px 60px rgba(0,0,0,.5);}
+    .lightbox-close{position:absolute;top:1rem;right:1.2rem;background:rgba(255,255,255,.15);border:none;color:#fff;font-size:1.5rem;width:42px;height:42px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .15s;}
+    .lightbox-close:hover{background:rgba(255,255,255,.25);}
+    .lightbox-nav{position:absolute;top:50%;transform:translateY(-50%);background:rgba(255,255,255,.15);border:none;color:#fff;font-size:1.2rem;width:46px;height:46px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .15s;}
+    .lightbox-nav:hover{background:rgba(255,255,255,.25);}
+    .lightbox-nav.prev{left:1rem;}
+    .lightbox-nav.next{right:1rem;}
+    .lightbox-counter{color:rgba(255,255,255,.7);font-size:.85rem;margin-top:.6rem;}
+    @media(max-width:600px){.report-fin{display:none;}.fin-grid{grid-template-columns:1fr;}.photo-gallery{grid-template-columns:repeat(auto-fill,minmax(90px,1fr));}}
   </style>
 </head>
 <body>
-
 <nav>
   <div class="nav-brand"><i class="fa-solid fa-clipboard-list"></i> ผลงานนิติบุคคล</div>
-  <a href="index.html" class="btn-nav" id="homeLink"><i class="fa-solid fa-house"></i> หน้าหลัก</a>
+  <div class="nav-right">
+    <button class="btn-theme" onclick="toggleTheme()"><i id="themeIcon" class="fa-solid fa-moon"></i></button>
+    <a href="index.html" class="btn-nav" id="homeLink"><i class="fa-solid fa-house"></i> หน้าหลัก</a>
+  </div>
 </nav>
-
-<div class="page-links">
-  <a href="dashboard.html" class="page-link" id="dashLink"><i class="fa-solid fa-house"></i> ข้อมูลของฉัน</a>
-  <a href="summary.html" class="page-link"><i class="fa-solid fa-chart-pie"></i> สรุปค่าส่วนกลาง</a>
-  <a href="announcements.html" class="page-link"><i class="fa-solid fa-bullhorn"></i> ประกาศ</a>
-  <a href="niti-report.html" class="page-link active"><i class="fa-solid fa-clipboard-list"></i> ผลงานนิติ</a>
+<div class="page-tabs">
+  <a href="dashboard.html" class="page-tab" id="dashLink"><i class="fa-solid fa-house"></i> ข้อมูลของฉัน</a>
+  <a href="summary.html" class="page-tab"><i class="fa-solid fa-chart-pie"></i> สรุปค่าส่วนกลาง</a>
+  <a href="announcements.html" class="page-tab"><i class="fa-solid fa-bullhorn"></i> ประกาศ</a>
+  <a href="niti-report.html" class="page-tab active"><i class="fa-solid fa-clipboard-list"></i> ผลงานนิติ</a>
 </div>
-
 <main>
   <div class="toolbar">
     <h2><i class="fa-solid fa-clipboard-check"></i> ผลงานประจำเดือน</h2>
-    <div class="year-select" id="yearBtns">
-      <span style="font-size:.82rem;color:var(--muted)">กำลังโหลด...</span>
-    </div>
+    <div class="year-select" id="yearBtns"><span style="font-size:.82rem;color:var(--muted)">กำลังโหลด...</span></div>
   </div>
-
   <div id="reportList">
-    <div class="report-card"><div class="report-header"><div class="skeleton" style="width:48px;height:48px;border-radius:12px;flex-shrink:0"></div><div style="flex:1;margin:0 .85rem"><div class="skeleton" style="height:18px;width:50%;margin-bottom:.4rem"></div><div class="skeleton" style="height:12px;width:35%"></div></div></div></div>
-    <div class="report-card"><div class="report-header"><div class="skeleton" style="width:48px;height:48px;border-radius:12px;flex-shrink:0"></div><div style="flex:1;margin:0 .85rem"><div class="skeleton" style="height:18px;width:60%;margin-bottom:.4rem"></div><div class="skeleton" style="height:12px;width:40%"></div></div></div></div>
-    <div class="report-card"><div class="report-header"><div class="skeleton" style="width:48px;height:48px;border-radius:12px;flex-shrink:0"></div><div style="flex:1;margin:0 .85rem"><div class="skeleton" style="height:18px;width:45%;margin-bottom:.4rem"></div><div class="skeleton" style="height:12px;width:30%"></div></div></div></div>
+    <div class="report-card"><div class="report-header"><div class="skeleton" style="width:50px;height:50px;border-radius:14px;flex-shrink:0"></div><div style="flex:1;margin:0 .85rem"><div class="skeleton" style="height:18px;width:50%;margin-bottom:.4rem"></div><div class="skeleton" style="height:12px;width:35%"></div></div></div></div>
+    <div class="report-card"><div class="report-header"><div class="skeleton" style="width:50px;height:50px;border-radius:14px;flex-shrink:0"></div><div style="flex:1;margin:0 .85rem"><div class="skeleton" style="height:18px;width:60%;margin-bottom:.4rem"></div><div class="skeleton" style="height:12px;width:40%"></div></div></div></div>
   </div>
 </main>
 
+<!-- Lightbox -->
+<div class="lightbox" id="lightbox" onclick="closeLightboxBg(event)">
+  <button class="lightbox-close" onclick="closeLightbox()"><i class="fa-solid fa-xmark"></i></button>
+  <button class="lightbox-nav prev" onclick="navPhoto(-1);event.stopPropagation()"><i class="fa-solid fa-chevron-left"></i></button>
+  <img id="lightboxImg" src="" alt=""/>
+  <div class="lightbox-counter" id="lightboxCounter"></div>
+  <button class="lightbox-nav next" onclick="navPhoto(1);event.stopPropagation()"><i class="fa-solid fa-chevron-right"></i></button>
+</div>
+
 <script>
-  const API_URL = 'https://script.google.com/macros/s/AKfycbwQbc31pY86tM7EdD41dBsXRQ-OmL6M5m0TJKs_ZJiix2bLEYkHOiQ8eIGazR7ay0_l/exec';
-  const token = localStorage.getItem('vms_token');
-  const role  = localStorage.getItem('vms_role');
+  const API_URL='https://script.google.com/macros/s/AKfycbwQbc31pY86tM7EdD41dBsXRQ-OmL6M5m0TJKs_ZJiix2bLEYkHOiQ8eIGazR7ay0_l/exec';
+  const token=localStorage.getItem('vms_token');
+  const role=localStorage.getItem('vms_role');
 
-  if (!token) document.getElementById('dashLink').style.display = 'none';
-  if (role === 'admin') {
-    document.getElementById('homeLink').href = 'admin.html';
-    document.getElementById('homeLink').innerHTML = '<i class="fa-solid fa-shield-halved"></i> Admin';
-  }
+  applyTheme(localStorage.getItem('vms_theme')||'light');
+  function applyTheme(t){document.documentElement.setAttribute('data-theme',t);document.getElementById('themeIcon').className=t==='dark'?'fa-solid fa-sun':'fa-solid fa-moon';localStorage.setItem('vms_theme',t);}
+  function toggleTheme(){applyTheme(document.documentElement.getAttribute('data-theme')==='dark'?'light':'dark');}
 
-  const MONTHS_TH = ['','ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
-  const MONTHS_FULL = ['','มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
+  if(!token)document.getElementById('dashLink').style.display='none';
+  if(role==='admin'){document.getElementById('homeLink').href='admin.html';document.getElementById('homeLink').innerHTML='<i class="fa-solid fa-shield-halved"></i> Admin';}
 
-  let allReports = [];
-  let lightboxPhotos = [];
-  let lightboxIdx = 0;
+  const MONTHS_TH=['','ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+  const MONTHS_FULL=['','มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
 
-  function driveThumb(fileId) {
-    return 'https://drive.google.com/thumbnail?id=' + fileId + '&sz=w400';
-  }
-  function drivePreview(fileId) {
-    return 'https://drive.google.com/uc?id=' + fileId;
-  }
-  function extractFileId(url) {
-    var m = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
-    return m ? m[1] : null;
-  }
+  // ✅ BUG FIX: ประกาศตัวแปรครั้งเดียวเท่านั้น
+  let allReports=[];
+  let currentYear='';
+  let lightboxPhotos=[];
+  let lightboxIdx=0;
 
-  function buildPhotoGallery(photoUrlsStr, reportIdx) {
-    if (!photoUrlsStr) return '';
-    var urls = photoUrlsStr.split(',').map(u => u.trim()).filter(Boolean);
-    if (!urls.length) return '';
-    var thumbs = urls.map((url, pi) => {
-      var fid = extractFileId(url);
-      var src = fid ? driveThumb(fid) : url;
-      var full = fid ? drivePreview(fid) : url;
-      return '<div class="photo-thumb" onclick="openLightbox(' + JSON.stringify(urls) + ',' + pi + ')"><img src="' + src + '" alt="รูป ' + (pi+1) + '" loading="lazy" onerror="this.src=''"></div>';
+  function extractFileId(url){const m=url.match(/\/d\/([a-zA-Z0-9_-]+)/);return m?m[1]:null;}
+  function driveThumb(fid){return'https://drive.google.com/thumbnail?id='+fid+'&sz=w400';}
+  function drivePreview(fid){return'https://drive.google.com/uc?id='+fid;}
+
+  function buildPhotoGallery(photoUrlsStr){
+    if(!photoUrlsStr)return'';
+    const urls=photoUrlsStr.split(',').map(u=>u.trim()).filter(Boolean);
+    if(!urls.length)return'';
+    const thumbs=urls.map((url,pi)=>{
+      const fid=extractFileId(url);
+      const src=fid?driveThumb(fid):url;
+      return`<div class="photo-thumb" onclick='openLightbox(${JSON.stringify(urls)},${pi})'><img src="${src}" alt="รูป ${pi+1}" loading="lazy" onerror="this.style.display='none'"></div>`;
     }).join('');
-    return '<div style="margin-top:.75rem;font-size:.8rem;font-weight:700;color:var(--muted)"><i class="fa-solid fa-images"></i> รูปภาพ (' + urls.length + ')</div><div class="photo-gallery">' + thumbs + '</div>';
+    return`<div style="margin-top:.75rem;font-size:.8rem;font-weight:700;color:var(--muted)"><i class="fa-solid fa-images"></i> รูปภาพ (${urls.length})</div><div class="photo-gallery">${thumbs}</div>`;
   }
 
-  function openLightbox(urls, idx) {
-    lightboxPhotos = urls;
-    lightboxIdx = idx;
-    showLightboxPhoto();
-    document.getElementById('lightbox').classList.add('open');
+  function openLightbox(urls,idx){lightboxPhotos=urls;lightboxIdx=idx;showLightboxPhoto();document.getElementById('lightbox').classList.add('open');}
+  function closeLightbox(){document.getElementById('lightbox').classList.remove('open');}
+  function closeLightboxBg(e){if(e.target===document.getElementById('lightbox'))closeLightbox();}
+  function navPhoto(dir){lightboxIdx=(lightboxIdx+dir+lightboxPhotos.length)%lightboxPhotos.length;showLightboxPhoto();}
+  function showLightboxPhoto(){
+    const url=lightboxPhotos[lightboxIdx];
+    const fid=extractFileId(url);
+    document.getElementById('lightboxImg').src=fid?drivePreview(fid):url;
+    document.getElementById('lightboxCounter').textContent=(lightboxIdx+1)+' / '+lightboxPhotos.length;
   }
-  function closeLightbox(e) {
-    if (e && e.target !== document.getElementById('lightbox') && e.type !== 'click') return;
-    if (e && e.currentTarget !== document.getElementById('lightbox') && e.target.closest('.lightbox-close') === null && e.target.closest('.lightbox') !== e.target) return;
-    document.getElementById('lightbox').classList.remove('open');
-  }
-  function navPhoto(dir) {
-    lightboxIdx = (lightboxIdx + dir + lightboxPhotos.length) % lightboxPhotos.length;
-    showLightboxPhoto();
-  }
-  function showLightboxPhoto() {
-    var url = lightboxPhotos[lightboxIdx];
-    var fid = extractFileId(url);
-    document.getElementById('lightboxImg').src = fid ? drivePreview(fid) : url;
-    document.getElementById('lightboxCounter').textContent = (lightboxIdx+1) + ' / ' + lightboxPhotos.length;
-  }
+  document.addEventListener('keydown',e=>{if(e.key==='Escape')closeLightbox();if(e.key==='ArrowLeft')navPhoto(-1);if(e.key==='ArrowRight')navPhoto(1);});
 
-  // Close lightbox on Escape key
-  document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape') document.getElementById('lightbox').classList.remove('open');
-    if (e.key === 'ArrowLeft')  navPhoto(-1);
-    if (e.key === 'ArrowRight') navPhoto(1);
-  });
-
-  let allReports = [];
-  let currentYear = '';
-
-  async function loadReports() {
-    const qs = new URLSearchParams({ action: 'getNitiReports' }).toString();
-    const r = await fetch(API_URL + '?' + qs);
-    const d = await r.json();
-    if (d.success) {
-      allReports = d.data;
-      // สร้างปุ่มปีจากข้อมูลจริงใน Sheet
-      const years = [...new Set(allReports.map(r => String(r.year)).filter(Boolean))].sort((a,b) => b-a);
-      currentYear = years[0] || '';
-      document.getElementById('yearBtns').innerHTML = years.length
-        ? years.map(y => `<button class="year-btn ${y===currentYear?'active':''}" onclick="filterYear(this,'${y}')">${y}</button>`).join('')
-        : '<span style="font-size:.82rem;color:var(--muted)">ไม่มีข้อมูล</span>';
+  async function loadReports(){
+    const r=await fetch(API_URL+'?'+new URLSearchParams({action:'getNitiReports'}));
+    const d=await r.json();
+    if(d.success){
+      allReports=d.data;
+      const years=[...new Set(allReports.map(r=>String(r.year)).filter(Boolean))].sort((a,b)=>b-a);
+      currentYear=years[0]||'';
+      document.getElementById('yearBtns').innerHTML=years.length
+        ?years.map(y=>`<button class="year-btn ${y===currentYear?'active':''}" onclick="filterYear(this,'${y}')">${y}</button>`).join('')
+        :'<span style="font-size:.82rem;color:var(--muted)">ไม่มีข้อมูล</span>';
       renderReports();
     }
   }
 
-  function filterYear(btn, year) {
-    document.querySelectorAll('.year-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    currentYear = year;
-    renderReports();
+  function filterYear(btn,year){
+    document.querySelectorAll('.year-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');currentYear=year;renderReports();
   }
 
-  function renderReports() {
-    const filtered = allReports.filter(r => String(r.year) === currentYear);
-    if (!filtered.length) {
-      document.getElementById('reportList').innerHTML = `<div class="empty"><i class="fa-solid fa-clipboard-list"></i>ยังไม่มีรายงานในปีนี้</div>`;
-      return;
-    }
-    document.getElementById('reportList').innerHTML = filtered.map((r, i) => {
-      const income  = parseFloat(String(r.income  || 0).replace(/,/g,'')) || 0;
-      const expense = parseFloat(String(r.expense || 0).replace(/,/g,'')) || 0;
-      const balance = income - expense;
-      const balColor = balance >= 0 ? '#7c3aed' : '#dc2626';
-      const m = Number(r.month);
-      return `
-      <div class="report-card">
+  function renderReports(){
+    const filtered=allReports.filter(r=>String(r.year)===currentYear);
+    if(!filtered.length){document.getElementById('reportList').innerHTML=`<div class="empty"><i class="fa-solid fa-clipboard-list"></i>ยังไม่มีรายงานในปีนี้</div>`;return;}
+    document.getElementById('reportList').innerHTML=filtered.map((r,i)=>{
+      const income=parseFloat(String(r.income||0).replace(/,/g,''))||0;
+      const expense=parseFloat(String(r.expense||0).replace(/,/g,''))||0;
+      const balance=income-expense;
+      const balColor=balance>=0?'#7c3aed':'#dc2626';
+      const m=Number(r.month);
+      return`<div class="report-card" style="animation-delay:${i*0.05}s">
         <div class="report-header" onclick="toggleReport(this)">
-          <div class="report-month-badge">
-            <span>${m}</span>
-            ${MONTHS_TH[m]}
-          </div>
+          <div class="report-month-badge"><span>${m}</span>${MONTHS_TH[m]}</div>
           <div class="report-title-wrap">
             <div class="report-title">${r.title}</div>
             <div class="report-sub"><i class="fa-solid fa-calendar" style="margin-right:.2rem"></i>${MONTHS_FULL[m]} ${r.year}</div>
           </div>
           <div class="report-fin">
-            ${income ? `<span class="fin-tag income"><i class="fa-solid fa-arrow-up"></i>${income.toLocaleString()}</span>` : ''}
-            ${expense ? `<span class="fin-tag expense"><i class="fa-solid fa-arrow-down"></i>${expense.toLocaleString()}</span>` : ''}
+            ${income?`<span class="fin-tag income"><i class="fa-solid fa-arrow-up"></i>${income.toLocaleString()}</span>`:''}
+            ${expense?`<span class="fin-tag expense"><i class="fa-solid fa-arrow-down"></i>${expense.toLocaleString()}</span>`:''}
           </div>
-          <button class="toggle-btn" style="margin-left:.5rem"><i class="fa-solid fa-chevron-down" style="transition:transform .2s"></i></button>
+          <button class="toggle-btn"><i class="fa-solid fa-chevron-down" style="transition:transform .25s"></i></button>
         </div>
         <div class="report-body">
           <div class="report-content">${r.content}</div>
-          ${(income || expense) ? `
-          <div class="fin-grid" style="margin-top:.9rem">
+          ${(income||expense)?`<div class="fin-grid">
             <div class="fin-card income"><i class="fa-solid fa-arrow-circle-up"></i><div><div class="fin-label">รายรับ</div><div class="fin-amt">${income.toLocaleString()} ฿</div></div></div>
             <div class="fin-card expense"><i class="fa-solid fa-arrow-circle-down"></i><div><div class="fin-label">รายจ่าย</div><div class="fin-amt">${expense.toLocaleString()} ฿</div></div></div>
             <div class="fin-card balance"><i class="fa-solid fa-scale-balanced"></i><div><div class="fin-label">คงเหลือ</div><div class="fin-amt" style="color:${balColor}">${balance.toLocaleString()} ฿</div></div></div>
-          </div>` : ''}
-          ${buildPhotoGallery(r.photo_urls, i)}
-          ${r.created_date ? `<p style="font-size:.75rem;color:var(--muted);margin-top:.75rem"><i class="fa-solid fa-clock"></i> บันทึกเมื่อ ${r.created_date} โดย ${r.created_by}</p>` : ''}
+          </div>`:''}
+          ${buildPhotoGallery(r.photo_urls)}
+          ${r.created_date?`<p style="font-size:.74rem;color:var(--muted);margin-top:.75rem"><i class="fa-solid fa-clock"></i> บันทึกเมื่อ ${r.created_date} โดย ${r.created_by}</p>`:''}
         </div>
       </div>`;
     }).join('');
   }
 
-  function toggleReport(el) {
-    const body = el.nextElementSibling;
-    const icon = el.querySelector('.fa-chevron-down');
+  function toggleReport(el){
+    const body=el.nextElementSibling;
+    const icon=el.querySelector('.fa-chevron-down');
     body.classList.toggle('open');
-    icon.style.transform = body.classList.contains('open') ? 'rotate(180deg)' : '';
+    icon.style.transform=body.classList.contains('open')?'rotate(180deg)':'';
   }
 
   loadReports();
 </script>
-  <!-- Lightbox -->
-  <div class="lightbox" id="lightbox" onclick="closeLightbox(event)">
-    <button class="lightbox-close" onclick="closeLightbox()"><i class="fa-solid fa-xmark"></i></button>
-    <button class="lightbox-nav prev" onclick="navPhoto(-1);event.stopPropagation()"><i class="fa-solid fa-chevron-left"></i></button>
-    <img id="lightboxImg" src="" alt="">
-    <div class="lightbox-counter" id="lightboxCounter"></div>
-    <button class="lightbox-nav next" onclick="navPhoto(1);event.stopPropagation()"><i class="fa-solid fa-chevron-right"></i></button>
-  </div>
 </body>
 </html>

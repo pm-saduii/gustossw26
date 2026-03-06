@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="th">
+<html lang="th" data-theme="light">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
@@ -9,263 +9,143 @@
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <style>
     :root {
-      --primary:   #5b8dee;
-      --primary-d: #3a6fd8;
-      --accent:    #7ec8a4;
-      --bg:        #eef3fb;
-      --card:      #ffffff;
-      --text:      #2d3748;
-      --muted:     #718096;
-      --border:    #d6e4f7;
-      --grad1:     #dbeafe;
-      --grad2:     #d1fae5;
+      --primary:#4f7ef7; --primary-d:#2f5be8; --primary-l:#e8efff;
+      --accent:#34c88a; --accent-d:#1ea870;
+      --bg:#f0f4fd; --bg2:#e4ecfb; --card:#ffffff; --card2:#f8faff;
+      --text:#1a2035; --text2:#4a5568; --muted:#8896ab;
+      --border:#d0ddf5; --shadow:rgba(79,126,247,.15); --shadow2:rgba(0,0,0,.06);
     }
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      font-family: 'Sarabun', sans-serif;
-      background: linear-gradient(135deg, var(--grad1) 0%, var(--grad2) 100%);
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 1rem;
+    [data-theme="dark"] {
+      --primary:#6b9aff; --primary-d:#4f7ef7; --primary-l:#1a2540;
+      --accent:#3dd68c; --bg:#0f1420; --bg2:#151c2e;
+      --card:#1a2235; --card2:#202840; --text:#e8eeff; --text2:#a0aec0;
+      --muted:#5a6a85; --border:#2a3650; --shadow:rgba(107,154,255,.12); --shadow2:rgba(0,0,0,.3);
     }
-    .login-wrap {
-      width: 100%;
-      max-width: 420px;
-    }
-    .brand {
-      text-align: center;
-      margin-bottom: 2rem;
-    }
-    .brand-icon {
-      width: 72px; height: 72px;
-      background: linear-gradient(135deg, var(--primary), var(--accent));
-      border-radius: 20px;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 2rem;
-      color: #fff;
-      margin-bottom: .75rem;
-      box-shadow: 0 8px 24px rgba(91,141,238,.3);
-    }
-    .brand h1 { font-size: 1.4rem; font-weight: 700; color: var(--text); }
-    .brand p  { font-size: .9rem; color: var(--muted); margin-top: .2rem; }
-
-    .card {
-      background: var(--card);
-      border-radius: 20px;
-      padding: 2rem;
-      box-shadow: 0 4px 32px rgba(91,141,238,.12);
-      border: 1px solid var(--border);
-    }
-    .card h2 { font-size: 1.1rem; font-weight: 600; color: var(--text); margin-bottom: 1.5rem; }
-
-    .form-group { margin-bottom: 1.25rem; }
-    label {
-      display: block;
-      font-size: .85rem;
-      font-weight: 600;
-      color: var(--text);
-      margin-bottom: .4rem;
-    }
-    .input-wrap {
-      position: relative;
-    }
-    .input-wrap i {
-      position: absolute;
-      left: .9rem;
-      top: 50%;
-      transform: translateY(-50%);
-      color: var(--muted);
-      font-size: .95rem;
-    }
-    input {
-      width: 100%;
-      padding: .7rem .9rem .7rem 2.4rem;
-      border: 1.5px solid var(--border);
-      border-radius: 10px;
-      font-family: 'Sarabun', sans-serif;
-      font-size: .95rem;
-      color: var(--text);
-      background: #f8fbff;
-      transition: border-color .2s, box-shadow .2s;
-      outline: none;
-    }
-    input:focus {
-      border-color: var(--primary);
-      box-shadow: 0 0 0 3px rgba(91,141,238,.15);
-      background: #fff;
-    }
-    .toggle-pass {
-      position: absolute;
-      right: .9rem;
-      top: 50%;
-      transform: translateY(-50%);
-      cursor: pointer;
-      color: var(--muted);
-      font-size: .9rem;
-      background: none;
-      border: none;
-      padding: 0;
-    }
-
-    .btn-login {
-      width: 100%;
-      padding: .8rem;
-      background: linear-gradient(135deg, var(--primary), var(--primary-d));
-      color: #fff;
-      border: none;
-      border-radius: 10px;
-      font-family: 'Sarabun', sans-serif;
-      font-size: 1rem;
-      font-weight: 600;
-      cursor: pointer;
-      margin-top: .5rem;
-      transition: transform .15s, box-shadow .15s;
-      box-shadow: 0 4px 16px rgba(91,141,238,.35);
-    }
-    .btn-login:hover   { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(91,141,238,.4); }
-    .btn-login:active  { transform: translateY(0); }
-    .btn-login i { margin-right: .4rem; }
-
-    .public-links {
-      margin-top: 1.5rem;
-      padding-top: 1.25rem;
-      border-top: 1px solid var(--border);
-    }
-    .public-links p { font-size: .8rem; color: var(--muted); text-align: center; margin-bottom: .75rem; }
-    .pub-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: .6rem;
-    }
-    .pub-btn {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: .4rem;
-      padding: .6rem .5rem;
-      border-radius: 10px;
-      border: 1.5px solid var(--border);
-      background: #f8fbff;
-      color: var(--text);
-      font-family: 'Sarabun', sans-serif;
-      font-size: .82rem;
-      font-weight: 500;
-      cursor: pointer;
-      text-decoration: none;
-      transition: background .15s, border-color .15s;
-    }
-    .pub-btn:hover { background: var(--grad1); border-color: var(--primary); color: var(--primary); }
-    .pub-btn i { font-size: .85rem; }
-
-    .loading { display: none; }
-    .spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid rgba(255,255,255,.4); border-top-color: #fff; border-radius: 50%; animation: spin .6s linear infinite; margin-right: .4rem; vertical-align: middle; }
-    @keyframes spin { to { transform: rotate(360deg); } }
-
-    @media (max-width: 480px) {
-      .card { padding: 1.5rem; }
-    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    body{font-family:'Sarabun',sans-serif;background:var(--bg);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:1rem;transition:background .3s,color .3s;color:var(--text);position:relative;overflow:hidden;}
+    .bg-blob{position:fixed;border-radius:50%;filter:blur(80px);opacity:.35;pointer-events:none;animation:blobFloat 8s ease-in-out infinite;}
+    [data-theme="dark"] .bg-blob{opacity:.18;}
+    .bg-blob-1{width:500px;height:500px;background:radial-gradient(circle,#4f7ef7,transparent);top:-150px;left:-150px;animation-delay:0s;}
+    .bg-blob-2{width:400px;height:400px;background:radial-gradient(circle,#34c88a,transparent);bottom:-100px;right:-100px;animation-delay:-4s;}
+    .bg-blob-3{width:300px;height:300px;background:radial-gradient(circle,#9b7cf8,transparent);top:40%;left:60%;animation-delay:-2s;}
+    @keyframes blobFloat{0%,100%{transform:translate(0,0) scale(1);}33%{transform:translate(20px,-20px) scale(1.05);}66%{transform:translate(-15px,15px) scale(.97);}}
+    .theme-toggle{position:fixed;top:1rem;right:1rem;z-index:999;width:44px;height:44px;border-radius:50%;background:var(--card);border:1.5px solid var(--border);color:var(--text2);font-size:1.1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 12px var(--shadow2);transition:all .3s;}
+    .theme-toggle:hover{transform:scale(1.1);border-color:var(--primary);color:var(--primary);}
+    .login-wrap{width:100%;max-width:440px;position:relative;z-index:1;animation:slideUp .5s cubic-bezier(.34,1.56,.64,1) both;}
+    @keyframes slideUp{from{opacity:0;transform:translateY(30px) scale(.97);}to{opacity:1;transform:translateY(0) scale(1);}}
+    .brand{text-align:center;margin-bottom:2rem;}
+    .brand-icon-wrap{position:relative;display:inline-block;margin-bottom:1rem;}
+    .brand-icon{width:80px;height:80px;background:linear-gradient(135deg,var(--primary),var(--accent));border-radius:24px;display:inline-flex;align-items:center;justify-content:center;font-size:2.1rem;color:#fff;box-shadow:0 12px 32px var(--shadow),0 4px 12px var(--shadow2);position:relative;z-index:1;animation:iconPulse 3s ease-in-out infinite;}
+    @keyframes iconPulse{0%,100%{box-shadow:0 12px 32px var(--shadow),0 4px 12px var(--shadow2);}50%{box-shadow:0 16px 48px var(--shadow),0 6px 18px var(--shadow2);}}
+    .brand-ring{position:absolute;inset:-8px;border-radius:32px;border:2px dashed var(--primary);opacity:.3;animation:ringRotate 12s linear infinite;}
+    @keyframes ringRotate{to{transform:rotate(360deg);}}
+    .brand h1{font-size:1.45rem;font-weight:700;color:var(--text);}
+    .brand p{font-size:.88rem;color:var(--muted);margin-top:.25rem;}
+    .card{background:var(--card);border-radius:24px;padding:2rem 2rem 1.75rem;box-shadow:0 8px 40px var(--shadow),0 2px 12px var(--shadow2);border:1px solid var(--border);transition:background .3s,border-color .3s;}
+    .card h2{font-size:1rem;font-weight:700;color:var(--text);margin-bottom:1.5rem;display:flex;align-items:center;gap:.5rem;}
+    .card h2 i{color:var(--primary);}
+    .form-group{margin-bottom:1.2rem;}
+    label{display:flex;align-items:center;gap:.3rem;font-size:.82rem;font-weight:700;color:var(--text2);margin-bottom:.4rem;}
+    label i{color:var(--primary);font-size:.8rem;}
+    .input-wrap{position:relative;}
+    .icon-left{position:absolute;left:.95rem;top:50%;transform:translateY(-50%);color:var(--muted);font-size:.9rem;pointer-events:none;transition:color .2s;}
+    input{width:100%;padding:.75rem .95rem .75rem 2.6rem;border:1.5px solid var(--border);border-radius:12px;font-family:'Sarabun',sans-serif;font-size:.95rem;color:var(--text);background:var(--card2);transition:all .2s;outline:none;}
+    input::placeholder{color:var(--muted);}
+    input:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(79,126,247,.15);background:var(--card);}
+    .input-wrap:focus-within .icon-left{color:var(--primary);}
+    .toggle-pass{position:absolute;right:.95rem;top:50%;transform:translateY(-50%);cursor:pointer;color:var(--muted);font-size:.9rem;background:none;border:none;padding:0;transition:color .2s;}
+    .toggle-pass:hover{color:var(--primary);}
+    .btn-login{width:100%;padding:.85rem;background:linear-gradient(135deg,var(--primary),var(--primary-d));color:#fff;border:none;border-radius:12px;font-family:'Sarabun',sans-serif;font-size:1rem;font-weight:700;cursor:pointer;margin-top:.5rem;transition:transform .15s,box-shadow .15s,opacity .15s;box-shadow:0 4px 20px var(--shadow);display:flex;align-items:center;justify-content:center;gap:.5rem;}
+    .btn-login:hover{transform:translateY(-2px);box-shadow:0 8px 28px var(--shadow);}
+    .btn-login:active{transform:translateY(0);}
+    .btn-login:disabled{opacity:.7;cursor:not-allowed;transform:none;}
+    .spinner{display:none;width:18px;height:18px;border:2px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:spin .6s linear infinite;}
+    @keyframes spin{to{transform:rotate(360deg);}}
+    .public-links{margin-top:1.5rem;padding-top:1.4rem;border-top:1px solid var(--border);}
+    .public-links p{font-size:.78rem;color:var(--muted);text-align:center;margin-bottom:.85rem;}
+    .pub-grid{display:grid;grid-template-columns:1fr 1fr;gap:.65rem;}
+    .pub-btn{display:flex;align-items:center;justify-content:center;gap:.45rem;padding:.65rem .5rem;border-radius:12px;border:1.5px solid var(--border);background:var(--card2);color:var(--text2);font-family:'Sarabun',sans-serif;font-size:.82rem;font-weight:600;cursor:pointer;text-decoration:none;transition:all .2s;}
+    .pub-btn:hover{background:var(--primary-l);border-color:var(--primary);color:var(--primary);transform:translateY(-2px);box-shadow:0 4px 12px var(--shadow);}
+    .pub-btn.admin-btn{border-color:#fbbf24;color:#d97706;background:#fffbeb;}
+    .pub-btn.admin-btn:hover{background:#fef3c7;border-color:#f59e0b;color:#b45309;}
+    [data-theme="dark"] .pub-btn.admin-btn{background:#2a2010;color:#fbbf24;}
+    [data-theme="dark"] .pub-btn.admin-btn:hover{background:#352818;}
+    @media(max-width:480px){.card{padding:1.5rem;border-radius:20px;}.brand-icon{width:68px;height:68px;font-size:1.8rem;}}
   </style>
 </head>
 <body>
-<div class="login-wrap">
-  <div class="brand">
-    <div class="brand-icon"><i class="fa-solid fa-house-chimney"></i></div>
-    <h1>ระบบบริหารหมู่บ้าน</h1>
-    <p>Village Management System</p>
+  <div class="bg-blob bg-blob-1"></div>
+  <div class="bg-blob bg-blob-2"></div>
+  <div class="bg-blob bg-blob-3"></div>
+  <button class="theme-toggle" onclick="toggleTheme()" title="สลับธีม"><i class="fa-solid fa-moon" id="themeIcon"></i></button>
+  <div class="login-wrap">
+    <div class="brand">
+      <div class="brand-icon-wrap">
+        <div class="brand-ring"></div>
+        <div class="brand-icon"><i class="fa-solid fa-house-chimney"></i></div>
+      </div>
+      <h1>ระบบบริหารหมู่บ้าน</h1>
+      <p>Village Management System</p>
+    </div>
+    <div class="card">
+      <h2><i class="fa-solid fa-right-to-bracket"></i> เข้าสู่ระบบ</h2>
+      <div class="form-group">
+        <label><i class="fa-solid fa-user"></i> ชื่อผู้ใช้</label>
+        <div class="input-wrap">
+          <i class="fa-solid fa-user icon-left"></i>
+          <input type="text" id="username" placeholder="กรอกชื่อผู้ใช้" autocomplete="username"/>
+        </div>
+      </div>
+      <div class="form-group">
+        <label><i class="fa-solid fa-lock"></i> รหัสผ่าน</label>
+        <div class="input-wrap">
+          <i class="fa-solid fa-lock icon-left"></i>
+          <input type="password" id="password" placeholder="กรอกรหัสผ่าน" autocomplete="current-password"/>
+          <button class="toggle-pass" type="button" onclick="togglePass()"><i class="fa-solid fa-eye" id="eyeIcon"></i></button>
+        </div>
+      </div>
+      <button class="btn-login" onclick="doLogin()" id="loginBtn">
+        <span class="spinner" id="spinner"></span>
+        <i class="fa-solid fa-right-to-bracket" id="loginIcon"></i>
+        <span id="loginText">เข้าสู่ระบบ</span>
+      </button>
+      <div class="public-links">
+        <p><i class="fa-solid fa-globe"></i> ข้อมูลสาธารณะ</p>
+        <div class="pub-grid">
+          <a href="summary.html" class="pub-btn"><i class="fa-solid fa-chart-pie" style="color:#4f7ef7"></i> สรุปค่าส่วนกลาง</a>
+          <a href="announcements.html" class="pub-btn"><i class="fa-solid fa-bullhorn" style="color:#f97316"></i> ประกาศ</a>
+          <a href="niti-report.html" class="pub-btn"><i class="fa-solid fa-clipboard-list" style="color:#34c88a"></i> ผลงานนิติ</a>
+          <a href="admin.html" class="pub-btn admin-btn"><i class="fa-solid fa-shield-halved"></i> Admin</a>
+        </div>
+      </div>
+    </div>
   </div>
-
-  <div class="card">
-    <h2><i class="fa-solid fa-right-to-bracket" style="color:var(--primary);margin-right:.4rem"></i>เข้าสู่ระบบ</h2>
-
-    <div class="form-group">
-      <label for="username"><i class="fa-solid fa-user" style="margin-right:.3rem;color:var(--primary)"></i>ชื่อผู้ใช้</label>
-      <div class="input-wrap">
-        <i class="fa-solid fa-user"></i>
-        <input type="text" id="username" placeholder="กรอกชื่อผู้ใช้" autocomplete="username"/>
-      </div>
-    </div>
-
-    <div class="form-group">
-      <label for="password"><i class="fa-solid fa-lock" style="margin-right:.3rem;color:var(--primary)"></i>รหัสผ่าน</label>
-      <div class="input-wrap">
-        <i class="fa-solid fa-lock"></i>
-        <input type="password" id="password" placeholder="กรอกรหัสผ่าน" autocomplete="current-password"/>
-        <button class="toggle-pass" type="button" onclick="togglePass()" id="eyeBtn">
-          <i class="fa-solid fa-eye" id="eyeIcon"></i>
-        </button>
-      </div>
-    </div>
-
-    <button class="btn-login" onclick="doLogin()">
-      <span class="loading"><span class="spinner"></span></span>
-      <span class="label-text"><i class="fa-solid fa-right-to-bracket"></i> เข้าสู่ระบบ</span>
-    </button>
-
-    <div class="public-links">
-      <p>หรือดูข้อมูลสาธารณะ</p>
-      <div class="pub-grid">
-        <a href="summary.html" class="pub-btn"><i class="fa-solid fa-chart-pie"></i> สรุปค่าส่วนกลาง</a>
-        <a href="announcements.html" class="pub-btn"><i class="fa-solid fa-bullhorn"></i> ประกาศ</a>
-        <a href="niti-report.html" class="pub-btn"><i class="fa-solid fa-clipboard-list"></i> ผลงานนิติ</a>
-        <a href="admin.html" class="pub-btn" style="border-color:#f0a05a;color:#c07030;"><i class="fa-solid fa-shield-halved"></i> Admin</a>
-      </div>
-    </div>
-  </div>
-</div>
-
 <script>
-  // ======================================================
-  // ⚙️  แก้ไข URL ตรงนี้หลัง Deploy GAS
-  // ======================================================
-  const API_URL = 'https://script.google.com/macros/s/AKfycbwQbc31pY86tM7EdD41dBsXRQ-OmL6M5m0TJKs_ZJiix2bLEYkHOiQ8eIGazR7ay0_l/exec';
-
-  function togglePass() {
-    const inp = document.getElementById('password');
-    const icon = document.getElementById('eyeIcon');
-    if (inp.type === 'password') { inp.type = 'text'; icon.className = 'fa-solid fa-eye-slash'; }
-    else { inp.type = 'password'; icon.className = 'fa-solid fa-eye'; }
-  }
-
-  async function doLogin() {
-    const username = document.getElementById('username').value.trim();
-    const password = document.getElementById('password').value.trim();
-    if (!username || !password) {
-      Swal.fire({ icon: 'warning', title: 'แจ้งเตือน', text: 'กรุณากรอกชื่อผู้ใช้และรหัสผ่าน', confirmButtonColor: '#5b8dee' });
-      return;
-    }
+  const API_URL='https://script.google.com/macros/s/AKfycbwQbc31pY86tM7EdD41dBsXRQ-OmL6M5m0TJKs_ZJiix2bLEYkHOiQ8eIGazR7ay0_l/exec';
+  const savedTheme=localStorage.getItem('vms_theme')||'light';
+  applyTheme(savedTheme);
+  function applyTheme(t){document.documentElement.setAttribute('data-theme',t);document.getElementById('themeIcon').className=t==='dark'?'fa-solid fa-sun':'fa-solid fa-moon';localStorage.setItem('vms_theme',t);}
+  function toggleTheme(){applyTheme(document.documentElement.getAttribute('data-theme')==='dark'?'light':'dark');}
+  function togglePass(){const i=document.getElementById('password'),ic=document.getElementById('eyeIcon');if(i.type==='password'){i.type='text';ic.className='fa-solid fa-eye-slash';}else{i.type='password';ic.className='fa-solid fa-eye';}}
+  function setLoading(on){document.getElementById('spinner').style.display=on?'inline-block':'none';document.getElementById('loginIcon').style.display=on?'none':'inline';document.getElementById('loginText').textContent=on?'กำลังเข้าสู่ระบบ...':'เข้าสู่ระบบ';document.getElementById('loginBtn').disabled=on;}
+  async function doLogin(){
+    const username=document.getElementById('username').value.trim();
+    const password=document.getElementById('password').value.trim();
+    if(!username||!password){Swal.fire({icon:'warning',title:'แจ้งเตือน',text:'กรุณากรอกชื่อผู้ใช้และรหัสผ่าน',confirmButtonColor:'#4f7ef7'});return;}
     setLoading(true);
-    try {
-      const qs = new URLSearchParams({ action: 'login', username, password }).toString();
-      const res = await fetch(API_URL + '?' + qs);
-      const data = await res.json();
-      if (data.success) {
-        localStorage.setItem('vms_token', data.token);
-        localStorage.setItem('vms_role', data.role);
-        localStorage.setItem('vms_name', data.full_name);
-        localStorage.setItem('vms_house', data.house_id);
-        await Swal.fire({ icon: 'success', title: 'ยินดีต้อนรับ', text: 'สวัสดี ' + data.full_name, timer: 1500, showConfirmButton: false });
-        if (data.role === 'admin') window.location.href = 'admin.html';
-        else window.location.href = 'dashboard.html';
-      } else {
-        Swal.fire({ icon: 'error', title: 'เข้าสู่ระบบไม่สำเร็จ', text: data.message, confirmButtonColor: '#5b8dee' });
-      }
-    } catch(e) {
-      Swal.fire({ icon: 'error', title: 'เกิดข้อผิดพลาด', text: 'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้', confirmButtonColor: '#5b8dee' });
-    }
+    try{
+      const res=await fetch(API_URL+'?'+new URLSearchParams({action:'login',username,password}));
+      const data=await res.json();
+      if(data.success){
+        localStorage.setItem('vms_token',data.token);localStorage.setItem('vms_role',data.role);
+        localStorage.setItem('vms_name',data.full_name);localStorage.setItem('vms_house',data.house_id);
+        await Swal.fire({icon:'success',title:'ยินดีต้อนรับ',text:'สวัสดี '+data.full_name,timer:1400,showConfirmButton:false});
+        window.location.href=data.role==='admin'?'admin.html':'dashboard.html';
+      }else{Swal.fire({icon:'error',title:'เข้าสู่ระบบไม่สำเร็จ',text:data.message,confirmButtonColor:'#4f7ef7'});}
+    }catch(e){Swal.fire({icon:'error',title:'เกิดข้อผิดพลาด',text:'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้',confirmButtonColor:'#4f7ef7'});}
     setLoading(false);
   }
-
-  function setLoading(on) {
-    document.querySelector('.loading').style.display = on ? 'inline' : 'none';
-    document.querySelector('.label-text').style.display = on ? 'none' : 'inline';
-    document.querySelector('.btn-login').disabled = on;
-  }
-
-  document.addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+  document.addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
 </script>
 </body>
 </html>
