@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ข้อมูลของฉัน — ระบบบริหารหมู่บ้าน</title>
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet"/>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <style>
+    :root {
+      --primary: #5b8dee; --primary-d: #3a6fd8;
+      --accent: #7ec8a4; --accent2: #f6c26b;
+      --bg: #eef3fb; --card: #ffffff;
+      --text: #2d3748; --muted: #718096;
+      --border: #d6e4f7;
+      --paid: #d1fae5; --paid-c: #059669;
+      --partial: #fef3c7; --partial-c: #d97706;
+      --unpaid: #fee2e2; --unpaid-c: #dc2626;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Sarabun', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+    /* NAV */
+    nav {
+      background: linear-gradient(135deg, var(--primary), var(--primary-d));
+      color: #fff;
+      padding: .85rem 1.5rem;
+      display: flex; align-items: center; justify-content: space-between;
+      box-shadow: 0 2px 12px rgba(91,141,238,.3);
+      position: sticky; top: 0; z-index: 100;
+    }
+    .nav-brand { display: flex; align-items: center; gap: .6rem; font-size: 1.05rem; font-weight: 700; }
+    .nav-brand i { font-size: 1.2rem; }
+    .nav-right { display: flex; align-items: center; gap: 1rem; }
+    .nav-name { font-size: .85rem; opacity: .9; }
+    .btn-nav {
+      background: rgba(255,255,255,.2);
+      border: 1px solid rgba(255,255,255,.35);
+      color: #fff;
+      padding: .35rem .8rem;
+      border-radius: 8px;
+      font-family: 'Sarabun', sans-serif;
+      font-size: .82rem;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex; align-items: center; gap: .3rem;
+      transition: background .15s;
+    }
+    .btn-nav:hover { background: rgba(255,255,255,.3); }
+
+    /* PAGE LINKS */
+    .page-links {
+      background: #fff;
+      border-bottom: 1px solid var(--border);
+      padding: .5rem 1.5rem;
+      display: flex; gap: .5rem; overflow-x: auto;
+    }
+    .page-link {
+      white-space: nowrap;
+      padding: .4rem .9rem;
+      border-radius: 20px;
+      font-size: .82rem;
+      font-weight: 500;
+      text-decoration: none;
+      color: var(--muted);
+      border: 1.5px solid transparent;
+      transition: all .15s;
+    }
+    .page-link:hover, .page-link.active { background: var(--bg); border-color: var(--border); color: var(--primary); }
+
+    /* MAIN */
+    main { max-width: 900px; margin: 0 auto; padding: 1.5rem 1rem; }
+
+    /* HERO */
+    .hero {
+      background: linear-gradient(135deg, #dbeafe 0%, #d1fae5 100%);
+      border-radius: 16px;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+      display: flex; align-items: center; gap: 1rem;
+      border: 1px solid var(--border);
+    }
+    .hero-icon {
+      width: 60px; height: 60px;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      border-radius: 16px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.6rem; color: #fff; flex-shrink: 0;
+    }
+    .hero-text h2 { font-size: 1.2rem; font-weight: 700; }
+    .hero-text p { font-size: .88rem; color: var(--muted); margin-top: .2rem; }
+
+    /* SECTION */
+    .section-title {
+      font-size: 1rem; font-weight: 700; color: var(--text);
+      margin-bottom: 1rem;
+      display: flex; align-items: center; gap: .5rem;
+    }
+    .section-title i { color: var(--primary); }
+
+    /* INFO CARD */
+    .info-card {
+      background: var(--card);
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      overflow: hidden;
+      margin-bottom: 1.5rem;
+      box-shadow: 0 2px 12px rgba(0,0,0,.04);
+    }
+    .info-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 0;
+    }
+    .info-item {
+      padding: 1rem 1.25rem;
+      border-right: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+    }
+    .info-item:nth-child(even):last-child { border-right: none; }
+    .info-label { font-size: .78rem; color: var(--muted); font-weight: 500; margin-bottom: .25rem; display: flex; align-items: center; gap: .3rem; }
+    .info-value { font-size: .97rem; font-weight: 600; color: var(--text); }
+
+    /* FEE YEAR */
+    .fee-year {
+      background: var(--card);
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      overflow: hidden;
+      margin-bottom: 1rem;
+      box-shadow: 0 2px 12px rgba(0,0,0,.04);
+    }
+    .fee-year-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: .9rem 1.25rem;
+      background: linear-gradient(90deg, #f0f7ff, #f0faf5);
+      border-bottom: 1px solid var(--border);
+      cursor: pointer;
+    }
+    .fee-year-title { font-weight: 700; font-size: 1rem; display: flex; align-items: center; gap: .5rem; }
+    .year-badge {
+      font-size: .75rem; padding: .2rem .7rem;
+      border-radius: 20px; font-weight: 600;
+    }
+    .year-badge.paid     { background: var(--paid); color: var(--paid-c); }
+    .year-badge.partial  { background: var(--partial); color: var(--partial-c); }
+    .year-badge.unpaid   { background: var(--unpaid); color: var(--unpaid-c); }
+    .fee-body { padding: 1rem 1.25rem; }
+    .half-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    .half-card {
+      border-radius: 10px;
+      padding: .9rem 1rem;
+      border: 1.5px solid var(--border);
+    }
+    .half-card.paid     { background: var(--paid); border-color: #6ee7b7; }
+    .half-card.partial  { background: var(--partial); border-color: #fcd34d; }
+    .half-card.unpaid   { background: var(--unpaid); border-color: #fca5a5; }
+    .half-title { font-size: .82rem; font-weight: 700; margin-bottom: .5rem; display: flex; align-items: center; gap: .3rem; }
+    .half-row { font-size: .85rem; display: flex; justify-content: space-between; margin-bottom: .25rem; }
+    .half-row span:first-child { color: var(--muted); }
+    .half-row span:last-child  { font-weight: 600; }
+    .half-short { font-size: .82rem; color: var(--unpaid-c); font-weight: 600; margin-top: .4rem; }
+
+    /* EMPTY */
+    .empty { text-align: center; padding: 3rem 1rem; color: var(--muted); }
+    .empty i { font-size: 2.5rem; margin-bottom: .75rem; opacity: .4; }
+
+    /* SKELETON */
+    .skeleton { background: linear-gradient(90deg, #e2ecf8 25%, #f0f6ff 50%, #e2ecf8 75%); background-size: 200% 100%; animation: shimmer 1.2s infinite; border-radius: 8px; }
+    @keyframes shimmer { to { background-position: -200% 0; } }
+
+    @media (max-width: 600px) {
+      .half-grid { grid-template-columns: 1fr; }
+      .hero { flex-direction: column; text-align: center; }
+      .info-grid { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-brand"><i class="fa-solid fa-house-chimney"></i> ระบบบริหารหมู่บ้าน</div>
+  <div class="nav-right">
+    <span class="nav-name" id="navName"></span>
+    <button class="btn-nav" onclick="logout()"><i class="fa-solid fa-right-from-bracket"></i> ออกจากระบบ</button>
+  </div>
+</nav>
+
+<div class="page-links">
+  <a href="dashboard.html" class="page-link active"><i class="fa-solid fa-house"></i> ข้อมูลของฉัน</a>
+  <a href="summary.html" class="page-link"><i class="fa-solid fa-chart-pie"></i> สรุปค่าส่วนกลาง</a>
+  <a href="announcements.html" class="page-link"><i class="fa-solid fa-bullhorn"></i> ประกาศ</a>
+  <a href="niti-report.html" class="page-link"><i class="fa-solid fa-clipboard-list"></i> ผลงานนิติ</a>
+</div>
+
+<main>
+  <!-- HERO -->
+  <div class="hero" id="heroSection">
+    <div class="hero-icon"><i class="fa-solid fa-house-user"></i></div>
+    <div class="hero-text">
+      <h2 id="heroName">กำลังโหลด...</h2>
+      <p id="heroSub">บ้านเลขที่ — | ซอย —</p>
+    </div>
+  </div>
+
+  <!-- HOUSE INFO -->
+  <div class="section-title"><i class="fa-solid fa-id-card"></i> ข้อมูลส่วนตัว</div>
+  <div class="info-card">
+    <div class="info-grid" id="infoGrid">
+      <div class="info-item"><div class="skeleton" style="height:40px"></div></div>
+      <div class="info-item"><div class="skeleton" style="height:40px"></div></div>
+      <div class="info-item"><div class="skeleton" style="height:40px"></div></div>
+      <div class="info-item"><div class="skeleton" style="height:40px"></div></div>
+    </div>
+  </div>
+
+  <!-- FEE INFO -->
+  <div class="section-title"><i class="fa-solid fa-receipt"></i> ประวัติค่าส่วนกลาง</div>
+  <div id="feeContainer">
+    <div class="fee-year">
+      <div class="fee-year-header"><div class="skeleton" style="width:200px;height:24px"></div></div>
+    </div>
+  </div>
+</main>
+
+<script>
+  const API_URL = 'https://script.google.com/macros/s/AKfycbwQbc31pY86tM7EdD41dBsXRQ-OmL6M5m0TJKs_ZJiix2bLEYkHOiQ8eIGazR7ay0_l/exec';
+
+  const token = localStorage.getItem('vms_token');
+  const role  = localStorage.getItem('vms_role');
+  const name  = localStorage.getItem('vms_name');
+
+  if (!token) { window.location.href = 'index.html'; }
+  document.getElementById('navName').textContent = name || '';
+
+  const MONTHS_TH = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+
+  async function api(params) {
+    const qs = new URLSearchParams(params).toString();
+    const r = await fetch(API_URL + '?' + qs);
+    return r.json();
+  }
+
+  async function loadInfo() {
+    const d = await api({ action: 'getMyInfo', token });
+    if (!d.success) return;
+    const h = d.data;
+
+    document.getElementById('heroName').textContent = h.owner_name;
+    document.getElementById('heroSub').textContent = `บ้านเลขที่ ${h.house_no} | ${h.soi}`;
+
+    const typeIcon = { 'บ้านเดี่ยว': 'fa-house', 'ทาวน์โฮม': 'fa-building', 'บ้านแฝด': 'fa-house-chimney-window' };
+    const fields = [
+      { label: 'บ้านเลขที่', icon: 'fa-map-pin', value: h.house_no },
+      { label: 'ชื่อ-นามสกุล', icon: 'fa-user', value: h.owner_name },
+      { label: 'ที่อยู่', icon: 'fa-location-dot', value: h.address },
+      { label: 'พื้นที่', icon: 'fa-ruler-combined', value: h.area_sqm + ' ตร.ม.' },
+      { label: 'ซอย', icon: 'fa-road', value: h.soi },
+      { label: 'ประเภทบ้าน', icon: typeIcon[h.house_type] || 'fa-house', value: h.house_type },
+      { label: 'เบอร์โทร', icon: 'fa-phone', value: h.phone || '—' },
+      { label: 'ค่าส่วนกลาง/ครึ่งปี', icon: 'fa-money-bill-wave', value: Number(h.fee_per_half).toLocaleString() + ' บาท' },
+    ];
+
+    document.getElementById('infoGrid').innerHTML = fields.map(f => `
+      <div class="info-item">
+        <div class="info-label"><i class="fa-solid ${f.icon}"></i> ${f.label}</div>
+        <div class="info-value">${f.value}</div>
+      </div>`).join('');
+  }
+
+  async function loadFees() {
+    const d = await api({ action: 'getMyFees', token });
+    if (!d.success || !d.data.length) {
+      document.getElementById('feeContainer').innerHTML = `<div class="empty"><i class="fa-solid fa-receipt"></i><br>ยังไม่มีข้อมูลค่าส่วนกลาง</div>`;
+      return;
+    }
+    const fees = d.data.sort((a, b) => b.year - a.year);
+    document.getElementById('feeContainer').innerHTML = fees.map(f => feeCard(f)).join('');
+  }
+
+  function feeCard(f) {
+    const h1s = f.h1_status || 'unpaid';
+    const h2s = f.h2_status || 'unpaid';
+    const overall = (h1s === 'paid' && h2s === 'paid') ? 'paid' : (h1s === 'unpaid' && h2s === 'unpaid') ? 'unpaid' : 'partial';
+    const badgeLabel = { paid: '✓ ชำระครบ', partial: '⚡ ชำระบางส่วน', unpaid: '✗ ยังไม่ชำระ' };
+
+    const h1short = Math.max(0, Number(f.h1_amount) - Number(f.h1_paid));
+    const h2short = Math.max(0, Number(f.h2_amount) - Number(f.h2_paid));
+
+    return `
+    <div class="fee-year">
+      <div class="fee-year-header" onclick="toggleFee(this)">
+        <div class="fee-year-title"><i class="fa-solid fa-calendar-days" style="color:var(--primary)"></i> ปี พ.ศ. ${f.year}</div>
+        <div style="display:flex;align-items:center;gap:.5rem">
+          <span class="year-badge ${overall}">${badgeLabel[overall]}</span>
+          <i class="fa-solid fa-chevron-down" style="color:var(--muted);transition:transform .2s"></i>
+        </div>
+      </div>
+      <div class="fee-body">
+        <div class="half-grid">
+          ${halfCard('ครึ่งปีแรก (ม.ค. – มิ.ย.)', h1s, f.h1_amount, f.h1_paid, f.h1_date, h1short)}
+          ${halfCard('ครึ่งปีหลัง (ก.ค. – ธ.ค.)', h2s, f.h2_amount, f.h2_paid, f.h2_date, h2short)}
+        </div>
+        ${f.note ? `<p style="margin-top:.75rem;font-size:.82rem;color:var(--muted)"><i class="fa-solid fa-note-sticky"></i> ${f.note}</p>` : ''}
+      </div>
+    </div>`;
+  }
+
+  function halfCard(title, status, amount, paid, date, short) {
+    const icon = { paid: 'fa-circle-check', partial: 'fa-circle-half-stroke', unpaid: 'fa-circle-xmark' };
+    const col  = { paid: 'var(--paid-c)', partial: 'var(--partial-c)', unpaid: 'var(--unpaid-c)' };
+    return `
+    <div class="half-card ${status}">
+      <div class="half-title" style="color:${col[status]}"><i class="fa-solid ${icon[status]}"></i> ${title}</div>
+      <div class="half-row"><span>ยอดที่ต้องชำระ</span><span>${Number(amount).toLocaleString()} บาท</span></div>
+      <div class="half-row"><span>ชำระแล้ว</span><span>${Number(paid).toLocaleString()} บาท</span></div>
+      ${date ? `<div class="half-row"><span>วันที่ชำระ</span><span>${date}</span></div>` : ''}
+      ${short > 0 ? `<div class="half-short"><i class="fa-solid fa-triangle-exclamation"></i> ค้างชำระ ${short.toLocaleString()} บาท</div>` : ''}
+    </div>`;
+  }
+
+  function toggleFee(el) {
+    const body = el.nextElementSibling;
+    const icon = el.querySelector('.fa-chevron-down');
+    const open = body.style.display !== 'none';
+    body.style.display = open ? 'none' : 'block';
+    icon.style.transform = open ? 'rotate(-90deg)' : '';
+  }
+
+  function logout() {
+    Swal.fire({
+      icon: 'question', title: 'ออกจากระบบ?', text: 'ต้องการออกจากระบบหรือไม่',
+      showCancelButton: true, confirmButtonText: 'ออกจากระบบ', cancelButtonText: 'ยกเลิก',
+      confirmButtonColor: '#dc2626', cancelButtonColor: '#5b8dee'
+    }).then(r => {
+      if (r.isConfirmed) {
+        localStorage.clear();
+        window.location.href = 'index.html';
+      }
+    });
+  }
+
+  loadInfo();
+  loadFees();
+</script>
+</body>
+</html>

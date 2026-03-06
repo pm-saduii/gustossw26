@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ผลงานนิติ — ระบบบริหารหมู่บ้าน</title>
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet"/>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <style>
+    :root {
+      --primary: #5b8dee; --primary-d: #3a6fd8;
+      --accent: #7ec8a4; --accent2: #f6c26b;
+      --bg: #eef3fb; --card: #fff;
+      --text: #2d3748; --muted: #718096; --border: #d6e4f7;
+      --income-bg: #d1fae5; --income-c: #059669;
+      --expense-bg: #fee2e2; --expense-c: #dc2626;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Sarabun', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+    nav {
+      background: linear-gradient(135deg, var(--primary), var(--primary-d));
+      color: #fff; padding: .85rem 1.5rem;
+      display: flex; align-items: center; justify-content: space-between;
+      box-shadow: 0 2px 12px rgba(91,141,238,.3);
+      position: sticky; top: 0; z-index: 100;
+    }
+    .nav-brand { display: flex; align-items: center; gap: .6rem; font-size: 1.05rem; font-weight: 700; }
+    .btn-nav {
+      background: rgba(255,255,255,.2); border: 1px solid rgba(255,255,255,.35);
+      color: #fff; padding: .35rem .8rem; border-radius: 8px;
+      font-family: 'Sarabun', sans-serif; font-size: .82rem;
+      cursor: pointer; text-decoration: none;
+      display: inline-flex; align-items: center; gap: .3rem;
+    }
+    .btn-nav:hover { background: rgba(255,255,255,.3); }
+
+    .page-links {
+      background: #fff; border-bottom: 1px solid var(--border);
+      padding: .5rem 1.5rem; display: flex; gap: .5rem; overflow-x: auto;
+    }
+    .page-link {
+      white-space: nowrap; padding: .4rem .9rem; border-radius: 20px;
+      font-size: .82rem; font-weight: 500; text-decoration: none;
+      color: var(--muted); border: 1.5px solid transparent; transition: all .15s;
+    }
+    .page-link:hover, .page-link.active { background: var(--bg); border-color: var(--border); color: var(--primary); }
+
+    main { max-width: 900px; margin: 0 auto; padding: 1.5rem 1rem; }
+
+    .toolbar {
+      display: flex; align-items: center; justify-content: space-between;
+      flex-wrap: wrap; gap: .75rem; margin-bottom: 1.5rem;
+    }
+    .toolbar h2 { font-size: 1.1rem; font-weight: 700; display: flex; align-items: center; gap: .5rem; }
+    .toolbar h2 i { color: var(--primary); }
+
+    .year-select { display: flex; gap: .4rem; flex-wrap: wrap; }
+    .year-btn {
+      padding: .35rem .85rem; border-radius: 20px; border: 1.5px solid var(--border);
+      background: #fff; font-family: 'Sarabun', sans-serif; font-size: .82rem;
+      color: var(--muted); cursor: pointer; transition: all .15s;
+    }
+    .year-btn.active, .year-btn:hover { background: var(--primary); color: #fff; border-color: var(--primary); }
+
+    /* Report card */
+    .report-card {
+      background: var(--card); border-radius: 14px; border: 1px solid var(--border);
+      overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,.04);
+      margin-bottom: 1rem; transition: box-shadow .15s;
+    }
+    .report-card:hover { box-shadow: 0 4px 18px rgba(91,141,238,.12); }
+    .report-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 1rem 1.25rem;
+      background: linear-gradient(90deg, #f0f7ff, #f0faf5);
+      border-bottom: 1px solid var(--border);
+      cursor: pointer;
+    }
+    .report-month-badge {
+      width: 48px; height: 48px; border-radius: 12px;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      color: #fff; display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      font-size: .7rem; font-weight: 700; flex-shrink: 0;
+    }
+    .report-month-badge span { font-size: 1.1rem; line-height: 1; }
+    .report-title-wrap { flex: 1; margin: 0 .85rem; }
+    .report-title { font-size: 1rem; font-weight: 700; }
+    .report-sub { font-size: .8rem; color: var(--muted); margin-top: .15rem; }
+    .report-fin {
+      display: flex; gap: .5rem; flex-wrap: wrap; flex-shrink: 0;
+    }
+    .fin-tag {
+      font-size: .78rem; padding: .2rem .7rem; border-radius: 20px; font-weight: 600;
+      display: flex; align-items: center; gap: .25rem;
+    }
+    .fin-tag.income  { background: var(--income-bg); color: var(--income-c); }
+    .fin-tag.expense { background: var(--expense-bg); color: var(--expense-c); }
+
+    .report-body {
+      max-height: 0; overflow: hidden; transition: max-height .35s ease, padding .2s;
+    }
+    .report-body.open { max-height: 1000px; padding: 1.1rem 1.25rem; }
+    .report-content { font-size: .9rem; line-height: 1.8; white-space: pre-line; }
+
+    .fin-grid {
+      display: grid; grid-template-columns: 1fr 1fr 1fr; gap: .75rem; margin-top: .9rem;
+    }
+    .fin-card {
+      border-radius: 10px; padding: .75rem 1rem; border: 1.5px solid;
+      display: flex; align-items: center; gap: .6rem;
+    }
+    .fin-card.income  { background: var(--income-bg);  border-color: #6ee7b7; }
+    .fin-card.expense { background: var(--expense-bg); border-color: #fca5a5; }
+    .fin-card.balance { background: #ede9fe; border-color: #c4b5fd; }
+    .fin-card i { font-size: 1.2rem; }
+    .fin-card.income  i { color: var(--income-c); }
+    .fin-card.expense i { color: var(--expense-c); }
+    .fin-card.balance i { color: #7c3aed; }
+    .fin-label { font-size: .75rem; color: var(--muted); }
+    .fin-amt { font-size: .95rem; font-weight: 700; }
+
+    .toggle-btn { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 1rem; }
+
+    .empty { text-align: center; padding: 3rem 1rem; color: var(--muted); }
+    .empty i { font-size: 2.5rem; display: block; margin-bottom: .75rem; opacity: .4; }
+    .skeleton { background: linear-gradient(90deg, #e2ecf8 25%, #f0f6ff 50%, #e2ecf8 75%); background-size: 200% 100%; animation: shimmer 1.2s infinite; border-radius: 8px; }
+    @keyframes shimmer { to { background-position: -200% 0; } }
+
+    @media (max-width: 600px) {
+      .report-fin { display: none; }
+      .fin-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-brand"><i class="fa-solid fa-clipboard-list"></i> ผลงานนิติบุคคล</div>
+  <a href="index.html" class="btn-nav" id="homeLink"><i class="fa-solid fa-house"></i> หน้าหลัก</a>
+</nav>
+
+<div class="page-links">
+  <a href="dashboard.html" class="page-link" id="dashLink"><i class="fa-solid fa-house"></i> ข้อมูลของฉัน</a>
+  <a href="summary.html" class="page-link"><i class="fa-solid fa-chart-pie"></i> สรุปค่าส่วนกลาง</a>
+  <a href="announcements.html" class="page-link"><i class="fa-solid fa-bullhorn"></i> ประกาศ</a>
+  <a href="niti-report.html" class="page-link active"><i class="fa-solid fa-clipboard-list"></i> ผลงานนิติ</a>
+</div>
+
+<main>
+  <div class="toolbar">
+    <h2><i class="fa-solid fa-clipboard-check"></i> ผลงานประจำเดือน</h2>
+    <div class="year-select" id="yearBtns">
+      <button class="year-btn active" onclick="filterYear(this,'2567')">2567</button>
+      <button class="year-btn" onclick="filterYear(this,'2566')">2566</button>
+      <button class="year-btn" onclick="filterYear(this,'2565')">2565</button>
+    </div>
+  </div>
+
+  <div id="reportList">
+    ${Array(3).fill(`<div class="report-card"><div class="report-header"><div class="skeleton" style="width:48px;height:48px;border-radius:12px;flex-shrink:0"></div><div style="flex:1;margin:0 .85rem"><div class="skeleton" style="height:18px;width:50%;margin-bottom:.4rem"></div><div class="skeleton" style="height:12px;width:35%"></div></div></div></div>`).join('')}
+  </div>
+</main>
+
+<script>
+  const API_URL = 'https://script.google.com/macros/s/AKfycbwQbc31pY86tM7EdD41dBsXRQ-OmL6M5m0TJKs_ZJiix2bLEYkHOiQ8eIGazR7ay0_l/exec';
+  const token = localStorage.getItem('vms_token');
+  const role  = localStorage.getItem('vms_role');
+
+  if (!token) document.getElementById('dashLink').style.display = 'none';
+  if (role === 'admin') {
+    document.getElementById('homeLink').href = 'admin.html';
+    document.getElementById('homeLink').innerHTML = '<i class="fa-solid fa-shield-halved"></i> Admin';
+  }
+
+  const MONTHS_TH = ['','ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+  const MONTHS_FULL = ['','มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
+
+  let allReports = [];
+  let currentYear = '2567';
+
+  async function loadReports() {
+    const qs = new URLSearchParams({ action: 'getNitiReports' }).toString();
+    const r = await fetch(API_URL + '?' + qs);
+    const d = await r.json();
+    if (d.success) {
+      allReports = d.data;
+      renderReports();
+    }
+  }
+
+  function filterYear(btn, year) {
+    document.querySelectorAll('.year-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    currentYear = year;
+    renderReports();
+  }
+
+  function renderReports() {
+    const filtered = allReports.filter(r => String(r.year) === currentYear);
+    if (!filtered.length) {
+      document.getElementById('reportList').innerHTML = `<div class="empty"><i class="fa-solid fa-clipboard-list"></i>ยังไม่มีรายงานในปีนี้</div>`;
+      return;
+    }
+    document.getElementById('reportList').innerHTML = filtered.map((r, i) => {
+      const income  = Number(r.income || 0);
+      const expense = Number(r.expense || 0);
+      const balance = income - expense;
+      const balColor = balance >= 0 ? '#7c3aed' : '#dc2626';
+      const m = Number(r.month);
+      return `
+      <div class="report-card">
+        <div class="report-header" onclick="toggleReport(this)">
+          <div class="report-month-badge">
+            <span>${m}</span>
+            ${MONTHS_TH[m]}
+          </div>
+          <div class="report-title-wrap">
+            <div class="report-title">${r.title}</div>
+            <div class="report-sub"><i class="fa-solid fa-calendar" style="margin-right:.2rem"></i>${MONTHS_FULL[m]} ${r.year}</div>
+          </div>
+          <div class="report-fin">
+            ${income ? `<span class="fin-tag income"><i class="fa-solid fa-arrow-up"></i>${income.toLocaleString()}</span>` : ''}
+            ${expense ? `<span class="fin-tag expense"><i class="fa-solid fa-arrow-down"></i>${expense.toLocaleString()}</span>` : ''}
+          </div>
+          <button class="toggle-btn" style="margin-left:.5rem"><i class="fa-solid fa-chevron-down" style="transition:transform .2s"></i></button>
+        </div>
+        <div class="report-body">
+          <div class="report-content">${r.content}</div>
+          ${(income || expense) ? `
+          <div class="fin-grid" style="margin-top:.9rem">
+            <div class="fin-card income"><i class="fa-solid fa-arrow-circle-up"></i><div><div class="fin-label">รายรับ</div><div class="fin-amt">${income.toLocaleString()} ฿</div></div></div>
+            <div class="fin-card expense"><i class="fa-solid fa-arrow-circle-down"></i><div><div class="fin-label">รายจ่าย</div><div class="fin-amt">${expense.toLocaleString()} ฿</div></div></div>
+            <div class="fin-card balance"><i class="fa-solid fa-scale-balanced"></i><div><div class="fin-label">คงเหลือ</div><div class="fin-amt" style="color:${balColor}">${balance.toLocaleString()} ฿</div></div></div>
+          </div>` : ''}
+          ${r.created_date ? `<p style="font-size:.75rem;color:var(--muted);margin-top:.75rem"><i class="fa-solid fa-clock"></i> บันทึกเมื่อ ${r.created_date} โดย ${r.created_by}</p>` : ''}
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  function toggleReport(el) {
+    const body = el.nextElementSibling;
+    const icon = el.querySelector('.fa-chevron-down');
+    body.classList.toggle('open');
+    icon.style.transform = body.classList.contains('open') ? 'rotate(180deg)' : '';
+  }
+
+  loadReports();
+</script>
+</body>
+</html>

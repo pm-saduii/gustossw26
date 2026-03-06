@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>สรุปค่าส่วนกลาง — ระบบบริหารหมู่บ้าน</title>
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet"/>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <style>
+    :root {
+      --primary: #5b8dee; --primary-d: #3a6fd8;
+      --accent: #7ec8a4; --accent2: #f6c26b;
+      --bg: #eef3fb; --card: #fff;
+      --text: #2d3748; --muted: #718096; --border: #d6e4f7;
+      --paid: #d1fae5; --paid-c: #059669;
+      --partial: #fef3c7; --partial-c: #d97706;
+      --unpaid: #fee2e2; --unpaid-c: #dc2626;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Sarabun', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+    nav {
+      background: linear-gradient(135deg, var(--primary), var(--primary-d));
+      color: #fff; padding: .85rem 1.5rem;
+      display: flex; align-items: center; justify-content: space-between;
+      box-shadow: 0 2px 12px rgba(91,141,238,.3);
+      position: sticky; top: 0; z-index: 100;
+    }
+    .nav-brand { display: flex; align-items: center; gap: .6rem; font-size: 1.05rem; font-weight: 700; }
+    .btn-nav {
+      background: rgba(255,255,255,.2); border: 1px solid rgba(255,255,255,.35);
+      color: #fff; padding: .35rem .8rem; border-radius: 8px;
+      font-family: 'Sarabun', sans-serif; font-size: .82rem;
+      cursor: pointer; text-decoration: none;
+      display: inline-flex; align-items: center; gap: .3rem;
+    }
+    .btn-nav:hover { background: rgba(255,255,255,.3); }
+
+    .page-links {
+      background: #fff; border-bottom: 1px solid var(--border);
+      padding: .5rem 1.5rem; display: flex; gap: .5rem; overflow-x: auto;
+    }
+    .page-link {
+      white-space: nowrap; padding: .4rem .9rem; border-radius: 20px;
+      font-size: .82rem; font-weight: 500; text-decoration: none;
+      color: var(--muted); border: 1.5px solid transparent; transition: all .15s;
+    }
+    .page-link:hover, .page-link.active { background: var(--bg); border-color: var(--border); color: var(--primary); }
+
+    main { max-width: 960px; margin: 0 auto; padding: 1.5rem 1rem; }
+
+    /* Year selector */
+    .toolbar {
+      display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap;
+      gap: .75rem; margin-bottom: 1.5rem;
+    }
+    .toolbar h2 { font-size: 1.1rem; font-weight: 700; display: flex; align-items: center; gap: .5rem; }
+    .toolbar h2 i { color: var(--primary); }
+    .year-select {
+      display: flex; gap: .4rem; flex-wrap: wrap;
+    }
+    .year-btn {
+      padding: .38rem .9rem; border-radius: 20px; border: 1.5px solid var(--border);
+      background: #fff; font-family: 'Sarabun', sans-serif; font-size: .85rem;
+      color: var(--muted); cursor: pointer; transition: all .15s;
+    }
+    .year-btn.active, .year-btn:hover { background: var(--primary); color: #fff; border-color: var(--primary); }
+
+    /* Overall stat cards */
+    .stat-grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 1rem; margin-bottom: 1.5rem;
+    }
+    .stat-card {
+      background: var(--card); border-radius: 14px; border: 1px solid var(--border);
+      padding: 1.1rem 1.25rem; box-shadow: 0 2px 10px rgba(0,0,0,.04);
+    }
+    .stat-icon {
+      width: 40px; height: 40px; border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.1rem; margin-bottom: .6rem;
+    }
+    .stat-label { font-size: .78rem; color: var(--muted); margin-bottom: .2rem; }
+    .stat-value { font-size: 1.5rem; font-weight: 700; }
+
+    /* Progress bar */
+    .progress-wrap { margin: 1.5rem 0; }
+    .progress-label { display: flex; justify-content: space-between; font-size: .85rem; font-weight: 600; margin-bottom: .4rem; }
+    .progress-bar { height: 14px; background: #e2ecf8; border-radius: 20px; overflow: hidden; }
+    .progress-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--primary)); border-radius: 20px; transition: width 1s ease; }
+
+    /* SOI table */
+    .soi-card {
+      background: var(--card); border-radius: 14px; border: 1px solid var(--border);
+      overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,.04);
+    }
+    .soi-header {
+      padding: .9rem 1.25rem; background: linear-gradient(90deg, #f0f7ff, #f0faf5);
+      border-bottom: 1px solid var(--border); font-weight: 700;
+      display: flex; align-items: center; gap: .5rem;
+    }
+    .soi-header i { color: var(--primary); }
+    table { width: 100%; border-collapse: collapse; }
+    th {
+      text-align: left; padding: .7rem 1.25rem;
+      font-size: .8rem; font-weight: 600; color: var(--muted);
+      border-bottom: 1px solid var(--border); background: #fafcff;
+    }
+    td { padding: .75rem 1.25rem; font-size: .9rem; border-bottom: 1px solid var(--border); }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: #f8fbff; }
+    .bar-mini {
+      height: 6px; background: #e2ecf8; border-radius: 10px; min-width: 80px; overflow: hidden;
+    }
+    .bar-mini-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--primary)); border-radius: 10px; }
+
+    .badge { font-size: .75rem; padding: .18rem .6rem; border-radius: 20px; font-weight: 600; }
+    .badge.paid    { background: var(--paid); color: var(--paid-c); }
+    .badge.partial { background: var(--partial); color: var(--partial-c); }
+    .badge.unpaid  { background: var(--unpaid); color: var(--unpaid-c); }
+
+    .skeleton { background: linear-gradient(90deg, #e2ecf8 25%, #f0f6ff 50%, #e2ecf8 75%); background-size: 200% 100%; animation: shimmer 1.2s infinite; border-radius: 8px; }
+    @keyframes shimmer { to { background-position: -200% 0; } }
+    .loading-box { height: 180px; }
+
+    @media (max-width: 600px) {
+      th:nth-child(4), td:nth-child(4) { display: none; }
+      .stat-grid { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-brand"><i class="fa-solid fa-chart-pie"></i> สรุปค่าส่วนกลาง</div>
+  <div>
+    <a href="index.html" class="btn-nav" id="homeLink"><i class="fa-solid fa-house"></i> หน้าหลัก</a>
+  </div>
+</nav>
+
+<div class="page-links">
+  <a href="dashboard.html" class="page-link" id="dashLink"><i class="fa-solid fa-house"></i> ข้อมูลของฉัน</a>
+  <a href="summary.html" class="page-link active"><i class="fa-solid fa-chart-pie"></i> สรุปค่าส่วนกลาง</a>
+  <a href="announcements.html" class="page-link"><i class="fa-solid fa-bullhorn"></i> ประกาศ</a>
+  <a href="niti-report.html" class="page-link"><i class="fa-solid fa-clipboard-list"></i> ผลงานนิติ</a>
+</div>
+
+<main>
+  <div class="toolbar">
+    <h2><i class="fa-solid fa-chart-bar"></i> สรุปการจ่ายค่าส่วนกลาง</h2>
+    <div class="year-select" id="yearBtns">
+      <button class="year-btn active" onclick="loadYear(this)">2567</button>
+      <button class="year-btn" onclick="loadYear(this)">2566</button>
+      <button class="year-btn" onclick="loadYear(this)">2565</button>
+    </div>
+  </div>
+
+  <!-- STATS -->
+  <div class="stat-grid" id="statGrid">
+    <div class="stat-card"><div class="skeleton loading-box"></div></div>
+    <div class="stat-card"><div class="skeleton loading-box"></div></div>
+    <div class="stat-card"><div class="skeleton loading-box"></div></div>
+    <div class="stat-card"><div class="skeleton loading-box"></div></div>
+  </div>
+
+  <!-- PROGRESS -->
+  <div class="progress-wrap">
+    <div class="progress-label">
+      <span>อัตราการชำระค่าส่วนกลางรวม</span>
+      <span id="progressPct">—%</span>
+    </div>
+    <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+  </div>
+
+  <!-- SOI TABLE -->
+  <div class="soi-card" id="soiCard">
+    <div class="soi-header"><i class="fa-solid fa-road"></i> รายละเอียดแยกตามซอย</div>
+    <div class="skeleton loading-box"></div>
+  </div>
+</main>
+
+<script>
+  const API_URL = 'https://script.google.com/macros/s/AKfycbwQbc31pY86tM7EdD41dBsXRQ-OmL6M5m0TJKs_ZJiix2bLEYkHOiQ8eIGazR7ay0_l/exec';
+  const token = localStorage.getItem('vms_token');
+  const role  = localStorage.getItem('vms_role');
+
+  if (!token) {
+    document.getElementById('dashLink').style.display = 'none';
+  }
+  if (role === 'admin') {
+    document.getElementById('homeLink').href = 'admin.html';
+    document.getElementById('homeLink').innerHTML = '<i class="fa-solid fa-shield-halved"></i> Admin';
+  }
+
+  let currentYear = '2567';
+
+  async function loadYear(btn) {
+    document.querySelectorAll('.year-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    currentYear = btn.textContent;
+    loadSummary();
+  }
+
+  async function loadSummary() {
+    setLoading(true);
+    try {
+      const qs = new URLSearchParams({ action: 'getFeeSummary', year: currentYear }).toString();
+      const r = await fetch(API_URL + '?' + qs);
+      const d = await r.json();
+      if (d.success) renderSummary(d.data);
+    } catch(e) {}
+    setLoading(false);
+  }
+
+  function renderSummary(d) {
+    const { totalHouses, paidCount, paidPercent, bySoi } = d;
+    const unpaidCount = totalHouses - paidCount;
+
+    // Stats
+    document.getElementById('statGrid').innerHTML = `
+      <div class="stat-card">
+        <div class="stat-icon" style="background:#dbeafe;color:var(--primary)"><i class="fa-solid fa-house"></i></div>
+        <div class="stat-label">จำนวนบ้านทั้งหมด</div>
+        <div class="stat-value">${totalHouses} <small style="font-size:.7em;font-weight:400;color:var(--muted)">หลัง</small></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon" style="background:var(--paid);color:var(--paid-c)"><i class="fa-solid fa-circle-check"></i></div>
+        <div class="stat-label">ชำระครบแล้ว</div>
+        <div class="stat-value" style="color:var(--paid-c)">${paidCount} <small style="font-size:.7em;font-weight:400;color:var(--muted)">หลัง</small></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon" style="background:var(--unpaid);color:var(--unpaid-c)"><i class="fa-solid fa-circle-xmark"></i></div>
+        <div class="stat-label">ยังไม่ชำระครบ</div>
+        <div class="stat-value" style="color:var(--unpaid-c)">${unpaidCount} <small style="font-size:.7em;font-weight:400;color:var(--muted)">หลัง</small></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon" style="background:linear-gradient(135deg,#dbeafe,#d1fae5);color:var(--primary)"><i class="fa-solid fa-percent"></i></div>
+        <div class="stat-label">อัตราชำระ</div>
+        <div class="stat-value" style="color:var(--primary)">${paidPercent}%</div>
+      </div>`;
+
+    // Progress
+    document.getElementById('progressPct').textContent = paidPercent + '%';
+    setTimeout(() => {
+      document.getElementById('progressFill').style.width = paidPercent + '%';
+    }, 100);
+
+    // SOI Table
+    const rows = Object.entries(bySoi).map(([soi, s]) => {
+      const pct = s.total > 0 ? Math.round(s.paid / s.total * 100) : 0;
+      return `<tr>
+        <td><strong>${soi}</strong></td>
+        <td>${s.total} หลัง</td>
+        <td><span class="badge paid"><i class="fa-solid fa-check"></i> ${s.paid}</span></td>
+        <td><span class="badge unpaid"><i class="fa-solid fa-xmark"></i> ${s.unpaid}</span></td>
+        <td>
+          <div style="display:flex;align-items:center;gap:.5rem">
+            <div class="bar-mini"><div class="bar-mini-fill" style="width:${pct}%"></div></div>
+            <span style="font-size:.8rem;font-weight:600;color:var(--primary)">${pct}%</span>
+          </div>
+        </td>
+      </tr>`;
+    }).join('');
+
+    document.getElementById('soiCard').innerHTML = `
+      <div class="soi-header"><i class="fa-solid fa-road"></i> รายละเอียดแยกตามซอย — ปี พ.ศ. ${currentYear}</div>
+      <table>
+        <thead><tr>
+          <th>ซอย</th><th>ทั้งหมด</th><th>ชำระครบ</th><th>ค้างชำระ</th><th>อัตรา</th>
+        </tr></thead>
+        <tbody>${rows || '<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:2rem">ไม่มีข้อมูล</td></tr>'}</tbody>
+      </table>`;
+  }
+
+  function setLoading(on) {
+    if (on) {
+      document.getElementById('statGrid').innerHTML = Array(4).fill(`<div class="stat-card"><div class="skeleton loading-box"></div></div>`).join('');
+      document.getElementById('soiCard').innerHTML = `<div class="soi-header"><i class="fa-solid fa-road"></i> รายละเอียดแยกตามซอย</div><div class="skeleton loading-box"></div>`;
+      document.getElementById('progressFill').style.width = '0%';
+      document.getElementById('progressPct').textContent = '—%';
+    }
+  }
+
+  loadSummary();
+</script>
+</body>
+</html>
