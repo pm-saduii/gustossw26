@@ -7,218 +7,249 @@
   <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet"/>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-  <script src="config.js"></script>
   <style>
     :root{--primary:#4f7ef7;--primary-d:#2f5be8;--primary-l:#e8efff;--accent:#34c88a;--bg:#f0f4fd;--bg2:#e4ecfb;--card:#fff;--card2:#f8faff;--text:#1a2035;--text2:#4a5568;--muted:#8896ab;--border:#d0ddf5;--shadow:rgba(79,126,247,.15);--shadow2:rgba(0,0,0,.06);--paid:#d1fae5;--paid-c:#059669;--paid-b:#6ee7b7;--partial:#fef3c7;--partial-c:#d97706;--partial-b:#fcd34d;--unpaid:#fee2e2;--unpaid-c:#dc2626;--unpaid-b:#fca5a5;}
-    [data-theme="dark"]{--bg:#0f172a;--bg2:#1e293b;--card:#1e293b;--card2:#334155;--text:#f8fafc;--text2:#cbd5e1;--muted:#94a3b8;--border:#334155;--shadow:rgba(0,0,0,.3);--primary-l:rgba(79,126,247,.1);}
-    *{margin:0;padding:0;box-sizing:border-box;font-family:'Sarabun',sans-serif;}
-    body{background:var(--bg);color:var(--text);min-height:100vh;padding-bottom:80px;}
-    .nav{background:var(--card);padding:1rem 1.5rem;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:100;box-shadow:0 4px 6px -1px var(--shadow2);border-bottom:1px solid var(--border);}
-    .nav-brand{display:flex;align-items:center;gap:12px;font-weight:700;font-size:1.25rem;color:var(--primary);}
-    .user-info{display:flex;align-items:center;gap:10px;font-size:0.9rem;font-weight:600;}
-    .container{max-width:800px;margin:20px auto;padding:0 16px;}
-    .welcome-card{background:linear-gradient(135deg, var(--primary), var(--primary-d));color:#fff;padding:24px;border-radius:20px;margin-bottom:20px;position:relative;overflow:hidden;box-shadow:0 10px 15px -3px var(--shadow);}
-    .welcome-card i{position:absolute;right:-20px;bottom:-20px;font-size:120px;opacity:0.1;}
-    .welcome-card h2{font-size:1.4rem;margin-bottom:4px;}
-    .house-box{background:rgba(255,255,255,0.15);padding:8px 16px;border-radius:12px;display:inline-block;margin-top:12px;font-weight:500;}
-    .section-title{display:flex;align-items:center;gap:10px;margin:24px 0 16px;font-weight:700;font-size:1.1rem;}
-    .grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
-    .info-card{background:var(--card);padding:20px;border-radius:18px;border:1px solid var(--border);box-shadow:0 4px 6px var(--shadow2);}
-    .info-label{color:var(--muted);font-size:0.8rem;margin-bottom:4px;display:block;}
-    .info-value{font-weight:600;font-size:1.05rem;}
-    .fee-list{display:flex;flex-direction:column;gap:12px;}
-    .fee-item{background:var(--card);border-radius:16px;border:1px solid var(--border);overflow:hidden;}
-    .fee-header{padding:16px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;}
-    .fee-month{font-weight:700;display:flex;align-items:center;gap:10px;}
-    .status-badge{padding:4px 12px;border-radius:20px;font-size:0.75rem;font-weight:700;}
-    .status-badge.paid{background:var(--paid);color:var(--paid-c);}
-    .status-badge.partial{background:var(--partial);color:var(--partial-c);}
-    .status-badge.unpaid{background:var(--unpaid);color:var(--unpaid-c);}
-    .fee-body{padding:0 16px 16px;display:none;border-top:1px dashed var(--border);padding-top:16px;}
-    .half-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px;}
-    .half-card{padding:12px;border-radius:12px;font-size:0.85rem;}
-    .half-card.paid{background:var(--paid);border:1px solid var(--paid-b);}
-    .half-card.partial{background:var(--partial);border:1px solid var(--partial-b);}
-    .half-card.unpaid{background:var(--unpaid);border:1px solid var(--unpaid-b);}
-    .half-title{font-weight:700;margin-bottom:8px;display:flex;align-items:center;gap:6px;}
-    .half-row{display:flex;justify-content:space-between;margin-bottom:4px;color:var(--text2);}
-    .half-short{margin-top:8px;padding-top:8px;border-top:1px solid rgba(0,0,0,0.05);font-weight:700;color:var(--unpaid-c);}
-    .menu-bar{position:fixed;bottom:0;left:0;right:0;background:var(--card);display:flex;justify-content:space-around;padding:12px;border-top:1px solid var(--border);box-shadow:0 -4px 10px var(--shadow2);z-index:100;}
-    .menu-item{display:flex;flex-direction:column;align-items:center;gap:4px;color:var(--muted);text-decoration:none;font-size:0.75rem;font-weight:500;flex:1;}
-    .menu-item.active{color:var(--primary);}
-    .menu-item i{font-size:1.25rem;}
-    .skeleton{background:linear-gradient(90deg,var(--border) 25%,var(--bg2) 50%,var(--border) 75%);background-size:200% 100%;animation:loading 1.5s infinite;border-radius:10px;}
-    @keyframes loading{0%{background-position:200% 0;}100%{background-position:-200% 0;}}
-    @media (max-width:480px){ .grid{grid-template-columns:1fr;} }
+    [data-theme="dark"]{--primary:#6b9aff;--primary-d:#4f7ef7;--primary-l:#1a2540;--accent:#3dd68c;--bg:#0f1420;--bg2:#151c2e;--card:#1a2235;--card2:#202840;--text:#e8eeff;--text2:#a0aec0;--muted:#5a6a85;--border:#2a3650;--shadow:rgba(107,154,255,.12);--shadow2:rgba(0,0,0,.3);--paid:#0d2a1e;--paid-c:#34d399;--paid-b:#065f46;--partial:#2a2010;--partial-c:#fbbf24;--partial-b:#854d0e;--unpaid:#2a1010;--unpaid-c:#f87171;--unpaid-b:#7f1d1d;}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    html{scroll-behavior:smooth;}
+    body{font-family:'Sarabun',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;transition:background .3s,color .3s;}
+
+    /* NAV */
+    nav{background:linear-gradient(135deg,var(--primary),var(--primary-d));color:#fff;padding:.85rem 1.25rem;display:flex;align-items:center;justify-content:space-between;box-shadow:0 2px 16px var(--shadow);position:sticky;top:0;z-index:100;}
+    .nav-brand{display:flex;align-items:center;gap:.6rem;font-size:1rem;font-weight:700;}
+    .nav-right{display:flex;align-items:center;gap:.75rem;}
+    .nav-name{font-size:.82rem;opacity:.9;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+    .btn-nav{background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.3);color:#fff;padding:.35rem .8rem;border-radius:10px;font-family:'Sarabun',sans-serif;font-size:.8rem;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:.3rem;transition:background .15s;}
+    .btn-nav:hover{background:rgba(255,255,255,.28);}
+    .btn-theme{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);color:#fff;width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:.9rem;transition:background .15s;}
+    .btn-theme:hover{background:rgba(255,255,255,.28);}
+
+    /* PAGE TABS */
+    .page-tabs{background:var(--card);border-bottom:1px solid var(--border);padding:0 1rem;display:flex;gap:0;overflow-x:auto;transition:background .3s;}
+    .page-tab{white-space:nowrap;padding:.7rem 1rem;font-size:.82rem;font-weight:600;text-decoration:none;color:var(--muted);border-bottom:2.5px solid transparent;display:flex;align-items:center;gap:.35rem;transition:all .15s;}
+    .page-tab:hover{color:var(--primary);}
+    .page-tab.active{color:var(--primary);border-bottom-color:var(--primary);}
+
+    main{max-width:900px;margin:0 auto;padding:1.5rem 1rem;}
+
+    /* HERO */
+    .hero{background:linear-gradient(135deg,var(--primary),var(--primary-d));border-radius:20px;padding:1.5rem;margin-bottom:1.5rem;display:flex;align-items:center;gap:1rem;color:#fff;box-shadow:0 8px 28px var(--shadow);position:relative;overflow:hidden;animation:fadeSlideIn .4s ease both;}
+    .hero::before{content:'';position:absolute;inset:0;background:url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E") repeat;}
+    .hero-icon{width:58px;height:58px;background:rgba(255,255,255,.2);border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:1.5rem;flex-shrink:0;backdrop-filter:blur(4px);}
+    .hero-text h2{font-size:1.2rem;font-weight:700;}
+    .hero-text p{font-size:.85rem;opacity:.85;margin-top:.2rem;}
+    @keyframes fadeSlideIn{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}}
+
+    /* SECTION */
+    .section-title{font-size:.95rem;font-weight:700;color:var(--text);margin-bottom:.85rem;display:flex;align-items:center;gap:.5rem;animation:fadeSlideIn .4s ease both;}
+    .section-title i{color:var(--primary);}
+
+    /* STATUS BANNER */
+    .status-banner{display:flex;align-items:center;gap:.75rem;padding:1rem 1.25rem;border-radius:14px;border:2px solid;margin-bottom:1.5rem;font-weight:700;font-size:1rem;animation:fadeSlideIn .4s .1s ease both;transition:background .3s,border-color .3s;}
+    .status-banner .st-icon{width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0;}
+    .status-banner .st-label{font-size:.75rem;font-weight:500;opacity:.75;}
+    .status-banner .st-value{font-size:1rem;font-weight:800;}
+    .status-banner.normal{background:var(--paid);border-color:var(--paid-b);color:var(--paid-c);}
+    .status-banner.overdue{background:var(--partial);border-color:var(--partial-b);color:var(--partial-c);}
+    .status-banner.land{background:#ffedd5;border-color:#fb923c;color:#9a3412;}
+    .status-banner.lawsuit{background:var(--unpaid);border-color:var(--unpaid-b);color:var(--unpaid-c);}
+    [data-theme="dark"] .status-banner.land{background:#2a1a08;border-color:#c2410c;color:#fb923c;}
+
+    /* INFO CARD */
+    .info-card{background:var(--card);border-radius:16px;border:1px solid var(--border);overflow:hidden;margin-bottom:1.5rem;box-shadow:0 2px 16px var(--shadow2);animation:fadeSlideIn .4s .15s ease both;transition:background .3s,border-color .3s;}
+    .info-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:0;}
+    .info-item{padding:.95rem 1.2rem;border-right:1px solid var(--border);border-bottom:1px solid var(--border);transition:background .15s;}
+    .info-item:hover{background:var(--card2);}
+    .info-label{font-size:.75rem;color:var(--muted);font-weight:600;margin-bottom:.25rem;display:flex;align-items:center;gap:.3rem;}
+    .info-value{font-size:.95rem;font-weight:700;color:var(--text);}
+
+    /* FEE */
+    .fee-year{background:var(--card);border-radius:14px;border:1px solid var(--border);overflow:hidden;margin-bottom:1rem;box-shadow:0 2px 10px var(--shadow2);animation:fadeSlideIn .4s .2s ease both;transition:background .3s,border-color .3s;}
+    .fee-year-header{display:flex;align-items:center;justify-content:space-between;padding:.9rem 1.2rem;background:var(--card2);border-bottom:1px solid var(--border);cursor:pointer;transition:background .15s;}
+    .fee-year-header:hover{background:var(--bg2);}
+    .fee-year-title{font-weight:700;font-size:.95rem;display:flex;align-items:center;gap:.5rem;}
+    .year-badge{font-size:.72rem;padding:.18rem .65rem;border-radius:20px;font-weight:700;}
+    .year-badge.paid{background:var(--paid);color:var(--paid-c);}
+    .year-badge.partial{background:var(--partial);color:var(--partial-c);}
+    .year-badge.unpaid{background:var(--unpaid);color:var(--unpaid-c);}
+    .fee-body{padding:1rem 1.2rem;}
+    .half-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;}
+    .half-card{border-radius:12px;padding:.9rem 1rem;border:1.5px solid var(--border);transition:background .3s,border-color .3s;}
+    .half-card.paid{background:var(--paid);border-color:var(--paid-b);}
+    .half-card.partial{background:var(--partial);border-color:var(--partial-b);}
+    .half-card.unpaid{background:var(--unpaid);border-color:var(--unpaid-b);}
+    .half-title{font-size:.82rem;font-weight:700;margin-bottom:.5rem;display:flex;align-items:center;gap:.3rem;}
+    .half-row{font-size:.84rem;display:flex;justify-content:space-between;margin-bottom:.25rem;}
+    .half-row span:first-child{color:var(--muted);}
+    .half-row span:last-child{font-weight:700;}
+    .half-short{font-size:.8rem;color:var(--unpaid-c);font-weight:700;margin-top:.4rem;}
+
+    /* EMPTY / SKELETON */
+    .empty{text-align:center;padding:3rem 1rem;color:var(--muted);}
+    .empty i{font-size:2.5rem;margin-bottom:.75rem;opacity:.4;display:block;}
+    .skeleton{background:linear-gradient(90deg,var(--bg2) 25%,var(--card2) 50%,var(--bg2) 75%);background-size:200% 100%;animation:shimmer 1.2s infinite;border-radius:8px;}
+    @keyframes shimmer{to{background-position:-200% 0;}}
+
+    @media(max-width:600px){.half-grid{grid-template-columns:1fr;}.hero{flex-direction:column;text-align:center;}.info-grid{grid-template-columns:1fr 1fr;}.nav-name{display:none;}}
   </style>
 </head>
 <body>
 
-  <nav class="nav">
-    <div class="nav-brand"><i class="fa-solid fa-city"></i> VMS</div>
-    <div class="user-info" id="userInfo">
-      <span id="userName">...</span>
-      <i class="fa-solid fa-circle-user" style="font-size:1.5rem;color:var(--primary)"></i>
-    </div>
-  </nav>
+<nav>
+  <div class="nav-brand"><i class="fa-solid fa-house-chimney"></i> ระบบบริหารหมู่บ้าน</div>
+  <div class="nav-right">
+    <span class="nav-name" id="navName"></span>
+    <button class="btn-theme" onclick="toggleTheme()"><i id="themeIcon" class="fa-solid fa-moon"></i></button>
+    <button class="btn-nav" onclick="logout()"><i class="fa-solid fa-right-from-bracket"></i> ออกจากระบบ</button>
+  </div>
+</nav>
 
-  <div class="container">
-    <div class="welcome-card">
-      <i class="fa-solid fa-house-chimney"></i>
-      <h2 id="greetName">สวัสดีคุณ ...</h2>
-      <p style="opacity:0.9">ยินดีต้อนรับสู่ระบบสมาชิกลูกบ้าน</p>
-      <div class="house-box" id="houseIdDisp">บ้านเลขที่ —</div>
-    </div>
+<div class="page-tabs">
+  <a href="dashboard.html" class="page-tab active"><i class="fa-solid fa-house"></i> ข้อมูลของฉัน</a>
+  <a href="summary.html" class="page-tab"><i class="fa-solid fa-chart-pie"></i> สรุปค่าส่วนกลาง</a>
+  <a href="announcements.html" class="page-tab"><i class="fa-solid fa-bullhorn"></i> ประกาศ</a>
+  <a href="niti-report.html" class="page-tab"><i class="fa-solid fa-clipboard-list"></i> ผลงานนิติ</a>
+</div>
 
-    <div class="section-title"><i class="fa-solid fa-address-card" style="color:var(--primary)"></i> ข้อมูลทั่วไป</div>
-    <div class="grid" id="infoGrid">
-      <div class="info-card"><span class="info-label">เจ้าของบ้าน</span><div class="info-value skeleton" style="height:20px;width:100px"></div></div>
-      <div class="info-card"><span class="info-label">ซอย</span><div class="info-value skeleton" style="height:20px;width:60px"></div></div>
-      <div class="info-card"><span class="info-label">เบอร์โทรศัพท์</span><div class="info-value skeleton" style="height:20px;width:120px"></div></div>
-      <div class="info-card"><span class="info-label">อีเมล</span><div class="info-value skeleton" style="height:20px;width:140px"></div></div>
-    </div>
-
-    <div class="section-title"><i class="fa-solid fa-file-invoice-dollar" style="color:var(--accent)"></i> ประวัติการชำระเงินส่วนกลาง</div>
-    <div class="fee-list" id="feeList">
-      <div class="skeleton" style="height:60px;border-radius:16px;"></div>
-      <div class="skeleton" style="height:60px;border-radius:16px;margin-top:10px;"></div>
+<main>
+  <div class="hero" id="heroSection">
+    <div class="hero-icon"><i class="fa-solid fa-house-user"></i></div>
+    <div class="hero-text">
+      <h2 id="heroName">กำลังโหลด...</h2>
+      <p id="heroSub">บ้านเลขที่ — | ซอย —</p>
     </div>
   </div>
 
-  <div class="menu-bar">
-    <a href="dashboard.html" class="menu-item active"><i class="fa-solid fa-house"></i><span>หน้าหลัก</span></a>
-    <a href="announcements.html" class="menu-item"><i class="fa-solid fa-bullhorn"></i><span>ประกาศ</span></a>
-    <a href="niti-report.html" class="menu-item"><i class="fa-solid fa-chart-line"></i><span>ผลงานนิติ</span></a>
-    <a href="summary.html" class="menu-item"><i class="fa-solid fa-file-contract"></i><span>สรุปยอด</span></a>
-    <a href="#" class="menu-item" onclick="logout()"><i class="fa-solid fa-arrow-right-from-bracket"></i><span>ออก</span></a>
+  <div id="statusBanner"></div>
+
+  <div class="section-title"><i class="fa-solid fa-id-card"></i> ข้อมูลส่วนตัว</div>
+  <div class="info-card">
+    <div class="info-grid" id="infoGrid">
+      <div class="info-item"><div class="skeleton" style="height:40px"></div></div>
+      <div class="info-item"><div class="skeleton" style="height:40px"></div></div>
+      <div class="info-item"><div class="skeleton" style="height:40px"></div></div>
+      <div class="info-item"><div class="skeleton" style="height:40px"></div></div>
+    </div>
   </div>
 
-  <script>
-    // ตรวจสอบ Theme
-    if(localStorage.getItem('vms_theme')==='dark') document.documentElement.setAttribute('data-theme','dark');
+  <div class="section-title"><i class="fa-solid fa-receipt"></i> ประวัติค่าส่วนกลาง</div>
+  <div id="feeContainer">
+    <div class="fee-year"><div class="fee-year-header"><div class="skeleton" style="width:200px;height:24px"></div></div></div>
+  </div>
+</main>
 
-    // โหลดข้อมูลเมื่อเปิดหน้า
-    document.addEventListener('DOMContentLoaded', () => {
-      const name = localStorage.getItem('vms_name') || 'สมาชิก';
-      const houseId = localStorage.getItem('vms_house');
-      
-      document.getElementById('userName').textContent = name;
-      document.getElementById('greetName').textContent = `สวัสดีคุณ ${name}`;
-      document.getElementById('houseIdDisp').textContent = `บ้านเลขที่ ${houseId || '—'}`;
-      
-      loadData();
-    });
+<script>
+  const API_URL='https://script.google.com/macros/s/AKfycbwQbc31pY86tM7EdD41dBsXRQ-OmL6M5m0TJKs_ZJiix2bLEYkHOiQ8eIGazR7ay0_l/exec';
+  const token=localStorage.getItem('vms_token');
+  const name=localStorage.getItem('vms_name');
+  if(!token){window.location.href='index.html';}
+  document.getElementById('navName').textContent=name||'';
 
-    async function loadData() {
-      const houseId = localStorage.getItem('vms_house');
-      if (!houseId) return;
+  // Theme
+  const t=localStorage.getItem('vms_theme')||'light';
+  applyTheme(t);
+  function applyTheme(t){document.documentElement.setAttribute('data-theme',t);document.getElementById('themeIcon').className=t==='dark'?'fa-solid fa-sun':'fa-solid fa-moon';localStorage.setItem('vms_theme',t);}
+  function toggleTheme(){applyTheme(document.documentElement.getAttribute('data-theme')==='dark'?'light':'dark');}
 
-      try {
-        // ใช้ apiCall ดึงข้อมูลข้อมูลบ้าน
-        const infoRes = await apiCall({ action: 'getMyInfo' });
-        if (infoRes && infoRes.success) {
-          renderInfo(infoRes.data);
-        }
+  async function api(p){const r=await fetch(API_URL+'?'+new URLSearchParams(p));return r.json();}
 
-        // ใช้ apiCall ดึงข้อมูลค่าส่วนกลาง
-        const feeRes = await apiCall({ action: 'getMyFees' });
-        if (feeRes && feeRes.success) {
-          renderFees(feeRes.data);
-        }
-      } catch (e) {
-        console.error("Load Data Error:", e);
-      }
+  async function loadInfo(){
+    const d=await api({action:'getMyInfo',token});
+    if(!d.success)return;
+    const h=d.data;
+    document.getElementById('heroName').textContent=h.owner_name;
+    document.getElementById('heroSub').textContent=`บ้านเลขที่ ${h.house_no} | ${h.soi}`;
+    const stCfg={
+      'ปกติ':{bg:'var(--paid)',bc:'var(--paid-b)',c:'var(--paid-c)',icon:'fa-circle-check',cls:'normal'},
+      'ค้างชำระ':{bg:'var(--partial)',bc:'var(--partial-b)',c:'var(--partial-c)',icon:'fa-triangle-exclamation',cls:'overdue'},
+      'ระงับกรมที่ดิน':{bg:'#ffedd5',bc:'#fb923c',c:'#9a3412',icon:'fa-ban',cls:'land'},
+      'ฟ้องร้อง':{bg:'var(--unpaid)',bc:'var(--unpaid-b)',c:'var(--unpaid-c)',icon:'fa-gavel',cls:'lawsuit'}
+    };
+    const acSt=h.account_status||'ปกติ';
+    const st=stCfg[acSt]||stCfg['ปกติ'];
+    document.getElementById('statusBanner').innerHTML=`
+      <div class="status-banner ${st.cls}">
+        <div class="st-icon"><i class="fa-solid ${st.icon}"></i></div>
+        <div><div class="st-label">สถานะบัญชี</div><div class="st-value">${acSt}</div></div>
+      </div>`;
+    const typeIcon={'บ้านเดี่ยว':'fa-house','ทาวน์โฮม':'fa-building','บ้านแฝด':'fa-house-chimney-window'};
+    const fields=[
+      {label:'บ้านเลขที่',icon:'fa-map-pin',value:h.house_no},
+      {label:'ชื่อ-นามสกุล',icon:'fa-user',value:h.owner_name},
+      {label:'ที่อยู่',icon:'fa-location-dot',value:h.address},
+      {label:'พื้นที่',icon:'fa-ruler-combined',value:h.area_sqm+' ตร.ม.'},
+      {label:'ซอย',icon:'fa-road',value:h.soi},
+      {label:'ประเภทบ้าน',icon:typeIcon[h.house_type]||'fa-house',value:h.house_type},
+      {label:'เบอร์โทร',icon:'fa-phone',value:h.phone||'—'},
+      {label:'ค่าส่วนกลาง/ครึ่งปี',icon:'fa-money-bill-wave',value:Number(h.fee_per_half).toLocaleString()+' บาท'},
+    ];
+    document.getElementById('infoGrid').innerHTML=fields.map(f=>`
+      <div class="info-item">
+        <div class="info-label"><i class="fa-solid ${f.icon}"></i> ${f.label}</div>
+        <div class="info-value">${f.value}</div>
+      </div>`).join('');
+  }
+
+  async function loadFees(){
+    const d=await api({action:'getMyFees',token});
+    if(!d.success||!d.data.length){
+      document.getElementById('feeContainer').innerHTML=`<div class="empty"><i class="fa-solid fa-receipt"></i>ยังไม่มีข้อมูลค่าส่วนกลาง</div>`;return;
     }
+    const fees=d.data.sort((a,b)=>b.year-a.year);
+    document.getElementById('feeContainer').innerHTML=fees.map(f=>feeCard(f)).join('');
+  }
 
-    function renderInfo(h) {
-      if (!h) return;
-      document.getElementById('infoGrid').innerHTML = `
-        <div class="info-card"><span class="info-label">เจ้าของบ้าน</span><div class="info-value">${h.owner_name || '—'}</div></div>
-        <div class="info-card"><span class="info-label">ซอย</span><div class="info-value">${h.soi || '—'}</div></div>
-        <div class="info-card"><span class="info-label">เบอร์โทรศัพท์</span><div class="info-value">${h.phone || '—'}</div></div>
-        <div class="info-card"><span class="info-label">อีเมล</span><div class="info-value">${h.email || '—'}</div></div>
-      `;
-    }
+  function feeCard(f){
+    const h1s=f.h1_status||'unpaid',h2s=f.h2_status||'unpaid';
+    const overall=(h1s==='paid'&&h2s==='paid')?'paid':(h1s==='unpaid'&&h2s==='unpaid')?'unpaid':'partial';
+    const badgeLabel={paid:'✓ ชำระครบ',partial:'⚡ ชำระบางส่วน',unpaid:'✗ ยังไม่ชำระ'};
+    const h1short=Math.max(0,Number(f.h1_amount)-Number(f.h1_paid));
+    const h2short=Math.max(0,Number(f.h2_amount)-Number(f.h2_paid));
+    return`<div class="fee-year">
+      <div class="fee-year-header" onclick="toggleFee(this)">
+        <div class="fee-year-title"><i class="fa-solid fa-calendar-days" style="color:var(--primary)"></i> ปี พ.ศ. ${f.year}</div>
+        <div style="display:flex;align-items:center;gap:.5rem">
+          <span class="year-badge ${overall}">${badgeLabel[overall]}</span>
+          <i class="fa-solid fa-chevron-down" style="color:var(--muted);transition:transform .25s"></i>
+        </div>
+      </div>
+      <div class="fee-body">
+        <div class="half-grid">
+          ${halfCard('ครึ่งปีแรก (ม.ค.–มิ.ย.)',h1s,f.h1_amount,f.h1_paid,f.h1_date,h1short)}
+          ${halfCard('ครึ่งปีหลัง (ก.ค.–ธ.ค.)',h2s,f.h2_amount,f.h2_paid,f.h2_date,h2short)}
+        </div>
+        ${f.note?`<p style="margin-top:.75rem;font-size:.8rem;color:var(--muted)"><i class="fa-solid fa-note-sticky"></i> ${f.note}</p>`:''}
+      </div>
+    </div>`;
+  }
 
-    function renderFees(list) {
-      const container = document.getElementById('feeList');
-      if (!list || list.length === 0) {
-        container.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted)">ไม่พบข้อมูลการชำระเงิน</div>';
-        return;
-      }
-      // เรียงจากเดือน/ปี ล่าสุดขึ้นก่อน
-      const sorted = list.sort((a,b) => (b.year + b.month.padStart(2,'0')) - (a.year + a.month.padStart(2,'0')));
-      
-      container.innerHTML = sorted.map((f, i) => {
-        const statusText = f.status === 'paid' ? 'ชำระแล้ว' : (f.status === 'partial' ? 'ชำระบางส่วน' : 'ยังไม่ชำระ');
-        return `
-          <div class="fee-item">
-            <div class="fee-header" onclick="toggleFee(this)">
-              <div class="fee-month">
-                <i class="fa-solid fa-calendar-check" style="color:var(--primary)"></i>
-                ${getMonthName(f.month)} ${f.year}
-              </div>
-              <div style="display:flex;align-items:center;gap:12px">
-                <span class="status-badge ${f.status}">${statusText}</span>
-                <i class="fa-solid fa-chevron-down" style="color:var(--muted);font-size:0.8rem;transition:0.3s"></i>
-              </div>
-            </div>
-            <div class="fee-body">
-              <div style="font-size:0.85rem;color:var(--text2)">เลขที่อ้างอิง: <span style="font-weight:600">${f.fee_id}</span></div>
-              <div class="half-grid">
-                ${buildHalfCard(f.status, 'รายละเอียด', f.amount, f.paid_amount, f.paid_date)}
-              </div>
-              ${f.remark ? `<div style="margin-top:10px;font-size:0.8rem;color:var(--muted)"><b>หมายเหตุ:</b> ${f.remark}</div>` : ''}
-            </div>
-          </div>
-        `;
-      }).join('');
-    }
+  function halfCard(title,status,amount,paid,date,short){
+    const icon={paid:'fa-circle-check',partial:'fa-circle-half-stroke',unpaid:'fa-circle-xmark'};
+    const col={paid:'var(--paid-c)',partial:'var(--partial-c)',unpaid:'var(--unpaid-c)'};
+    return`<div class="half-card ${status}">
+      <div class="half-title" style="color:${col[status]}"><i class="fa-solid ${icon[status]}"></i> ${title}</div>
+      <div class="half-row"><span>ยอดที่ต้องชำระ</span><span>${Number(amount).toLocaleString()} บาท</span></div>
+      <div class="half-row"><span>ชำระแล้ว</span><span>${Number(paid).toLocaleString()} บาท</span></div>
+      ${date?`<div class="half-row"><span>วันที่ชำระ</span><span>${date}</span></div>`:''}
+      ${short>0?`<div class="half-short"><i class="fa-solid fa-triangle-exclamation"></i> ค้างชำระ ${short.toLocaleString()} บาท</div>`:''}
+    </div>`;
+  }
 
-    function buildHalfCard(status, title, amount, paid, date) {
-      const short = amount - paid;
-      const icon = {paid:'fa-check-circle', partial:'fa-spinner', unpaid:'fa-clock'};
-      const col = {paid:'var(--paid-c)', partial:'var(--partial-c)', unpaid:'var(--unpaid-c)'};
-      return `
-        <div class="half-card ${status}">
-          <div class="half-title" style="color:${col[status]}"><i class="fa-solid ${icon[status]}"></i> ${title}</div>
-          <div class="half-row"><span>ยอดที่ต้องชำระ</span><span>${Number(amount).toLocaleString()} บาท</span></div>
-          <div class="half-row"><span>ชำระแล้ว</span><span>${Number(paid).toLocaleString()} บาท</span></div>
-          ${date ? `<div class="half-row"><span>วันที่ชำระ</span><span>${date}</span></div>` : ''}
-          ${short > 0 ? `<div class="half-short"><i class="fa-solid fa-triangle-exclamation"></i> ค้างชำระ ${short.toLocaleString()} บาท</div>` : ''}
-        </div>`;
-    }
+  function toggleFee(el){
+    const body=el.nextElementSibling;
+    const icon=el.querySelector('.fa-chevron-down');
+    const open=body.style.display!=='none';
+    body.style.display=open?'none':'block';
+    icon.style.transform=open?'rotate(-90deg)':'';
+  }
 
-    function getMonthName(m) {
-      const months = ["","มกราคม","กุมภาพันธ์","มีนาคม","เมษายน","พฤษภาคม","มิถุนายน","กรกฎาคม","สิงหาคม","กันยายน","ตุลาคม","พฤศจิกายน","ธันวาคม"];
-      return months[parseInt(m)] || m;
-    }
+  function logout(){
+    Swal.fire({icon:'question',title:'ออกจากระบบ?',text:'ต้องการออกจากระบบหรือไม่',showCancelButton:true,confirmButtonText:'ออกจากระบบ',cancelButtonText:'ยกเลิก',confirmButtonColor:'#dc2626',cancelButtonColor:'#4f7ef7'})
+    .then(r=>{if(r.isConfirmed){localStorage.removeItem('vms_token');localStorage.removeItem('vms_role');localStorage.removeItem('vms_name');localStorage.removeItem('vms_house');window.location.href='index.html';}});
+  }
 
-    function toggleFee(el) {
-      const body = el.nextElementSibling;
-      const icon = el.querySelector('.fa-chevron-down');
-      const isOpen = body.style.display === 'block';
-      body.style.display = isOpen ? 'none' : 'block';
-      icon.style.transform = isOpen ? 'rotate(0deg)' : 'rotate(-180deg)';
-    }
-
-    function logout() {
-      Swal.fire({
-        title: 'ออกจากระบบ?',
-        text: "ต้องการออกจากระบบหรือไม่",
-        icon: 'question',
-        showCancelButton: true,
-        confirmButtonColor: '#dc2626',
-        cancelButtonColor: '#4f7ef7',
-        confirmButtonText: 'ออกจากระบบ',
-        cancelButtonText: 'ยกเลิก'
-      }).then((result) => {
-        if (result.isConfirmed) {
-          localStorage.clear();
-          window.location.href = 'index.html';
-        }
-      });
-    }
-  </script>
+  loadInfo();
+  loadFees();
+</script>
 </body>
 </html>
