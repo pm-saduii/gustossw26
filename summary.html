@@ -226,19 +226,55 @@ function renderSummary(d){
   setTimeout(()=>{document.getElementById('progressFill').style.width=paidPct+'%';},100);
 
   // ── soi table ──────────────────────────────────────
+  // ค้างชำระ = ยังไม่ชำระ + ชำระบางส่วน (ไม่ครบ)
+  // % ชำระ = จำนวนหลังที่ชำระแล้ว / จำนวนหลังทั้งหมดในซอย
   const entries=Object.entries(bySoi||{}).sort((a,b)=>a[0].localeCompare(b[0],'th'));
   const rows=entries.map(([soi,s])=>{
-    const sp=pct(s.fullPaid,s.total);
-    const sap=pct(s.amtPaid,s.amtDue);
+    // ครึ่งปีแรก
+    const h1PaidCount   = s.h1Paid   || 0;
+    const h1UnpaidCount = s.h1Unpaid || 0;  // ยังไม่ชำระหรือไม่ครบ
+    const h1Pct = pct(h1PaidCount, s.total);
+    // ครึ่งปีหลัง
+    const h2PaidCount   = s.h2Paid   || 0;
+    const h2UnpaidCount = s.h2Unpaid || 0;
+    const h2Pct = pct(h2PaidCount, s.total);
+    // ชำระครบทั้งปี
+    const fullPct = pct(s.fullPaid, s.total);
+
     return `<tr>
       <td><strong>${soi}</strong></td>
-      <td style="text-align:center">${s.total} หลัง</td>
-      <td style="text-align:center"><span class="badge paid">${s.fullPaid} หลัง</span></td>
-      <td style="text-align:center"><span class="badge partial">${s.partial} หลัง</span></td>
-      <td style="text-align:center"><span class="badge unpaid">${s.unpaid} หลัง</span></td>
-      <td>
-        <div style="display:flex;align-items:center;gap:.5rem">${barHtml(sp)}<span style="font-size:.8rem;font-weight:700;color:var(--primary)">${sp}%</span></div>
-        <div style="font-size:.72rem;color:var(--muted);margin-top:.15rem">ยอดเงิน ${sap}% &nbsp;(${fmt(s.amtPaid)}/${fmt(s.amtDue)} บาท)</div>
+      <td style="text-align:center;font-weight:600">${s.total} หลัง</td>
+      <td style="text-align:center">
+        <span class="badge paid" style="font-size:.8rem">${s.fullPaid} หลัง</span>
+        <div style="font-size:.72rem;color:var(--paid-c);margin-top:.2rem">${fullPct}%</div>
+      </td>
+      <td style="text-align:center">
+        <div style="font-size:.82rem;font-weight:600;color:var(--paid-c)">${h1PaidCount} หลัง</div>
+        <div style="font-size:.72rem;color:var(--muted)">ชำระแล้ว</div>
+      </td>
+      <td style="text-align:center">
+        <div style="font-size:.82rem;font-weight:600;color:var(--unpaid-c)">${h1UnpaidCount} หลัง</div>
+        <div style="font-size:.72rem;color:var(--muted)">ค้างชำระ</div>
+      </td>
+      <td style="text-align:center">
+        <div style="display:flex;align-items:center;justify-content:center;gap:.4rem">
+          ${barHtml(h1Pct)}
+          <span style="font-size:.8rem;font-weight:700;color:var(--primary);white-space:nowrap">${h1Pct}%</span>
+        </div>
+      </td>
+      <td style="text-align:center">
+        <div style="font-size:.82rem;font-weight:600;color:var(--paid-c)">${h2PaidCount} หลัง</div>
+        <div style="font-size:.72rem;color:var(--muted)">ชำระแล้ว</div>
+      </td>
+      <td style="text-align:center">
+        <div style="font-size:.82rem;font-weight:600;color:var(--unpaid-c)">${h2UnpaidCount} หลัง</div>
+        <div style="font-size:.72rem;color:var(--muted)">ค้างชำระ</div>
+      </td>
+      <td style="text-align:center">
+        <div style="display:flex;align-items:center;justify-content:center;gap:.4rem">
+          ${barHtml(h2Pct)}
+          <span style="font-size:.8rem;font-weight:700;color:var(--primary);white-space:nowrap">${h2Pct}%</span>
+        </div>
       </td>
     </tr>`;
   }).join('');
@@ -246,12 +282,24 @@ function renderSummary(d){
   document.getElementById('soiCard').innerHTML=`
     <div class="soi-header"><i class="fa-solid fa-road"></i> รายละเอียดแยกตามซอย — ปี พ.ศ. ${year}</div>
     <div class="table-wrap"><table>
-      <thead><tr>
-        <th>ซอย</th><th style="text-align:center">ทั้งหมด</th>
-        <th style="text-align:center">ชำระครบ</th><th style="text-align:center">บางส่วน</th>
-        <th style="text-align:center">ค้างชำระ</th><th>% ชำระ (หลัง / เงิน)</th>
-      </tr></thead>
-      <tbody>${rows||'<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:2rem">ไม่มีข้อมูลในปีนี้</td></tr>'}</tbody>
+      <thead>
+        <tr>
+          <th rowspan="2" style="vertical-align:middle">ซอย</th>
+          <th rowspan="2" style="text-align:center;vertical-align:middle">ทั้งหมด</th>
+          <th rowspan="2" style="text-align:center;vertical-align:middle">ชำระครบ<br>ทั้งปี</th>
+          <th colspan="3" style="text-align:center;border-left:2px solid var(--border);background:#f0f7ff">ครึ่งปีแรก (ม.ค.–มิ.ย.)</th>
+          <th colspan="3" style="text-align:center;border-left:2px solid var(--border);background:#f0faf5">ครึ่งปีหลัง (ก.ค.–ธ.ค.)</th>
+        </tr>
+        <tr>
+          <th style="text-align:center;border-left:2px solid var(--border);background:#f0f7ff">ชำระแล้ว</th>
+          <th style="text-align:center;background:#f0f7ff">ค้างชำระ</th>
+          <th style="text-align:center;background:#f0f7ff">% ชำระ</th>
+          <th style="text-align:center;border-left:2px solid var(--border);background:#f0faf5">ชำระแล้ว</th>
+          <th style="text-align:center;background:#f0faf5">ค้างชำระ</th>
+          <th style="text-align:center;background:#f0faf5">% ชำระ</th>
+        </tr>
+      </thead>
+      <tbody>${rows||'<tr><td colspan="9" style="text-align:center;color:var(--muted);padding:2rem">ไม่มีข้อมูลในปีนี้</td></tr>'}</tbody>
     </table></div>`;
 }
 
