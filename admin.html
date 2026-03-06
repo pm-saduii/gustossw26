@@ -241,6 +241,15 @@
               </div>
               <div class="form-group"><label>เบอร์โทร</label><input type="text" id="h_phone" placeholder="0812345678"/></div>
               <div class="form-group"><label>ค่าส่วนกลาง/ครึ่งปี (บาท)</label><input type="number" id="h_fee" placeholder="3000"/></div>
+              <div class="form-group">
+                <label>สถานะบัญชี</label>
+                <select id="h_acst">
+                  <option value="ปกติ">ปกติ</option>
+                  <option value="ค้างชำระ">ค้างชำระ</option>
+                  <option value="ระงับกรมที่ดิน">ระงับกรมที่ดิน</option>
+                  <option value="ฟ้องร้อง">ฟ้องร้อง</option>
+                </select>
+              </div>
               <div class="form-group full"><label>หมายเหตุ</label><input type="text" id="h_note" placeholder="(ถ้ามี)"/></div>
             </div>
             <div class="form-actions">
@@ -406,6 +415,12 @@
               <div class="form-group full"><label>รายละเอียดผลงาน</label><textarea id="n_content" style="min-height:120px" placeholder="- ซ่อมแซมไฟทางเดิน&#10;- ตัดแต่งต้นไม้..."></textarea></div>
               <div class="form-group"><label>รายรับเดือนนี้ (บาท)</label><input type="number" id="n_income" placeholder="0"/></div>
               <div class="form-group"><label>รายจ่ายเดือนนี้ (บาท)</label><input type="number" id="n_expense" placeholder="0"/></div>
+              <div class="form-group full">
+                <label>แนบรูปภาพ (สูงสุด 10 รูป)</label>
+                <input type="file" id="n_photos" accept="image/*" multiple onchange="previewNitiPhotos(this)"/>
+                <div id="n_photos_preview" style="display:flex;flex-wrap:wrap;gap:.4rem;margin-top:.5rem"></div>
+                <div id="n_photos_progress" style="display:none;margin-top:.4rem;font-size:.8rem;color:var(--primary)"><i class="fa-solid fa-spinner fa-spin"></i> กำลังอัปโหลด...</div>
+              </div>
             </div>
             <div class="form-actions">
               <button class="btn btn-outline" onclick="toggleForm('nitiForm')">ยกเลิก</button>
@@ -475,6 +490,15 @@
   function toggleForm(id) { const el = document.getElementById(id); el.style.display = el.style.display === 'none' ? '' : 'none'; }
 
   // ── API ───────────────────────────────────────────────────────
+  function toBase64(file) {
+    return new Promise((res, rej) => {
+      const r = new FileReader();
+      r.onload = () => res(r.result.split(',')[1]);
+      r.onerror = rej;
+      r.readAsDataURL(file);
+    });
+  }
+
   async function api(params) {
     if (!params.token) params.token = token;
     const qs = new URLSearchParams(params).toString();
@@ -527,18 +551,23 @@
   }
   function renderHouses(list) {
     if (!list.length) { document.getElementById('houseTbody').innerHTML = '<tr class="empty-row"><td colspan="7">ไม่มีข้อมูล</td></tr>'; return; }
-    document.getElementById('houseTbody').innerHTML = list.map(h => `<tr>
+    const ST_BG = {'ปกติ':'#d1fae5','ค้างชำระ':'#fef9c3','ระงับกรมที่ดิน':'#ffedd5','ฟ้องร้อง':'#fee2e2'};
+    const ST_C  = {'ปกติ':'#065f46','ค้างชำระ':'#854d0e','ระงับกรมที่ดิน':'#9a3412','ฟ้องร้อง':'#7f1d1d'};
+    document.getElementById('houseTbody').innerHTML = list.map(h => {
+    const hst = h.account_status || 'ปกติ';
+    return `<tr>
       <td><strong>${h.house_no}</strong></td>
       <td>${h.owner_name}</td>
       <td>${h.soi}</td>
       <td>${h.house_type}</td>
+      <td><span style="background:${ST_BG[hst]||'#d1fae5'};color:${ST_C[hst]||'#065f46'};padding:.2rem .7rem;border-radius:20px;font-size:.78rem;font-weight:700">${hst}</span></td>
       <td>${Number(h.fee_per_half).toLocaleString()} ฿</td>
       <td><span class="badge ${h.status === 'active' ? 'paid' : 'unpaid'}">${h.status}</span></td>
       <td><div class="actions">
         <button class="btn btn-outline btn-sm" onclick="editHouse('${h.house_id}')"><i class="fa-solid fa-pen"></i></button>
         <button class="btn btn-danger btn-sm" onclick="delHouse('${h.house_id}')"><i class="fa-solid fa-trash"></i></button>
       </div></td>
-    </tr>`).join('');
+    </tr>`;}).join('');
   }
   function filterHouses() {
     const q = document.getElementById('houseSearch').value.toLowerCase();
@@ -546,7 +575,7 @@
   }
 
   async function saveHouse() {
-    const data = { action: 'addHouse', house_no: g('h_no'), owner_name: g('h_owner'), address: g('h_addr'), area_sqm: g('h_area'), soi: g('h_soi'), house_type: g('h_type'), phone: g('h_phone'), fee_per_half: g('h_fee'), note: g('h_note') };
+    const data = { action: 'addHouse', house_no: g('h_no'), owner_name: g('h_owner'), address: g('h_addr'), area_sqm: g('h_area'), soi: g('h_soi'), house_type: g('h_type'), phone: g('h_phone'), fee_per_half: g('h_fee'), account_status: g('h_acst'), note: g('h_note') };
     if (!data.house_no || !data.owner_name) { toast('warning', 'กรุณากรอกข้อมูลให้ครบ'); return; }
     const r = await api(data);
     if (r.success) { toast('success', r.message); toggleForm('houseForm'); loadHouses(); }
@@ -711,9 +740,37 @@
     </tr>`).join('') || '<tr class="empty-row"><td colspan="5">ไม่มีข้อมูล</td></tr>';
   }
 
+  let annFileUrl = '';
+
+  function previewAnnFile(input) {
+    if (!input.files.length) return;
+    const f = input.files[0];
+    document.getElementById('a_file_name').textContent = f.name + ' (' + (f.size/1024).toFixed(1) + ' KB)';
+    document.getElementById('a_file_preview').style.display = 'block';
+  }
+  function clearAnnFile() {
+    document.getElementById('a_file').value = '';
+    document.getElementById('a_file_preview').style.display = 'none';
+    annFileUrl = '';
+  }
+
+  async function uploadAnnFile() {
+    const input = document.getElementById('a_file');
+    if (!input.files.length) return '';
+    const file = input.files[0];
+    const prog = document.getElementById('a_file_progress');
+    prog.style.display = 'block';
+    const base64 = await toBase64(file);
+    const r = await api({ action: 'uploadFile', base64Data: base64, fileName: file.name, mimeType: file.type });
+    prog.style.display = 'none';
+    if (r.success) return r.fileUrl;
+    toast('error', 'อัปโหลดไฟล์ไม่สำเร็จ'); return '';
+  }
+
   async function saveAnn() {
     const data = { action: 'addAnnouncement', title: g('a_title'), content: g('a_content'), category: g('a_cat'), date: g('a_date') };
     if (!data.title || !data.content) { toast('warning', 'กรุณากรอกข้อมูลให้ครบ'); return; }
+    data.file_url = await uploadAnnFile();
     const r = await api(data);
     if (r.success) { toast('success', r.message); toggleForm('annForm'); loadAnn(); }
     else toast('error', r.message);
@@ -743,9 +800,49 @@
     </tr>`).join('') || '<tr class="empty-row"><td colspan="5">ไม่มีข้อมูล</td></tr>';
   }
 
+  let nitiPhotoUrls = [];
+
+  async function previewNitiPhotos(input) {
+    const files = Array.from(input.files).slice(0,10);
+    const prev = document.getElementById('n_photos_preview');
+    prev.innerHTML = files.map((f,i) => {
+      const url = URL.createObjectURL(f);
+      return `<div style="position:relative;width:70px;height:70px">
+        <img src="${url}" style="width:70px;height:70px;object-fit:cover;border-radius:8px;border:1.5px solid var(--border)">
+        <span style="position:absolute;top:-4px;right:-4px;background:#dc2626;color:#fff;border-radius:50%;width:18px;height:18px;font-size:.65rem;display:flex;align-items:center;justify-content:center;cursor:pointer" onclick="removeNitiPhoto(${i})">${i+1}</span>
+      </div>`;
+    }).join('');
+  }
+  function removeNitiPhoto(idx) {
+    const dt = new DataTransfer();
+    const input = document.getElementById('n_photos');
+    Array.from(input.files).forEach((f,i) => { if(i!==idx) dt.items.add(f); });
+    input.files = dt.files;
+    previewNitiPhotos(input);
+  }
+
+  async function uploadNitiPhotos() {
+    const input = document.getElementById('n_photos');
+    if (!input.files.length) return '';
+    const files = Array.from(input.files).slice(0,10);
+    const prog = document.getElementById('n_photos_progress');
+    prog.style.display = 'block';
+    prog.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> กำลังอัปโหลด 0/' + files.length + '...';
+    const urls = [];
+    for (let i=0; i<files.length; i++) {
+      prog.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> กำลังอัปโหลด ' + (i+1) + '/' + files.length + '...';
+      const base64 = await toBase64(files[i]);
+      const r = await api({ action: 'uploadFile', base64Data: base64, fileName: files[i].name, mimeType: files[i].type });
+      if (r.success) urls.push(r.fileUrl);
+    }
+    prog.style.display = 'none';
+    return urls.join(',');
+  }
+
   async function saveNiti() {
     const data = { action: 'addNitiReport', month: g('n_month'), year: g('n_year'), title: g('n_title'), content: g('n_content'), income: g('n_income'), expense: g('n_expense') };
     if (!data.month || !data.title) { toast('warning', 'กรุณากรอกข้อมูลให้ครบ'); return; }
+    data.photo_urls = await uploadNitiPhotos();
     const r = await api(data);
     if (r.success) { toast('success', r.message); toggleForm('nitiForm'); loadNiti(); }
     else toast('error', r.message);

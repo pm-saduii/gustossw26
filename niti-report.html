@@ -129,9 +129,50 @@
     .skeleton { background: linear-gradient(90deg, #e2ecf8 25%, #f0f6ff 50%, #e2ecf8 75%); background-size: 200% 100%; animation: shimmer 1.2s infinite; border-radius: 8px; }
     @keyframes shimmer { to { background-position: -200% 0; } }
 
+    /* Photo gallery */
+    .photo-gallery {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+      gap: .6rem; margin-top: .9rem;
+    }
+    .photo-thumb {
+      aspect-ratio: 1; border-radius: 10px; overflow: hidden;
+      border: 2px solid var(--border); cursor: pointer;
+      transition: transform .15s, border-color .15s;
+      background: #f0f4f8;
+    }
+    .photo-thumb:hover { transform: scale(1.03); border-color: var(--primary); }
+    .photo-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+    /* Lightbox */
+    .lightbox {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,.85); z-index: 9999;
+      align-items: center; justify-content: center; flex-direction: column;
+    }
+    .lightbox.open { display: flex; }
+    .lightbox img { max-width: 92vw; max-height: 82vh; border-radius: 12px; object-fit: contain; }
+    .lightbox-close {
+      position: absolute; top: 1rem; right: 1.2rem;
+      background: rgba(255,255,255,.15); border: none; color: #fff;
+      font-size: 1.5rem; width: 40px; height: 40px; border-radius: 50%;
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+    }
+    .lightbox-nav {
+      position: absolute; top: 50%; transform: translateY(-50%);
+      background: rgba(255,255,255,.15); border: none; color: #fff;
+      font-size: 1.3rem; width: 44px; height: 44px; border-radius: 50%;
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+    }
+    .lightbox-nav.prev { left: 1rem; }
+    .lightbox-nav.next { right: 1rem; }
+    .lightbox-counter {
+      color: rgba(255,255,255,.7); font-size: .85rem; margin-top: .6rem;
+    }
+
     @media (max-width: 600px) {
       .report-fin { display: none; }
       .fin-grid { grid-template-columns: 1fr; }
+      .photo-gallery { grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); }
     }
   </style>
 </head>
@@ -177,6 +218,63 @@
 
   const MONTHS_TH = ['','ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
   const MONTHS_FULL = ['','มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
+
+  let allReports = [];
+  let lightboxPhotos = [];
+  let lightboxIdx = 0;
+
+  function driveThumb(fileId) {
+    return 'https://drive.google.com/thumbnail?id=' + fileId + '&sz=w400';
+  }
+  function drivePreview(fileId) {
+    return 'https://drive.google.com/uc?id=' + fileId;
+  }
+  function extractFileId(url) {
+    var m = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
+    return m ? m[1] : null;
+  }
+
+  function buildPhotoGallery(photoUrlsStr, reportIdx) {
+    if (!photoUrlsStr) return '';
+    var urls = photoUrlsStr.split(',').map(u => u.trim()).filter(Boolean);
+    if (!urls.length) return '';
+    var thumbs = urls.map((url, pi) => {
+      var fid = extractFileId(url);
+      var src = fid ? driveThumb(fid) : url;
+      var full = fid ? drivePreview(fid) : url;
+      return '<div class="photo-thumb" onclick="openLightbox(' + JSON.stringify(urls) + ',' + pi + ')"><img src="' + src + '" alt="รูป ' + (pi+1) + '" loading="lazy" onerror="this.src=''"></div>';
+    }).join('');
+    return '<div style="margin-top:.75rem;font-size:.8rem;font-weight:700;color:var(--muted)"><i class="fa-solid fa-images"></i> รูปภาพ (' + urls.length + ')</div><div class="photo-gallery">' + thumbs + '</div>';
+  }
+
+  function openLightbox(urls, idx) {
+    lightboxPhotos = urls;
+    lightboxIdx = idx;
+    showLightboxPhoto();
+    document.getElementById('lightbox').classList.add('open');
+  }
+  function closeLightbox(e) {
+    if (e && e.target !== document.getElementById('lightbox') && e.type !== 'click') return;
+    if (e && e.currentTarget !== document.getElementById('lightbox') && e.target.closest('.lightbox-close') === null && e.target.closest('.lightbox') !== e.target) return;
+    document.getElementById('lightbox').classList.remove('open');
+  }
+  function navPhoto(dir) {
+    lightboxIdx = (lightboxIdx + dir + lightboxPhotos.length) % lightboxPhotos.length;
+    showLightboxPhoto();
+  }
+  function showLightboxPhoto() {
+    var url = lightboxPhotos[lightboxIdx];
+    var fid = extractFileId(url);
+    document.getElementById('lightboxImg').src = fid ? drivePreview(fid) : url;
+    document.getElementById('lightboxCounter').textContent = (lightboxIdx+1) + ' / ' + lightboxPhotos.length;
+  }
+
+  // Close lightbox on Escape key
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') document.getElementById('lightbox').classList.remove('open');
+    if (e.key === 'ArrowLeft')  navPhoto(-1);
+    if (e.key === 'ArrowRight') navPhoto(1);
+  });
 
   let allReports = [];
   let currentYear = '';
@@ -241,6 +339,7 @@
             <div class="fin-card expense"><i class="fa-solid fa-arrow-circle-down"></i><div><div class="fin-label">รายจ่าย</div><div class="fin-amt">${expense.toLocaleString()} ฿</div></div></div>
             <div class="fin-card balance"><i class="fa-solid fa-scale-balanced"></i><div><div class="fin-label">คงเหลือ</div><div class="fin-amt" style="color:${balColor}">${balance.toLocaleString()} ฿</div></div></div>
           </div>` : ''}
+          ${buildPhotoGallery(r.photo_urls, i)}
           ${r.created_date ? `<p style="font-size:.75rem;color:var(--muted);margin-top:.75rem"><i class="fa-solid fa-clock"></i> บันทึกเมื่อ ${r.created_date} โดย ${r.created_by}</p>` : ''}
         </div>
       </div>`;
@@ -256,5 +355,13 @@
 
   loadReports();
 </script>
+  <!-- Lightbox -->
+  <div class="lightbox" id="lightbox" onclick="closeLightbox(event)">
+    <button class="lightbox-close" onclick="closeLightbox()"><i class="fa-solid fa-xmark"></i></button>
+    <button class="lightbox-nav prev" onclick="navPhoto(-1);event.stopPropagation()"><i class="fa-solid fa-chevron-left"></i></button>
+    <img id="lightboxImg" src="" alt="">
+    <div class="lightbox-counter" id="lightboxCounter"></div>
+    <button class="lightbox-nav next" onclick="navPhoto(1);event.stopPropagation()"><i class="fa-solid fa-chevron-right"></i></button>
+  </div>
 </body>
 </html>
