@@ -153,14 +153,14 @@
   <div class="toolbar">
     <h2><i class="fa-solid fa-clipboard-check"></i> ผลงานประจำเดือน</h2>
     <div class="year-select" id="yearBtns">
-      <button class="year-btn active" onclick="filterYear(this,'2567')">2567</button>
-      <button class="year-btn" onclick="filterYear(this,'2566')">2566</button>
-      <button class="year-btn" onclick="filterYear(this,'2565')">2565</button>
+      <span style="font-size:.82rem;color:var(--muted)">กำลังโหลด...</span>
     </div>
   </div>
 
   <div id="reportList">
-    ${Array(3).fill(`<div class="report-card"><div class="report-header"><div class="skeleton" style="width:48px;height:48px;border-radius:12px;flex-shrink:0"></div><div style="flex:1;margin:0 .85rem"><div class="skeleton" style="height:18px;width:50%;margin-bottom:.4rem"></div><div class="skeleton" style="height:12px;width:35%"></div></div></div></div>`).join('')}
+    <div class="report-card"><div class="report-header"><div class="skeleton" style="width:48px;height:48px;border-radius:12px;flex-shrink:0"></div><div style="flex:1;margin:0 .85rem"><div class="skeleton" style="height:18px;width:50%;margin-bottom:.4rem"></div><div class="skeleton" style="height:12px;width:35%"></div></div></div></div>
+    <div class="report-card"><div class="report-header"><div class="skeleton" style="width:48px;height:48px;border-radius:12px;flex-shrink:0"></div><div style="flex:1;margin:0 .85rem"><div class="skeleton" style="height:18px;width:60%;margin-bottom:.4rem"></div><div class="skeleton" style="height:12px;width:40%"></div></div></div></div>
+    <div class="report-card"><div class="report-header"><div class="skeleton" style="width:48px;height:48px;border-radius:12px;flex-shrink:0"></div><div style="flex:1;margin:0 .85rem"><div class="skeleton" style="height:18px;width:45%;margin-bottom:.4rem"></div><div class="skeleton" style="height:12px;width:30%"></div></div></div></div>
   </div>
 </main>
 
@@ -179,7 +179,7 @@
   const MONTHS_FULL = ['','มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
 
   let allReports = [];
-  let currentYear = '2567';
+  let currentYear = '';
 
   async function loadReports() {
     const qs = new URLSearchParams({ action: 'getNitiReports' }).toString();
@@ -187,6 +187,12 @@
     const d = await r.json();
     if (d.success) {
       allReports = d.data;
+      // สร้างปุ่มปีจากข้อมูลจริงใน Sheet
+      const years = [...new Set(allReports.map(r => String(r.year)).filter(Boolean))].sort((a,b) => b-a);
+      currentYear = years[0] || '';
+      document.getElementById('yearBtns').innerHTML = years.length
+        ? years.map(y => `<button class="year-btn ${y===currentYear?'active':''}" onclick="filterYear(this,'${y}')">${y}</button>`).join('')
+        : '<span style="font-size:.82rem;color:var(--muted)">ไม่มีข้อมูล</span>';
       renderReports();
     }
   }
@@ -205,8 +211,8 @@
       return;
     }
     document.getElementById('reportList').innerHTML = filtered.map((r, i) => {
-      const income  = Number(r.income || 0);
-      const expense = Number(r.expense || 0);
+      const income  = parseFloat(String(r.income  || 0).replace(/,/g,'')) || 0;
+      const expense = parseFloat(String(r.expense || 0).replace(/,/g,'')) || 0;
       const balance = income - expense;
       const balColor = balance >= 0 ? '#7c3aed' : '#dc2626';
       const m = Number(r.month);
