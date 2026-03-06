@@ -93,7 +93,21 @@
     .skeleton{background:linear-gradient(90deg,var(--bg2) 25%,var(--card2) 50%,var(--bg2) 75%);background-size:200% 100%;animation:shimmer 1.2s infinite;border-radius:8px;}
     @keyframes shimmer{to{background-position:-200% 0;}}
 
-    @media(max-width:600px){.half-grid{grid-template-columns:1fr;}.hero{flex-direction:column;text-align:center;}.info-grid{grid-template-columns:1fr 1fr;}.nav-name{display:none;}}
+    @media(max-width:600px){
+      .half-grid{grid-template-columns:1fr;}
+      .hero{flex-direction:column;text-align:center;padding:1.1rem;}
+      .hero-icon{width:48px;height:48px;font-size:1.2rem;}
+      .hero-text h2{font-size:1.05rem;}
+      .info-grid{grid-template-columns:1fr 1fr;}
+      .nav-name{display:none;}
+      main{padding:1rem .75rem;}
+      .fee-year-header{flex-wrap:wrap;gap:.4rem;}
+      .year-badge{font-size:.68rem;}
+    }
+    @media(max-width:400px){
+      .info-grid{grid-template-columns:1fr;}
+      .half-card{padding:.75rem .85rem;}
+    }
   </style>
 </head>
 <body>
