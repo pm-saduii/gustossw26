@@ -183,6 +183,10 @@
     [data-theme="dark"] .hst-ค้างชำระ{background:#2a2010;color:#fbbf24;}
     [data-theme="dark"] .hst-ระงับกรมที่ดิน{background:#2a1a08;color:#fb923c;}
     [data-theme="dark"] .hst-ฟ้องร้อง{background:#2a1010;color:#f87171;}
+  .year-filter-bar{display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:1rem;}
+  .year-card{padding:.45rem 1rem;border-radius:8px;border:1.5px solid var(--border);background:var(--surface);color:var(--text);font-weight:600;cursor:pointer;font-size:.9rem;transition:all .15s;}
+  .year-card:hover{border-color:var(--primary);color:var(--primary);}
+  .year-card.active{background:var(--primary);color:#fff;border-color:var(--primary);}
   </style>
 </head>
 <body>
@@ -306,7 +310,7 @@
           <div class="card-header"><h3><i class="fa-solid fa-receipt"></i> บันทึกค่าส่วนกลาง</h3><button class="btn btn-outline btn-sm" onclick="toggleForm('feeForm')"><i class="fa-solid fa-plus"></i> เพิ่ม</button></div>
           <div class="card-body" id="feeForm" style="display:none">
             <div class="form-grid">
-              <div class="form-group"><label>รหัสบ้าน (house_id)</label><input type="text" id="f_house" placeholder="H001"/></div>
+              <div class="form-group"><label>หมายเลขบ้าน</label><input type="text" id="f_house" placeholder="H001"/></div>
               <div class="form-group"><label>ปี พ.ศ.</label><input type="number" id="f_year" placeholder="2567"/></div>
               <div class="form-group"><label>ยอดครึ่งปีแรก (บาท)</label><input type="number" id="f_h1amt" placeholder="3000"/></div>
               <div class="form-group"><label>ชำระครึ่งปีแรก (บาท)</label><input type="number" id="f_h1paid" placeholder="0"/></div>
@@ -324,11 +328,12 @@
         <div class="card">
           <div class="card-header"><h3><i class="fa-solid fa-table-list"></i> รายการค่าส่วนกลาง</h3><button class="btn btn-outline btn-sm" onclick="loadFees()"><i class="fa-solid fa-rotate"></i> รีโหลด</button></div>
           <div class="card-body">
-            <div class="search-box"><i class="fa-solid fa-search"></i><input type="text" id="feeSearch" placeholder="ค้นหา house_id หรือปี" oninput="filterFees()"/></div>
+            <div class="year-filter-bar" id="yearFilterBar"></div>
+            <div class="search-box"><i class="fa-solid fa-search"></i><input type="text" id="feeSearch" placeholder="ค้นหาหมายเลขบ้าน หรือปี" oninput="filterFees()"/></div>
             <div class="table-wrap"><table><thead><tr>
-              <th onclick="sortTable('fees','house_id',this)">house_id<i class="fa-solid fa-sort sort-i"></i></th>
+              <th onclick="sortTable('fees','house_id',this)">หมายเลขบ้าน<i class="fa-solid fa-sort sort-i"></i></th>
               <th onclick="sortTable('fees','year',this)">ปี<i class="fa-solid fa-sort sort-i"></i></th>
-              <th>ครึ่งปีแรก</th><th>สถานะ H1</th><th>ครึ่งปีหลัง</th><th>สถานะ H2</th><th>จัดการ</th>
+              <th>ครึ่งปีแรก</th><th>สถานะครึ่งปีแรก</th><th>ครึ่งปีหลัง</th><th>สถานะครึ่งปีหลัง</th><th>จัดการ</th>
             </tr></thead><tbody id="feeTbody"><tr><td colspan="7"><div class="skeleton"></div></td></tr></tbody></table></div>
           </div>
         </div>
@@ -343,7 +348,7 @@
               <div class="form-group"><label>ชื่อผู้ใช้ (username)</label><input type="text" id="u_user" placeholder="house_101"/></div>
               <div class="form-group"><label>รหัสผ่าน</label><input type="text" id="u_pass" placeholder="pass101"/></div>
               <div class="form-group"><label>สิทธิ์</label><select id="u_role"><option value="resident">ลูกบ้าน (resident)</option><option value="admin">ผู้ดูแล (admin)</option></select></div>
-              <div class="form-group"><label>รหัสบ้าน (house_id)</label><input type="text" id="u_house" placeholder="H001"/></div>
+              <div class="form-group"><label>หมายเลขบ้าน</label><input type="text" id="u_house" placeholder="H001"/></div>
               <div class="form-group full"><label>ชื่อ-นามสกุล</label><input type="text" id="u_name" placeholder="นาย สมชาย ใจดี"/></div>
             </div>
             <div class="form-actions"><button class="btn btn-outline" onclick="toggleForm('userForm')">ยกเลิก</button><button class="btn btn-primary" onclick="saveUser()"><i class="fa-solid fa-floppy-disk"></i> บันทึก</button></div>
@@ -354,7 +359,7 @@
           <div class="card-body"><div class="table-wrap"><table><thead><tr>
             <th onclick="sortTable('users','username',this)">username<i class="fa-solid fa-sort sort-i"></i></th>
             <th onclick="sortTable('users','full_name',this)">ชื่อ<i class="fa-solid fa-sort sort-i"></i></th>
-            <th>สิทธิ์</th><th>house_id</th><th>สถานะ</th><th>จัดการ</th>
+            <th>สิทธิ์</th><th>หมายเลขบ้าน</th><th>สถานะ</th><th>จัดการ</th>
           </tr></thead><tbody id="userTbody"><tr><td colspan="6"><div class="skeleton"></div></td></tr></tbody></table></div></div>
         </div>
       </div>
@@ -471,7 +476,6 @@
         <div class="mf-grid">
           <div class="mf-group mf-full"><div class="mf-label"><i class="fa-solid fa-user"></i> ชื่อ-นามสกุลเจ้าของ</div><input class="mf-input" id="eh_owner" type="text"/></div>
           <div class="mf-group"><div class="mf-label"><i class="fa-solid fa-phone"></i> เบอร์โทร</div><input class="mf-input" id="eh_phone" type="text"/></div>
-          <div class="mf-group"><div class="mf-label"><i class="fa-solid fa-envelope"></i> อีเมล</div><input class="mf-input" id="eh_email" type="text"/></div>
         </div>
       </div>
       <div class="mf-section">
@@ -562,7 +566,7 @@
         <div class="mf-grid">
           <div class="mf-group mf-full"><div class="mf-label"><i class="fa-solid fa-id-card"></i> ชื่อ-นามสกุล</div><input class="mf-input" id="eu_name" type="text"/></div>
           <div class="mf-group"><div class="mf-label"><i class="fa-solid fa-user"></i> Username</div><input class="mf-input" id="eu_username_show" type="text" disabled style="opacity:.6"/></div>
-          <div class="mf-group"><div class="mf-label"><i class="fa-solid fa-house"></i> รหัสบ้าน (house_id)</div><input class="mf-input" id="eu_house" type="text"/></div>
+          <div class="mf-group"><div class="mf-label"><i class="fa-solid fa-house"></i> หมายเลขบ้าน</div><input class="mf-input" id="eu_house" type="text"/></div>
         </div>
       </div>
       <div class="mf-section">
@@ -804,7 +808,7 @@
         <div style="margin-left:auto"><span class="hst-badge hst-${hst}" style="font-size:.82rem;padding:.3rem .85rem">${hst}</span></div>
       </div>
       <div class="detail-grid">
-        <div class="detail-item"><div class="detail-item-label"><i class="fa-solid fa-id-card"></i> house_id</div><div class="detail-item-value" style="font-size:.8rem;font-family:monospace">${h.house_id}</div></div>
+        <div class="detail-item"><div class="detail-item-label"><i class="fa-solid fa-id-card"></i> หมายเลขบ้าน</div><div class="detail-item-value" style="font-size:.8rem;font-family:monospace">${h.house_id}</div></div>
         <div class="detail-item"><div class="detail-item-label"><i class="fa-solid fa-house-chimney"></i> ประเภทบ้าน</div><div class="detail-item-value">${h.house_type}</div></div>
         <div class="detail-item"><div class="detail-item-label"><i class="fa-solid fa-road"></i> ซอย</div><div class="detail-item-value">${h.soi||'—'}</div></div>
         <div class="detail-item"><div class="detail-item-label"><i class="fa-solid fa-ruler-combined"></i> พื้นที่</div><div class="detail-item-value">${h.area_sqm||'—'} ตร.ม.</div></div>
@@ -830,7 +834,7 @@
     document.getElementById('eh_soi').value=h.soi||'';
     document.getElementById('eh_type').value=h.house_type||'บ้านเดี่ยว';
     document.getElementById('eh_phone').value=h.phone||'';
-    document.getElementById('eh_email').value=h.email||'';
+
     document.getElementById('eh_fee').value=h.fee_per_half||'';
     document.getElementById('eh_acst').value=h.account_status||'ปกติ';
     document.getElementById('eh_status').value=h.status||'active';
@@ -868,9 +872,23 @@
   // ── FEES ──────────────────────────────────────────────────────
   let feesData=[];
   let feesFiltered=[];
+  let _selectedYear=null;
+
+  function buildYearFilterBar(){
+    const currentBE=new Date().getFullYear()+543;
+    const years=[currentBE,currentBE-1,currentBE-2,currentBE-3,currentBE-4];
+    if(_selectedYear===null)_selectedYear=currentBE;
+    const bar=document.getElementById('yearFilterBar');
+    if(!bar)return;
+    bar.innerHTML=years.map(y=>`<button class="year-card${_selectedYear===y?' active':''}" onclick="selectYear(${y})">พ.ศ. ${y}</button>`).join('');
+  }
+  function selectYear(y){_selectedYear=y;buildYearFilterBar();filterFees();}
+
   async function loadFees(){
     document.getElementById('feeTbody').innerHTML='<tr><td colspan="7" style="text-align:center;color:var(--muted)">กำลังโหลด...</td></tr>';
-    const d=await api({action:'getFees'});feesData=d.data||[];feesFiltered=[...feesData];renderFees(feesFiltered);
+    const d=await api({action:'getFees'});feesData=d.data||[];feesFiltered=[...feesData];
+    buildYearFilterBar();
+    filterFees();
   }
   function renderFees(list){
     const s=sortState.fees;const sorted=sortArr(list,s.col,s.dir);
@@ -886,7 +904,11 @@
   }
   function filterFees(){
     const q=document.getElementById('feeSearch').value.toLowerCase();
-    feesFiltered=feesData.filter(f=>String(f.house_id).toLowerCase().includes(q)||String(f.year).includes(q));
+    feesFiltered=feesData.filter(f=>{
+      const matchYear=_selectedYear===null||String(f.year)===String(_selectedYear);
+      const matchQ=!q||String(f.house_id).toLowerCase().includes(q)||String(f.year).includes(q);
+      return matchYear&&matchQ;
+    });
     renderFees(feesFiltered);
   }
   async function saveFee(){
@@ -903,7 +925,7 @@
     document.getElementById('feeEditHeroBadge').innerHTML=`
       <div style="background:var(--primary-l);border:1.5px solid var(--border);border-radius:12px;padding:.8rem 1rem;display:flex;align-items:center;gap:.75rem">
         <div style="width:40px;height:40px;background:linear-gradient(135deg,var(--primary),var(--accent));border-radius:10px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:1rem"><i class="fa-solid fa-receipt"></i></div>
-        <div><div style="font-size:.75rem;color:var(--muted)">house_id · ปี</div><div style="font-weight:700">${f.house_id} · พ.ศ. ${f.year}</div></div>
+        <div><div style="font-size:.75rem;color:var(--muted)">หมายเลขบ้าน · ปี</div><div style="font-weight:700">${f.house_id} · พ.ศ. ${f.year}</div></div>
       </div>`;
     document.getElementById('ef_h1amt').value=f.h1_amount||'';
     document.getElementById('ef_h1p').value=f.h1_paid||'';
