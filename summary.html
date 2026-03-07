@@ -99,22 +99,32 @@
 
     .skeleton{background:linear-gradient(90deg,var(--bg2) 25%,var(--card2) 50%,var(--bg2) 75%);background-size:200% 100%;animation:shimmer 1.2s infinite;border-radius:8px;min-height:80px;}
     @keyframes shimmer{to{background-position:-200% 0;}}
+    /* ═══ RESPONSIVE ═══════════════════════════════════════════ */
     @media(max-width:640px){
       .half-grid{grid-template-columns:1fr;}
       .chart-grid{grid-template-columns:1fr;}
       .top-grid{grid-template-columns:1fr 1fr;}
-      .toolbar{flex-direction:column;align-items:flex-start;}
+      .toolbar{flex-direction:column;align-items:flex-start;gap:.5rem;}
       main{padding:1rem .75rem;}
       .soi-header{flex-direction:column;align-items:flex-start;gap:.3rem;}
-      th,td{padding:.5rem .65rem;font-size:.78rem;}
-      .stat-value{font-size:1.25rem;}
-      .progress-top{flex-direction:column;gap:.25rem;}
+      .progress-top{flex-direction:column;gap:.3rem;}
       .progress-pct{font-size:1.3rem;}
+      .progress-detail{flex-direction:column;gap:.15rem;font-size:.77rem;}
+      /* soi table scrolls */
+      .table-wrap table{min-width:680px;}
+      th{font-size:.72rem;padding:.5rem .7rem;}
+      td{font-size:.8rem;padding:.55rem .7rem;}
+      .stat-value{font-size:1.25rem;}
+      .half-card{padding:.85rem 1rem;}
     }
     @media(max-width:420px){
       .top-grid{grid-template-columns:1fr;}
-      .chart-wrap{height:180px;}
-      .bar-mini{min-width:40px;}
+      .chart-wrap{height:170px;}
+      .bar-mini{min-width:36px;}
+      .stat-card{padding:.85rem;}
+      .year-select{width:100%;}
+      .year-btn{font-size:.78rem;padding:.3rem .65rem;}
+      main{padding:.75rem .5rem;}
     }
   </style>
 </head>
