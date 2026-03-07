@@ -22,14 +22,14 @@
     .btn-nav:hover{background:rgba(255,255,255,.28);}
     .btn-theme{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);color:#fff;width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:.9rem;transition:background .15s;}
     .btn-theme:hover{background:rgba(255,255,255,.28);}
-        /* ── PAGE TABS: desktop horizontal bar ── */
+    /* ── PAGE TABS: desktop ── */
     .page-tabs{background:var(--card);border-bottom:1px solid var(--border);padding:0 1rem;display:flex;gap:0;transition:background .3s,border-color .3s;position:sticky;top:54px;z-index:100;}
     .page-tab{white-space:nowrap;padding:.72rem 1.1rem;font-size:.84rem;font-weight:600;text-decoration:none;color:var(--muted);border-bottom:2.5px solid transparent;display:flex;align-items:center;gap:.4rem;transition:color .15s,border-color .15s;flex-shrink:0;}
     .page-tab i{font-size:.82rem;}
     .page-tab:hover{color:var(--primary);}
     .page-tab.active{color:var(--primary);border-bottom-color:var(--primary);}
     .btn-nav-text{}
-    /* ── PAGE TABS: mobile bottom navigation bar ── */
+    /* ── PAGE TABS: mobile bottom bar ── */
     @media(max-width:600px){
       body{padding-bottom:68px;}
       .page-tabs{position:fixed;bottom:0;left:0;right:0;top:auto;padding:0;border-bottom:none;border-top:1px solid var(--border);background:var(--card);box-shadow:0 -4px 20px rgba(0,0,0,.08);display:grid;grid-template-columns:repeat(4,1fr);gap:0;z-index:300;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);}
@@ -196,13 +196,15 @@
   }
 
   function renderPhotoGallery(photoUrlsStr){
-    if(!photoUrlsStr)return'';
-    const urls=photoUrlsStr.split(',').map(u=>u.trim()).filter(Boolean);
+    if(!photoUrlsStr||String(photoUrlsStr).trim()==='')return'';
+    const urls=String(photoUrlsStr).split(',').map(u=>u.trim()).filter(u=>u.startsWith('http'));
     if(!urls.length)return'';
     const thumbs=urls.map((url,pi)=>{
       const fid=extractFileId(url);
-      const src=fid?driveThumb(fid):url;
-      return`<div class="photo-thumb" onclick='openLightbox(${JSON.stringify(urls)},${pi})'><img src="${src}" alt="รูป ${pi+1}" loading="lazy" onerror="this.style.display='none'"></div>`;
+      // thumbnail: try Google Drive thumbnail API first, fallback to direct URL
+      const src=fid?`https://lh3.googleusercontent.com/d/${fid}=s400`:url;
+      const srcFallback=fid?`https://drive.google.com/thumbnail?id=${fid}&sz=w400`:url;
+      return`<div class="photo-thumb" onclick='openLightbox(${JSON.stringify(urls)},${pi})'><img src="${src}" alt="รูป ${pi+1}" loading="lazy" onerror="this.src='${srcFallback}';this.onerror=null"></div>`;
     }).join('');
     return`<div style="margin-top:.75rem;font-size:.8rem;font-weight:700;color:var(--muted)"><i class="fa-solid fa-images"></i> รูปภาพ (${urls.length})</div><div class="photo-gallery">${thumbs}</div>`;
   }
@@ -214,7 +216,13 @@
   function showLightboxPhoto(){
     const url=lightboxPhotos[lightboxIdx];
     const fid=extractFileId(url);
-    document.getElementById('lightboxImg').src=fid?drivePreview(fid):url;
+    const img=document.getElementById('lightboxImg');
+    if(fid){
+      img.src=`https://lh3.googleusercontent.com/d/${fid}=s1600`;
+      img.onerror=function(){this.src=`https://drive.google.com/uc?export=view&id=${fid}`;this.onerror=null;};
+    } else {
+      img.src=url;img.onerror=null;
+    }
     document.getElementById('lightboxCounter').textContent=(lightboxIdx+1)+' / '+lightboxPhotos.length;
   }
   document.addEventListener('keydown',e=>{if(e.key==='Escape')closeLightbox();if(e.key==='ArrowLeft')navPhoto(-1);if(e.key==='ArrowRight')navPhoto(1);});
@@ -267,7 +275,7 @@
             <div class="fin-card expense"><i class="fa-solid fa-arrow-circle-down"></i><div><div class="fin-label">รายจ่าย</div><div class="fin-amt">${expense.toLocaleString()} ฿</div></div></div>
             <div class="fin-card balance"><i class="fa-solid fa-scale-balanced"></i><div><div class="fin-label">คงเหลือ</div><div class="fin-amt" style="color:${balColor}">${balance.toLocaleString()} ฿</div></div></div>
           </div>`:''}
-          ${renderPhotoGallery(r.photo_urls)}
+          ${renderPhotoGallery(r.photo_urls||r.photos||'')}
           ${buildFileAttachment(r.file_url||r.report_file_url||'',i)}
           ${r.created_date?`<p style="font-size:.74rem;color:var(--muted);margin-top:.75rem"><i class="fa-solid fa-clock"></i> บันทึกเมื่อ ${r.created_date} โดย ${r.created_by}</p>`:''}
         </div>

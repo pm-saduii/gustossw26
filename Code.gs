@@ -1,37 +1,23 @@
-// ============================================================
-// Code.gs — Village Management System Backend (GAS)
-// ============================================================
-// วิธีใช้: แก้ไข SHEET_ID ให้ตรงกับ Google Sheet ของคุณ
-// แล้ว Deploy เป็น Web App (Execute as: Me, Anyone can access)
-// ============================================================
+// ════════════════════════════════════════════════════════════════
+//  VMS — Google Apps Script Backend  (Code.gs)
+//  แก้ไข: uploadFile ส่งไป Google Drive Folder, NitiReport ครบ columns
+// ════════════════════════════════════════════════════════════════
 
-const SHEET_ID = '1MDX7JWY33m1lqtHbGGVQXbz3fPP_Dxllm5U_B5ixOhk';
+const SHEET_ID        = '1MDX7JWY33m1lqtHbGGVQXbz3fPP_Dxllm5U_B5ixOhk';
+const DRIVE_FOLDER_ID = '1RF2J9YDSmhg_iGLzvyAGRqzSMQ1FuaHw';
 
-// Sheet names
-const SHEETS = {
-  USERS: 'Users',
-  HOUSES: 'Houses',
-  COMMON_FEE: 'CommonFee',
-  ANNOUNCEMENTS: 'Announcements',
-  NITI_REPORT: 'NitiReport'
-};
-
-// ── Entry Points ──────────────────────────────────────────────
-
-function doGet(e) {
-  return handleRequest(e);
-}
-
-function doPost(e) {
-  // GAS Web App: POST with application/x-www-form-urlencoded lands in e.parameter
-  // POST with JSON body lands in e.postData.contents
-  return handleRequest(e);
-}
+// ── Main entry point ────────────────────────────────────────────
+function doGet(e)  { return handleRequest(e); }
+function doPost(e) { return handleRequest(e); }
 
 function handleRequest(e) {
-  let params = e.parameter || {};
+  const params = {};
 
-  // รองรับ POST ที่ส่ง JSON body (เช่น uploadFile ที่มี base64 ขนาดใหญ่)
+  // 1. Query string / form params
+  if (e.parameter) {
+    Object.keys(e.parameter).forEach(k => { params[k] = e.parameter[k]; });
+  }
+  // 2. JSON POST body (apiPost() ในฝั่ง frontend ส่ง JSON body)
   if (e.postData && e.postData.contents) {
     try {
       const body = JSON.parse(e.postData.contents);
@@ -39,55 +25,34 @@ function handleRequest(e) {
     } catch (err) { /* ignore */ }
   }
 
-  const action = params['action'] || '';
-  const data = params;
-
+  const action = params.action || '';
   let result;
+
   try {
+    const ss = SpreadsheetApp.openById(SHEET_ID);
     switch (action) {
-      // Auth
-      case 'login':            result = login(data); break;
-
-      // Resident
-      case 'getMyInfo':        result = getMyInfo(data); break;
-      case 'getMyFees':        result = getMyFees(data); break;
-
-      // Public
-      case 'getFeeSummary':    result = getFeeSummary(data); break;
-      case 'getAnnouncements': result = getAnnouncements(data); break;
-      case 'getNitiReports':   result = getNitiReports(data); break;
-
-      // Admin — Houses
-      case 'getHouses':        result = requireAdmin(data, getHouses); break;
-      case 'addHouse':         result = requireAdmin(data, addHouse); break;
-      case 'updateHouse':      result = requireAdmin(data, updateHouse); break;
-      case 'deleteHouse':      result = requireAdmin(data, deleteHouse); break;
-
-      // Admin — Users
-      case 'getUsers':         result = requireAdmin(data, getUsers); break;
-      case 'addUser':          result = requireAdmin(data, addUser); break;
-      case 'updateUser':       result = requireAdmin(data, updateUser); break;
-
-      // Admin — Common Fee
-      case 'getFees':          result = requireAdmin(data, getFees); break;
-      case 'addFee':           result = requireAdmin(data, addFee); break;
-      case 'updateFee':        result = requireAdmin(data, updateFee); break;
-
-      // Admin — Announcements
-      case 'addAnnouncement':  result = requireAdmin(data, addAnnouncement); break;
-      case 'updateAnnouncement': result = requireAdmin(data, updateAnnouncement); break;
-      case 'deleteAnnouncement': result = requireAdmin(data, deleteAnnouncement); break;
-
-      // Admin — Niti Report
-      case 'addNitiReport':    result = requireAdmin(data, addNitiReport); break;
-      case 'updateNitiReport': result = requireAdmin(data, updateNitiReport); break;
-      case 'deleteNitiReport': result = requireAdmin(data, deleteNitiReport); break;
-
-      // Admin — File Upload
-      case 'uploadFile':       result = requireAdmin(data, (d) => handleUpload(d)); break;
-
-      default:
-        result = { success: false, message: 'Unknown action: ' + action };
+      case 'getHouses':          result = getHouses(ss, params);          break;
+      case 'addHouse':           result = addHouse(ss, params);           break;
+      case 'updateHouse':        result = updateHouse(ss, params);        break;
+      case 'deleteHouse':        result = deleteHouse(ss, params);        break;
+      case 'getFees':            result = getFees(ss, params);            break;
+      case 'addFee':             result = addFee(ss, params);             break;
+      case 'updateFee':          result = updateFee(ss, params);          break;
+      case 'getFeeSummary':      result = getFeeSummary(ss, params);      break;
+      case 'getUsers':           result = getUsers(ss, params);           break;
+      case 'addUser':            result = addUser(ss, params);            break;
+      case 'updateUser':         result = updateUser(ss, params);         break;
+      case 'login':              result = login(ss, params);              break;
+      case 'getAnnouncements':   result = getAnnouncements(ss, params);   break;
+      case 'addAnnouncement':    result = addAnnouncement(ss, params);    break;
+      case 'updateAnnouncement': result = updateAnnouncement(ss, params); break;
+      case 'deleteAnnouncement': result = deleteAnnouncement(ss, params); break;
+      case 'getNitiReports':     result = getNitiReports(ss, params);     break;
+      case 'addNitiReport':      result = addNitiReport(ss, params);      break;
+      case 'updateNitiReport':   result = updateNitiReport(ss, params);   break;
+      case 'deleteNitiReport':   result = deleteNitiReport(ss, params);   break;
+      case 'uploadFile':         result = uploadFile(params);             break;
+      default: result = { success: false, message: 'Unknown action: ' + action };
     }
   } catch (err) {
     result = { success: false, message: err.toString() };
@@ -98,470 +63,435 @@ function handleRequest(e) {
     .setMimeType(ContentService.MimeType.JSON);
 }
 
-// ── Helper ────────────────────────────────────────────────────
+// ════════════════════════════════════════════════════════════════
+//  FILE UPLOAD  ← แก้ไขหลัก
+//  - รับ folderId จาก params (frontend ส่ง DRIVE_FOLDER_ID มาด้วย)
+//  - ตั้งค่า sharing = ANYONE_WITH_LINK VIEW
+//  - return fileUrl เป็น /file/d/{id}/view
+// ════════════════════════════════════════════════════════════════
+function uploadFile(params) {
+  const base64Data = params.base64Data;
+  const fileName   = params.fileName;
+  const mimeType   = params.mimeType || 'application/octet-stream';
+  const folderId   = params.folderId || DRIVE_FOLDER_ID;
 
-function getSheet(name) {
-  return SpreadsheetApp.openById(SHEET_ID).getSheetByName(name);
-}
-
-function formatDate(val) {
-  if (!val) return '';
-  if (val instanceof Date) {
-    const d = val.getDate();
-    const m = val.getMonth() + 1;
-    const y = val.getFullYear() + 543; // Convert AD to BE (พ.ศ.)
-    return (d < 10 ? '0'+d : d) + '/' + (m < 10 ? '0'+m : m) + '/' + y;
+  if (!base64Data || !fileName) {
+    return { success: false, message: 'Missing base64Data or fileName' };
   }
-  return String(val);
-}
 
-// ── File Upload to Google Drive ───────────────────────────────
-function uploadFileToDrive(base64Data, fileName, mimeType, folderId) {
   try {
-    var folder = folderId
-      ? DriveApp.getFolderById(folderId)
-      : DriveApp.getRootFolder();
-    var bytes = Utilities.base64Decode(base64Data);
-    var blob  = Utilities.newBlob(bytes, mimeType, fileName);
-    var file  = folder.createFile(blob);
+    const folder  = DriveApp.getFolderById(folderId);
+    const decoded = Utilities.base64Decode(base64Data);
+    const blob    = Utilities.newBlob(decoded, mimeType, fileName);
+    const file    = folder.createFile(blob);
+
+    // ✅ Set public read access
     file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
-    return { fileId: file.getId(), fileUrl: 'https://drive.google.com/file/d/' + file.getId() + '/preview' };
-  } catch(e) {
-    return null;
+
+    const fileId  = file.getId();
+    const fileUrl = 'https://drive.google.com/file/d/' + fileId + '/view';
+
+    return { success: true, fileId: fileId, fileUrl: fileUrl, fileName: fileName };
+
+  } catch (err) {
+    return { success: false, message: 'Upload error: ' + err.toString() };
   }
 }
 
-function handleUpload(p) {
-  if (!p.base64Data || !p.fileName || !p.mimeType) return { success:false, message:'ข้อมูลไฟล์ไม่ครบ' };
-  // Validate mime type
-  var allowed = ['application/pdf','image/jpeg','image/png','image/gif','image/webp'];
-  if (allowed.indexOf(p.mimeType) < 0) return { success:false, message:'รองรับเฉพาะ PDF และรูปภาพเท่านั้น' };
-  var result = uploadFileToDrive(p.base64Data, p.fileName, p.mimeType, null);
-  if (!result) return { success:false, message:'อัปโหลดไม่สำเร็จ' };
-  return { success:true, fileId: result.fileId, fileUrl: result.fileUrl };
+// ════════════════════════════════════════════════════════════════
+//  NITI REPORTS
+//  Sheet "NitiReport" columns:
+//  report_id | month | year | title | content | income | expense |
+//  created_by | created_date | photo_urls
+// ════════════════════════════════════════════════════════════════
+function getNitiSheet(ss) { return ss.getSheetByName('NitiReport'); }
+
+function sheetHeaders(sheet) {
+  const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+  const idx = {};
+  headers.forEach((h, i) => { idx[String(h).trim().toLowerCase()] = i; });
+  return idx;
 }
 
-function sheetToObjects(sheet) {
-  const data = sheet.getDataRange().getValues();
-  if (data.length < 2) return [];
-  const headers = data[0];
-  return data.slice(1).map(row => {
-    const obj = {};
-    headers.forEach((h, i) => {
-      const val = row[i];
-      if (val instanceof Date) {
-        obj[h] = formatDate(val);
-      } else if (typeof val === 'boolean') {
-        obj[h] = String(val).toUpperCase();
-      } else {
-        obj[h] = val;
-      }
-    });
-    return obj;
-  });
-}
+function getNitiReports(ss, params) {
+  const sheet = getNitiSheet(ss);
+  if (!sheet) return { success: false, message: 'Sheet NitiReport not found' };
 
-function genId(prefix, sheet) {
-  const rows = sheet.getDataRange().getValues();
-  return prefix + String(rows.length).padStart(3, '0');
-}
+  const data    = sheet.getDataRange().getValues();
+  const headers = data[0].map(h => String(h).trim().toLowerCase());
+  const idx     = {};
+  headers.forEach((h, i) => { idx[h] = i; });
 
-function requireAdmin(data, fn) {
-  const user = verifyToken(data.token);
-  if (!user) return { success: false, message: 'ไม่มีสิทธิ์เข้าถึง' };
-  if (user.role !== 'admin') return { success: false, message: 'ต้องการสิทธิ์ Admin' };
-  return fn(data, user);
-}
+  const reports = data.slice(1)
+    .filter(row => row[idx['report_id'] ?? 0])
+    .map(row => ({
+      report_id:    String(row[idx['report_id']    ?? 0] || ''),
+      month:        Number(row[idx['month']        ?? 1]) || 0,
+      year:         Number(row[idx['year']         ?? 2]) || 0,
+      title:        String(row[idx['title']        ?? 3] || ''),
+      content:      String(row[idx['content']      ?? 4] || ''),
+      income:       Number(row[idx['income']       ?? 5]) || 0,
+      expense:      Number(row[idx['expense']      ?? 6]) || 0,
+      created_by:   String(row[idx['created_by']   ?? 7] || ''),
+      created_date: String(row[idx['created_date'] ?? 8] || ''),
+      // ✅ photo_urls — return as-is (comma-separated Drive URLs)
+      photo_urls:   String(row[idx['photo_urls']   ?? 9] || ''),
+    }));
 
-function verifyToken(token) {
-  if (!token) return null;
-  try {
-    const decoded = Utilities.base64Decode(token);
-    const str = Utilities.newBlob(decoded).getDataAsString();
-    return JSON.parse(str);
-  } catch (e) {
-    return null;
-  }
-}
+  // Sort: newest year+month first
+  reports.sort((a, b) => b.year !== a.year ? b.year - a.year : b.month - a.month);
 
-function makeToken(user) {
-  const payload = JSON.stringify({ user_id: user.user_id, username: user.username, role: user.role, house_id: user.house_id });
-  return Utilities.base64Encode(payload);
-}
-
-// ── Auth ──────────────────────────────────────────────────────
-
-function login(data) {
-  const { username, password } = data;
-  if (!username || !password) return { success: false, message: 'กรุณากรอกข้อมูลให้ครบ' };
-
-  const sheet = getSheet(SHEETS.USERS);
-  const users = sheetToObjects(sheet);
-  const user = users.find(u => u.username == username && u.password == password && String(u.active).toUpperCase() === 'TRUE');
-
-  if (!user) return { success: false, message: 'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง' };
-
-  const token = makeToken(user);
-  return {
-    success: true,
-    token,
-    role: user.role,
-    house_id: user.house_id,
-    full_name: user.full_name,
-    message: 'เข้าสู่ระบบสำเร็จ'
-  };
-}
-
-// ── Resident ──────────────────────────────────────────────────
-
-function getMyInfo(data) {
-  const user = verifyToken(data.token);
-  if (!user) return { success: false, message: 'กรุณาเข้าสู่ระบบ' };
-
-  const houses = sheetToObjects(getSheet(SHEETS.HOUSES));
-  const house = houses.find(h => h.house_id == user.house_id);
-  if (!house) return { success: false, message: 'ไม่พบข้อมูลบ้าน' };
-
-  return { success: true, data: house };
-}
-
-function getMyFees(data) {
-  const user = verifyToken(data.token);
-  if (!user) return { success: false, message: 'กรุณาเข้าสู่ระบบ' };
-
-  const fees = sheetToObjects(getSheet(SHEETS.COMMON_FEE));
-  const myFees = fees.filter(f => f.house_id == user.house_id);
-  return { success: true, data: myFees };
-}
-
-// ── Public ────────────────────────────────────────────────────
-
-function toNum(v) {
-  if (v === null || v === undefined || v === '') return 0;
-  var s = String(v).replace(/,/g, '').trim();
-  var n = parseFloat(s);
-  return isNaN(n) ? 0 : n;
-}
-
-function getFeeSummary(p) {
-  const fees   = sheetToObjects(getSheet(SHEETS.COMMON_FEE));
-  const houses = sheetToObjects(getSheet(SHEETS.HOUSES));
-
-  // ดึงปีทั้งหมดจาก CommonFee Sheet จริง
-  const years = [...new Set(fees.map(f => String(f.year)).filter(Boolean))].sort((a,b) => b - a);
-  const year  = p.year || (years[0] || '');
-  const filtered = fees.filter(f => String(f.year) === String(year));
-
-  // บ้าน active เท่านั้น + map fee_per_half
-  const activeHouses = houses.filter(h => String(h.status).toLowerCase() === 'active');
-  const totalHouses  = activeHouses.length;
-
-  // map house_id -> fee record ของปีนี้
-  const feeMap = {};
-  filtered.forEach(f => { feeMap[String(f.house_id)] = f; });
-
-  // map house_id -> fee_per_half จาก Houses sheet
-  const feePerHalfMap = {};
-  activeHouses.forEach(h => {
-    feePerHalfMap[String(h.house_id)] = toNum(h.fee_per_half);
-  });
-
-  // นับแยกครึ่งปี (จำนวนหลัง)
-  var h1Paid=0, h1Unpaid=0, h2Paid=0, h2Unpaid=0;
-  // นับบ้านชำระครบ/บางส่วน/ค้างชำระ
-  var hFullPaid=0, hPartial=0, hUnpaid=0;
-  // รวมเงิน: ยอดที่ต้องชำระ = fee_per_half*2, ยอดที่ชำระแล้ว = h1_paid+h2_paid
-  var amtDue=0, amtPaid=0;
-
-  activeHouses.forEach(function(h) {
-    var hid = String(h.house_id);
-    var fph = toNum(h.fee_per_half);
-    var f   = feeMap[hid];
-
-    // ยอดที่ต้องชำระ = fee_per_half * 2 (ทั้งปี)
-    amtDue += fph * 2;
-
-    if (!f) {
-      h1Unpaid++; h2Unpaid++; hUnpaid++;
-      return;
-    }
-
-    var h1s   = f.h1_status || 'unpaid';
-    var h2s   = f.h2_status || 'unpaid';
-    var paid1 = toNum(f.h1_paid);
-    var paid2 = toNum(f.h2_paid);
-
-    amtPaid += paid1 + paid2;
-
-    if (h1s === 'paid') h1Paid++; else h1Unpaid++;
-    if (h2s === 'paid') h2Paid++; else h2Unpaid++;
-
-    if (h1s === 'paid' && h2s === 'paid') hFullPaid++;
-    else if (h1s === 'unpaid' && h2s === 'unpaid') hUnpaid++;
-    else hPartial++;
-  });
-
-  var paidPct      = amtDue > 0 ? Math.round(amtPaid / amtDue * 100) : 0;
-  var housePaidPct = totalHouses > 0 ? Math.round(hFullPaid / totalHouses * 100) : 0;
-
-  // แยกตามซอย — ยอดที่ต้องชำระใช้ fee_per_half*2 จาก Houses
-  var soiMap = {};
-  activeHouses.forEach(function(h) {
-    var soi = h.soi || 'ไม่ระบุ';
-    if (!soiMap[soi]) soiMap[soi] = {
-      total:0, fullPaid:0, partial:0, unpaid:0,
-      h1Paid:0, h1Unpaid:0, h2Paid:0, h2Unpaid:0,
-      amtDue:0, amtPaid:0
-    };
-    var s   = soiMap[soi];
-    var hid = String(h.house_id);
-    var fph = toNum(h.fee_per_half);
-    var f   = feeMap[hid];
-
-    s.total++;
-    s.amtDue += fph * 2;  // ยอดที่ต้องชำระของซอยนี้
-
-    if (!f) {
-      s.unpaid++; s.h1Unpaid++; s.h2Unpaid++;
-      return;
-    }
-
-    var h1s   = f.h1_status || 'unpaid';
-    var h2s   = f.h2_status || 'unpaid';
-    var paid1 = toNum(f.h1_paid);
-    var paid2 = toNum(f.h2_paid);
-
-    s.amtPaid += paid1 + paid2;
-
-    if (h1s === 'paid') s.h1Paid++; else s.h1Unpaid++;
-    if (h2s === 'paid') s.h2Paid++; else s.h2Unpaid++;
-
-    if (h1s === 'paid' && h2s === 'paid') s.fullPaid++;
-    else if (h1s === 'unpaid' && h2s === 'unpaid') s.unpaid++;
-    else s.partial++;
-  });
-
-  return { success: true, data: {
-    years, year, totalHouses,
-    h1Paid, h1Unpaid, h2Paid, h2Unpaid,
-    hFullPaid, hPartial, hUnpaid,
-    amtDue, amtPaid, paidPct, housePaidPct,
-    bySoi: soiMap
-  }};
-}
-
-function getAnnouncements(data) {
-  const anns = sheetToObjects(getSheet(SHEETS.ANNOUNCEMENTS));
-  const active = anns.filter(a => String(a.active) === 'TRUE').reverse();
-  return { success: true, data: active };
-}
-
-function getNitiReports(data) {
-  const reports = sheetToObjects(getSheet(SHEETS.NITI_REPORT));
-  // Sort by year desc, month desc
-  reports.sort((a, b) => {
-    if (b.year !== a.year) return b.year - a.year;
-    return b.month - a.month;
-  });
   return { success: true, data: reports };
 }
 
-// ── Admin: Houses ─────────────────────────────────────────────
+function addNitiReport(ss, params) {
+  const sheet = getNitiSheet(ss);
+  if (!sheet) return { success: false, message: 'Sheet NitiReport not found' };
 
-function getHouses(data, user) {
-  const houses = sheetToObjects(getSheet(SHEETS.HOUSES));
-  return { success: true, data: houses };
-}
+  const reportId   = 'NR' + Date.now();
+  const now        = Utilities.formatDate(new Date(), 'Asia/Bangkok', 'dd/MM/yyyy HH:mm');
+  const createdBy  = params.created_by || 'admin';
 
-function addHouse(data, user) {
-  const sheet = getSheet(SHEETS.HOUSES);
-  const id = genId('H', sheet);
+  // ✅ photo_urls รับค่า comma-separated URLs จาก frontend โดยตรง
+  const photoUrls  = String(params.photo_urls || '');
+
   sheet.appendRow([
-    id, data.house_no, data.owner_name, data.address,
-    data.area_sqm, data.soi, data.house_type, data.phone,
-    data.fee_per_half, 'active', data.note || '', data.account_status || 'ปกติ'
+    reportId,
+    Number(params.month)   || 0,
+    Number(params.year)    || 0,
+    params.title           || '',
+    params.content         || '',
+    Number(params.income)  || 0,
+    Number(params.expense) || 0,
+    createdBy,
+    now,
+    photoUrls,              // ← บันทึก photo_urls เข้า column สุดท้าย
   ]);
-  return { success: true, message: 'เพิ่มข้อมูลบ้านสำเร็จ', house_id: id };
+
+  return { success: true, message: 'บันทึกรายงานสำเร็จ', report_id: reportId };
 }
 
-function updateHouse(data, user) {
-  const sheet = getSheet(SHEETS.HOUSES);
-  const rows = sheet.getDataRange().getValues();
-  for (let i = 1; i < rows.length; i++) {
-    if (rows[i][0] == data.house_id) {
-      sheet.getRange(i + 1, 1, 1, 12).setValues([[
-        data.house_id, data.house_no, data.owner_name, data.address,
-        data.area_sqm, data.soi, data.house_type, data.phone,
-        data.fee_per_half, data.status || 'active', data.note || '', data.account_status || 'ปกติ'
-      ]]);
-      return { success: true, message: 'อัปเดตข้อมูลบ้านสำเร็จ' };
-    }
-  }
-  return { success: false, message: 'ไม่พบข้อมูลบ้าน' };
-}
+function updateNitiReport(ss, params) {
+  const sheet = getNitiSheet(ss);
+  if (!sheet) return { success: false, message: 'Sheet NitiReport not found' };
 
-function deleteHouse(data, user) {
-  const sheet = getSheet(SHEETS.HOUSES);
-  const rows = sheet.getDataRange().getValues();
-  for (let i = 1; i < rows.length; i++) {
-    if (rows[i][0] == data.house_id) {
-      sheet.getRange(i + 1, 10).setValue('inactive');
-      return { success: true, message: 'ลบข้อมูลบ้านสำเร็จ' };
-    }
-  }
-  return { success: false, message: 'ไม่พบข้อมูลบ้าน' };
-}
+  const data    = sheet.getDataRange().getValues();
+  const headers = data[0].map(h => String(h).trim().toLowerCase());
+  const idx     = {};
+  headers.forEach((h, i) => { idx[h] = i; });
 
-// ── Admin: Users ──────────────────────────────────────────────
+  for (let i = 1; i < data.length; i++) {
+    if (String(data[i][idx['report_id'] ?? 0]) === String(params.report_id)) {
+      const r = i + 1;
+      const set = (col, val) => {
+        if (val !== undefined && idx[col] !== undefined) {
+          sheet.getRange(r, idx[col] + 1).setValue(val);
+        }
+      };
+      set('month',      Number(params.month) || 0);
+      set('year',       Number(params.year)  || 0);
+      set('title',      params.title);
+      set('content',    params.content);
+      set('income',     Number(params.income)  || 0);
+      set('expense',    Number(params.expense) || 0);
+      // photo_urls — อัปเดตถ้ามีส่งมา
+      if (params.photo_urls !== undefined) set('photo_urls', params.photo_urls);
 
-function getUsers(data, user) {
-  const users = sheetToObjects(getSheet(SHEETS.USERS));
-  // Hide passwords
-  users.forEach(u => { u.password = '***'; });
-  return { success: true, data: users };
-}
-
-function addUser(data, user) {
-  const sheet = getSheet(SHEETS.USERS);
-  const id = genId('U', sheet);
-  sheet.appendRow([
-    id, data.username, data.password, data.role,
-    data.house_id || '', data.full_name, 'TRUE'
-  ]);
-  return { success: true, message: 'เพิ่มผู้ใช้สำเร็จ', user_id: id };
-}
-
-function updateUser(data, user) {
-  const sheet = getSheet(SHEETS.USERS);
-  const rows = sheet.getDataRange().getValues();
-  for (let i = 1; i < rows.length; i++) {
-    if (rows[i][0] == data.user_id) {
-      const newPass = data.password && data.password !== '***' ? data.password : rows[i][2];
-      sheet.getRange(i + 1, 1, 1, 7).setValues([[
-        data.user_id, data.username, newPass, data.role,
-        data.house_id || '', data.full_name, data.active || 'TRUE'
-      ]]);
-      return { success: true, message: 'อัปเดตผู้ใช้สำเร็จ' };
-    }
-  }
-  return { success: false, message: 'ไม่พบผู้ใช้' };
-}
-
-// ── Admin: Common Fee ─────────────────────────────────────────
-
-function getFees(data, user) {
-  const fees = sheetToObjects(getSheet(SHEETS.COMMON_FEE));
-  return { success: true, data: fees };
-}
-
-function addFee(data, user) {
-  const sheet = getSheet(SHEETS.COMMON_FEE);
-  const id = genId('F', sheet);
-  sheet.appendRow([
-    id, data.house_id, data.year,
-    data.h1_amount, data.h1_paid || 0, data.h1_date || '', data.h1_status || 'unpaid',
-    data.h2_amount, data.h2_paid || 0, data.h2_date || '', data.h2_status || 'unpaid',
-    data.note || ''
-  ]);
-  return { success: true, message: 'เพิ่มข้อมูลค่าส่วนกลางสำเร็จ', fee_id: id };
-}
-
-function updateFee(data, user) {
-  const sheet = getSheet(SHEETS.COMMON_FEE);
-  const rows = sheet.getDataRange().getValues();
-  for (let i = 1; i < rows.length; i++) {
-    if (rows[i][0] == data.fee_id) {
-      sheet.getRange(i + 1, 1, 1, 12).setValues([[
-        data.fee_id, data.house_id, data.year,
-        data.h1_amount, data.h1_paid || 0, data.h1_date || '', data.h1_status || 'unpaid',
-        data.h2_amount, data.h2_paid || 0, data.h2_date || '', data.h2_status || 'unpaid',
-        data.note || ''
-      ]]);
-      return { success: true, message: 'อัปเดตค่าส่วนกลางสำเร็จ' };
-    }
-  }
-  return { success: false, message: 'ไม่พบข้อมูล' };
-}
-
-// ── Admin: Announcements ──────────────────────────────────────
-
-function addAnnouncement(data, user) {
-  const sheet = getSheet(SHEETS.ANNOUNCEMENTS);
-  const id = genId('A', sheet);
-  sheet.appendRow([
-    id, data.title, data.content, data.category || 'ทั่วไป',
-    data.date || new Date().toLocaleDateString('th-TH'),
-    user.username, 'TRUE', data.file_url || ''
-  ]);
-  return { success: true, message: 'เพิ่มประกาศสำเร็จ', ann_id: id };
-}
-
-function updateAnnouncement(data, user) {
-  const sheet = getSheet(SHEETS.ANNOUNCEMENTS);
-  const rows = sheet.getDataRange().getValues();
-  for (let i = 1; i < rows.length; i++) {
-    if (rows[i][0] == data.ann_id) {
-      sheet.getRange(i + 1, 1, 1, 8).setValues([[
-        data.ann_id, data.title, data.content, data.category || 'ทั่วไป',
-        data.date, user.username, data.active || 'TRUE', data.file_url || rows[i][7] || ''
-      ]]);
-      return { success: true, message: 'อัปเดตประกาศสำเร็จ' };
-    }
-  }
-  return { success: false, message: 'ไม่พบประกาศ' };
-}
-
-function deleteAnnouncement(data, user) {
-  const sheet = getSheet(SHEETS.ANNOUNCEMENTS);
-  const rows = sheet.getDataRange().getValues();
-  for (let i = 1; i < rows.length; i++) {
-    if (rows[i][0] == data.ann_id) {
-      sheet.getRange(i + 1, 7).setValue('FALSE');
-      return { success: true, message: 'ลบประกาศสำเร็จ' };
-    }
-  }
-  return { success: false, message: 'ไม่พบประกาศ' };
-}
-
-// ── Admin: Niti Report ────────────────────────────────────────
-
-function addNitiReport(data, user) {
-  const sheet = getSheet(SHEETS.NITI_REPORT);
-  const id = genId('R', sheet);
-  sheet.appendRow([
-    id, data.month, data.year, data.title, data.content,
-    data.income || 0, data.expense || 0,
-    user.username, new Date().toLocaleDateString('th-TH'),
-    data.photo_urls || ''
-  ]);
-  return { success: true, message: 'เพิ่มรายงานสำเร็จ', report_id: id };
-}
-
-function updateNitiReport(data, user) {
-  const sheet = getSheet(SHEETS.NITI_REPORT);
-  const rows = sheet.getDataRange().getValues();
-  for (let i = 1; i < rows.length; i++) {
-    if (rows[i][0] == data.report_id) {
-      sheet.getRange(i + 1, 1, 1, 10).setValues([[
-        data.report_id, data.month, data.year, data.title, data.content,
-        data.income || 0, data.expense || 0,
-        user.username, new Date().toLocaleDateString('th-TH'),
-        data.photo_urls || rows[i][9] || ''
-      ]]);
       return { success: true, message: 'อัปเดตรายงานสำเร็จ' };
     }
   }
-  return { success: false, message: 'ไม่พบรายงาน' };
+  return { success: false, message: 'ไม่พบรายงาน: ' + params.report_id };
 }
 
-function deleteNitiReport(data, user) {
-  const sheet = getSheet(SHEETS.NITI_REPORT);
-  const rows = sheet.getDataRange().getValues();
-  for (let i = 1; i < rows.length; i++) {
-    if (rows[i][0] == data.report_id) {
+function deleteNitiReport(ss, params) {
+  const sheet = getNitiSheet(ss);
+  if (!sheet) return { success: false, message: 'Sheet NitiReport not found' };
+
+  const data    = sheet.getDataRange().getValues();
+  const headers = data[0].map(h => String(h).trim().toLowerCase());
+  const idx     = {};
+  headers.forEach((h, i) => { idx[h] = i; });
+
+  for (let i = 1; i < data.length; i++) {
+    if (String(data[i][idx['report_id'] ?? 0]) === String(params.report_id)) {
       sheet.deleteRow(i + 1);
       return { success: true, message: 'ลบรายงานสำเร็จ' };
     }
   }
   return { success: false, message: 'ไม่พบรายงาน' };
+}
+
+// ════════════════════════════════════════════════════════════════
+//  HOUSES
+// ════════════════════════════════════════════════════════════════
+function getHouses(ss, params) {
+  const sheet = ss.getSheetByName('Houses');
+  if (!sheet) return { success: false, message: 'Sheet Houses not found' };
+  const data = sheet.getDataRange().getValues();
+  const headers = data[0].map(h => String(h).trim().toLowerCase());
+  const houses = data.slice(1).filter(r => r[0]).map(row => {
+    const obj = {};
+    headers.forEach((h, i) => { obj[h] = row[i] !== undefined ? row[i] : ''; });
+    return obj;
+  });
+  return { success: true, data: houses };
+}
+
+function addHouse(ss, params) {
+  const sheet = ss.getSheetByName('Houses');
+  if (!sheet) return { success: false, message: 'Sheet Houses not found' };
+  const houseId = 'H' + Date.now();
+  sheet.appendRow([houseId, params.house_no||'', params.owner_name||'', params.address||'',
+    params.area_sqm||'', params.soi||'', params.house_type||'บ้านเดี่ยว',
+    params.phone||'', Number(params.fee_per_half)||0, 'active',
+    params.account_status||'ปกติ', params.note||'']);
+  return { success: true, message: 'เพิ่มบ้านสำเร็จ', house_id: houseId };
+}
+
+function updateHouse(ss, params) {
+  const sheet = ss.getSheetByName('Houses');
+  if (!sheet) return { success: false, message: 'Sheet Houses not found' };
+  const data = sheet.getDataRange().getValues();
+  const headers = data[0].map(h => String(h).trim().toLowerCase());
+  for (let i = 1; i < data.length; i++) {
+    if (String(data[i][0]) === String(params.house_id)) {
+      const u = { house_no:params.house_no, owner_name:params.owner_name, address:params.address,
+        area_sqm:params.area_sqm, soi:params.soi, house_type:params.house_type,
+        phone:params.phone, fee_per_half:params.fee_per_half,
+        status:params.status, account_status:params.account_status, note:params.note };
+      headers.forEach((h, ci) => { if (u[h]!==undefined) sheet.getRange(i+1,ci+1).setValue(u[h]); });
+      return { success: true, message: 'อัปเดตบ้านสำเร็จ' };
+    }
+  }
+  return { success: false, message: 'ไม่พบบ้าน' };
+}
+
+function deleteHouse(ss, params) {
+  const sheet = ss.getSheetByName('Houses');
+  if (!sheet) return { success: false, message: 'Sheet Houses not found' };
+  const data = sheet.getDataRange().getValues();
+  const headers = data[0].map(h => String(h).trim().toLowerCase());
+  const si = headers.indexOf('status');
+  for (let i = 1; i < data.length; i++) {
+    if (String(data[i][0]) === String(params.house_id)) {
+      if (si >= 0) sheet.getRange(i+1,si+1).setValue('inactive');
+      return { success: true, message: 'ปิดการใช้งานบ้านสำเร็จ' };
+    }
+  }
+  return { success: false, message: 'ไม่พบบ้าน' };
+}
+
+// ════════════════════════════════════════════════════════════════
+//  FEES
+// ════════════════════════════════════════════════════════════════
+function getFees(ss, params) {
+  const sheet = ss.getSheetByName('CommonFee');
+  if (!sheet) return { success: false, message: 'Sheet CommonFee not found' };
+  const data = sheet.getDataRange().getValues();
+  const headers = data[0].map(h => String(h).trim().toLowerCase());
+  const fees = data.slice(1).filter(r => r[0]).map(row => {
+    const obj = {};
+    headers.forEach((h, i) => { obj[h] = row[i] !== undefined ? row[i] : ''; });
+    return obj;
+  });
+  return { success: true, data: fees };
+}
+
+function addFee(ss, params) {
+  const sheet = ss.getSheetByName('CommonFee');
+  if (!sheet) return { success: false, message: 'Sheet CommonFee not found' };
+  const feeId = 'F' + Date.now();
+  sheet.appendRow([feeId, params.house_id||'', params.year||'',
+    Number(params.h1_amount)||0, Number(params.h1_paid)||0, params.h1_date||'', params.h1_status||'unpaid',
+    Number(params.h2_amount)||0, Number(params.h2_paid)||0, params.h2_date||'', params.h2_status||'unpaid',
+    params.note||'']);
+  return { success: true, message: 'บันทึกค่าส่วนกลางสำเร็จ', fee_id: feeId };
+}
+
+function updateFee(ss, params) {
+  const sheet = ss.getSheetByName('CommonFee');
+  if (!sheet) return { success: false, message: 'Sheet CommonFee not found' };
+  const data = sheet.getDataRange().getValues();
+  const headers = data[0].map(h => String(h).trim().toLowerCase());
+  for (let i = 1; i < data.length; i++) {
+    if (String(data[i][0]) === String(params.fee_id)) {
+      const u = { h1_amount:params.h1_amount, h1_paid:params.h1_paid,
+        h1_date:params.h1_date, h1_status:params.h1_status,
+        h2_amount:params.h2_amount, h2_paid:params.h2_paid,
+        h2_date:params.h2_date, h2_status:params.h2_status, note:params.note };
+      headers.forEach((h, ci) => { if (u[h]!==undefined) sheet.getRange(i+1,ci+1).setValue(u[h]); });
+      return { success: true, message: 'อัปเดตค่าส่วนกลางสำเร็จ' };
+    }
+  }
+  return { success: false, message: 'ไม่พบรายการ' };
+}
+
+function getFeeSummary(ss, params) {
+  try {
+    const feesRes   = getFees(ss, params);
+    const housesRes = getHouses(ss, params);
+    const fees   = feesRes.data   || [];
+    const houses = housesRes.data || [];
+    const currentBE = new Date().getFullYear() + 543;
+    const yearsSet = new Set(fees.map(f => Number(f.year)).filter(Boolean));
+    if (!yearsSet.size) yearsSet.add(currentBE);
+    const years = [...yearsSet].sort((a,b) => b-a);
+    const year  = params.year ? Number(params.year) : years[0] || currentBE;
+    const yearFees = fees.filter(f => Number(f.year) === year);
+    const activeHouses = houses.filter(h => h.status !== 'inactive');
+    const totalHouses  = activeHouses.length || houses.length;
+    let hFullPaid=0, hPartial=0, hUnpaid=0;
+    let h1Paid=0, h1Unpaid=0, h2Paid=0, h2Unpaid=0;
+    let amtDue=0, amtPaid=0;
+    yearFees.forEach(f => {
+      const h1s=f.h1_status||'unpaid', h2s=f.h2_status||'unpaid';
+      if (h1s==='paid') h1Paid++; else h1Unpaid++;
+      if (h2s==='paid') h2Paid++; else h2Unpaid++;
+      if (h1s==='paid'&&h2s==='paid') hFullPaid++;
+      else if (h1s!=='unpaid'||h2s!=='unpaid') hPartial++;
+      else hUnpaid++;
+      amtDue  += Number(f.h1_amount||0) + Number(f.h2_amount||0);
+      amtPaid += Number(f.h1_paid||0)   + Number(f.h2_paid||0);
+    });
+    const paidPct      = amtDue>0 ? Math.round(amtPaid/amtDue*100) : 0;
+    const housePaidPct = totalHouses>0 ? Math.round(hFullPaid/totalHouses*100) : 0;
+    const bySoi = {};
+    activeHouses.forEach(h => {
+      const soi = h.soi || 'อื่นๆ';
+      if (!bySoi[soi]) bySoi[soi]={total:0,fullPaid:0,partial:0,unpaid:0,h1Paid:0,h1Unpaid:0,h2Paid:0,h2Unpaid:0};
+      bySoi[soi].total++;
+      const fee = yearFees.find(f => String(f.house_id)===String(h.house_id));
+      if (!fee) { bySoi[soi].unpaid++; bySoi[soi].h1Unpaid++; bySoi[soi].h2Unpaid++; return; }
+      const h1s=fee.h1_status||'unpaid', h2s=fee.h2_status||'unpaid';
+      if (h1s==='paid') bySoi[soi].h1Paid++; else bySoi[soi].h1Unpaid++;
+      if (h2s==='paid') bySoi[soi].h2Paid++; else bySoi[soi].h2Unpaid++;
+      if (h1s==='paid'&&h2s==='paid') bySoi[soi].fullPaid++;
+      else if (h1s!=='unpaid'||h2s!=='unpaid') bySoi[soi].partial++;
+      else bySoi[soi].unpaid++;
+    });
+    return { success:true, data:{ year, years, totalHouses,
+      hFullPaid, hPartial, hUnpaid, h1Paid, h1Unpaid, h2Paid, h2Unpaid,
+      amtDue, amtPaid, paidPct, housePaidPct, bySoi }};
+  } catch(err) {
+    return { success:false, message:err.toString() };
+  }
+}
+
+// ════════════════════════════════════════════════════════════════
+//  USERS
+// ════════════════════════════════════════════════════════════════
+function getUsers(ss, params) {
+  const sheet = ss.getSheetByName('Users');
+  if (!sheet) return { success:false, message:'Sheet Users not found' };
+  const data = sheet.getDataRange().getValues();
+  const headers = data[0].map(h => String(h).trim().toLowerCase());
+  const users = data.slice(1).filter(r=>r[0]).map(row => {
+    const obj={};
+    headers.forEach((h,i)=>{ obj[h]=row[i]!==undefined?row[i]:''; });
+    delete obj.password;
+    return obj;
+  });
+  return { success:true, data:users };
+}
+
+function addUser(ss, params) {
+  const sheet = ss.getSheetByName('Users');
+  if (!sheet) return { success:false, message:'Sheet Users not found' };
+  const userId='U'+Date.now();
+  sheet.appendRow([userId,params.username||'',params.password||'',
+    params.role||'resident',params.house_id||'',params.full_name||'','TRUE']);
+  return { success:true, message:'เพิ่มผู้ใช้สำเร็จ', user_id:userId };
+}
+
+function updateUser(ss, params) {
+  const sheet = ss.getSheetByName('Users');
+  if (!sheet) return { success:false, message:'Sheet Users not found' };
+  const data = sheet.getDataRange().getValues();
+  const headers = data[0].map(h => String(h).trim().toLowerCase());
+  for (let i=1; i<data.length; i++) {
+    if (String(data[i][0])===String(params.user_id)) {
+      const u={full_name:params.full_name, house_id:params.house_id, active:params.active};
+      if (params.password && params.password!=='***') u.password=params.password;
+      headers.forEach((h,ci)=>{ if(u[h]!==undefined) sheet.getRange(i+1,ci+1).setValue(u[h]); });
+      return { success:true, message:'อัปเดตผู้ใช้สำเร็จ' };
+    }
+  }
+  return { success:false, message:'ไม่พบผู้ใช้' };
+}
+
+function login(ss, params) {
+  const sheet = ss.getSheetByName('Users');
+  if (!sheet) return { success:false, message:'ระบบไม่พร้อม' };
+  const data = sheet.getDataRange().getValues();
+  const headers = data[0].map(h => String(h).trim().toLowerCase());
+  const idx={};
+  headers.forEach((h,i)=>{ idx[h]=i; });
+  for (let i=1; i<data.length; i++) {
+    const row=data[i];
+    if (String(row[idx.username??1])===String(params.username) &&
+        String(row[idx.password??2])===String(params.password) &&
+        String(row[idx.active??6])==='TRUE') {
+      const payload={
+        user_id:row[idx.user_id??0], username:row[idx.username??1],
+        role:row[idx.role??3], house_id:row[idx.house_id??4], full_name:row[idx.full_name??5]
+      };
+      const token=Utilities.base64Encode(JSON.stringify(payload));
+      return { success:true, token, role:payload.role, name:payload.full_name, house_id:payload.house_id };
+    }
+  }
+  return { success:false, message:'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง' };
+}
+
+// ════════════════════════════════════════════════════════════════
+//  ANNOUNCEMENTS
+// ════════════════════════════════════════════════════════════════
+function getAnnouncements(ss, params) {
+  const sheet = ss.getSheetByName('Announcements');
+  if (!sheet) return { success:false, message:'Sheet Announcements not found' };
+  const data = sheet.getDataRange().getValues();
+  const headers = data[0].map(h => String(h).trim().toLowerCase());
+  const anns = data.slice(1).filter(r=>r[0]).map(row => {
+    const obj={};
+    headers.forEach((h,i)=>{ obj[h]=row[i]!==undefined?row[i]:''; });
+    return obj;
+  }).filter(a => a.active==='TRUE' || a.active===true || params.token);
+  anns.sort((a,b) => String(b.date||'').localeCompare(String(a.date||'')));
+  return { success:true, data:anns };
+}
+
+function addAnnouncement(ss, params) {
+  const sheet = ss.getSheetByName('Announcements');
+  if (!sheet) return { success:false, message:'Sheet Announcements not found' };
+  const annId='A'+Date.now();
+  sheet.appendRow([annId,params.title||'',params.content||'',
+    params.category||'ทั่วไป',params.date||'','TRUE',params.file_url||'']);
+  return { success:true, message:'เพิ่มประกาศสำเร็จ', ann_id:annId };
+}
+
+function updateAnnouncement(ss, params) {
+  const sheet = ss.getSheetByName('Announcements');
+  if (!sheet) return { success:false, message:'Sheet Announcements not found' };
+  const data = sheet.getDataRange().getValues();
+  const headers = data[0].map(h => String(h).trim().toLowerCase());
+  for (let i=1; i<data.length; i++) {
+    if (String(data[i][0])===String(params.ann_id)) {
+      const u={title:params.title,content:params.content,category:params.category,date:params.date,active:params.active};
+      headers.forEach((h,ci)=>{ if(u[h]!==undefined) sheet.getRange(i+1,ci+1).setValue(u[h]); });
+      return { success:true, message:'อัปเดตประกาศสำเร็จ' };
+    }
+  }
+  return { success:false, message:'ไม่พบประกาศ' };
+}
+
+function deleteAnnouncement(ss, params) {
+  const sheet = ss.getSheetByName('Announcements');
+  if (!sheet) return { success:false, message:'Sheet Announcements not found' };
+  const data = sheet.getDataRange().getValues();
+  for (let i=1; i<data.length; i++) {
+    if (String(data[i][0])===String(params.ann_id)) {
+      sheet.deleteRow(i+1);
+      return { success:true, message:'ลบประกาศสำเร็จ' };
+    }
+  }
+  return { success:false, message:'ไม่พบประกาศ' };
 }
