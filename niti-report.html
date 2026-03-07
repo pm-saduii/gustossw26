@@ -22,10 +22,24 @@
     .btn-nav:hover{background:rgba(255,255,255,.28);}
     .btn-theme{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);color:#fff;width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:.9rem;transition:background .15s;}
     .btn-theme:hover{background:rgba(255,255,255,.28);}
-    .page-tabs{background:var(--card);border-bottom:1px solid var(--border);padding:0 1rem;display:flex;gap:0;overflow-x:auto;transition:background .3s;}
-    .page-tab{white-space:nowrap;padding:.7rem 1rem;font-size:.82rem;font-weight:600;text-decoration:none;color:var(--muted);border-bottom:2.5px solid transparent;display:flex;align-items:center;gap:.35rem;transition:all .15s;}
+        /* ── PAGE TABS: desktop horizontal bar ── */
+    .page-tabs{background:var(--card);border-bottom:1px solid var(--border);padding:0 1rem;display:flex;gap:0;transition:background .3s,border-color .3s;position:sticky;top:54px;z-index:100;}
+    .page-tab{white-space:nowrap;padding:.72rem 1.1rem;font-size:.84rem;font-weight:600;text-decoration:none;color:var(--muted);border-bottom:2.5px solid transparent;display:flex;align-items:center;gap:.4rem;transition:color .15s,border-color .15s;flex-shrink:0;}
+    .page-tab i{font-size:.82rem;}
     .page-tab:hover{color:var(--primary);}
     .page-tab.active{color:var(--primary);border-bottom-color:var(--primary);}
+    .btn-nav-text{}
+    /* ── PAGE TABS: mobile bottom navigation bar ── */
+    @media(max-width:600px){
+      body{padding-bottom:68px;}
+      .page-tabs{position:fixed;bottom:0;left:0;right:0;top:auto;padding:0;border-bottom:none;border-top:1px solid var(--border);background:var(--card);box-shadow:0 -4px 20px rgba(0,0,0,.08);display:grid;grid-template-columns:repeat(4,1fr);gap:0;z-index:300;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);}
+      .page-tab{flex-direction:column;align-items:center;justify-content:center;padding:.6rem .3rem .55rem;gap:.18rem;border-bottom:none;border-top:3px solid transparent;color:var(--muted);transition:color .15s,border-color .15s,background .15s;}
+      .page-tab i{font-size:1.05rem;}
+      .page-tab span{font-size:.67rem;font-weight:600;line-height:1;}
+      .page-tab:hover{background:var(--bg2);color:var(--primary);}
+      .page-tab.active{color:var(--primary);border-top-color:var(--primary);background:var(--primary-l);}
+      .btn-nav-text{display:none;}
+    }
     main{max-width:900px;margin:0 auto;padding:1.5rem 1rem;}
     @keyframes fadeSlideIn{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
     .toolbar{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.75rem;margin-bottom:1.25rem;animation:fadeSlideIn .4s ease both;}
@@ -83,25 +97,7 @@
     .lightbox-nav.prev{left:1rem;}
     .lightbox-nav.next{right:1rem;}
     .lightbox-counter{color:rgba(255,255,255,.7);font-size:.85rem;margin-top:.6rem;}
-    @media(max-width:600px){
-      .report-fin{display:none;}
-      .fin-grid{grid-template-columns:1fr;}
-      .photo-gallery{grid-template-columns:repeat(auto-fill,minmax(90px,1fr));}
-      .report-header{padding:.85rem 1rem;gap:.6rem;}
-      .report-month-badge{width:42px;height:42px;font-size:.6rem;}
-      .report-month-badge span{font-size:1rem;}
-      .report-title{font-size:.88rem;}
-      .report-body.open{padding:.9rem 1rem;}
-      .toolbar{flex-direction:column;align-items:flex-start;}
-      main{padding:1rem .75rem;}
-      .lightbox-nav.prev{left:.4rem;}
-      .lightbox-nav.next{right:.4rem;}
-      .lightbox-nav{width:38px;height:38px;font-size:1rem;}
-    }
-    @media(max-width:400px){
-      .report-title-wrap{margin:0 .4rem;}
-      .fin-card{padding:.65rem .75rem;}
-    }
+    @media(max-width:600px){.report-fin{display:none;}.fin-grid{grid-template-columns:1fr;}.photo-gallery{grid-template-columns:repeat(auto-fill,minmax(90px,1fr));}}
     .niti-file-btn{display:inline-flex;align-items:center;gap:.45rem;padding:.4rem 1rem;border-radius:20px;border:1.5px solid var(--border);background:var(--card2);font-family:'Sarabun',sans-serif;font-size:.82rem;font-weight:700;cursor:pointer;transition:all .15s;}
     .niti-file-btn.file-btn-pdf{color:#dc2626;border-color:#fca5a5;background:#fff5f5;}
     .niti-file-btn.file-btn-pdf:hover{background:#dc2626;color:#fff;border-color:#dc2626;}
@@ -109,7 +105,7 @@
     .niti-file-btn.file-btn-img:hover{background:var(--primary);color:#fff;}
     [data-theme="dark"] .niti-file-btn.file-btn-pdf{background:#2a1010;}
     .niti-file-viewer{margin-top:.6rem;border-radius:12px;overflow:hidden;border:1px solid var(--border);background:var(--bg2);display:none;}
-    .niti-file-viewer.open{display:block;}
+    .niti-file-viewer.open{display:block;}}
   </style>
 </head>
 <body>
@@ -117,14 +113,14 @@
   <div class="nav-brand"><i class="fa-solid fa-clipboard-list"></i> ผลงานนิติบุคคล</div>
   <div class="nav-right">
     <button class="btn-theme" onclick="toggleTheme()"><i id="themeIcon" class="fa-solid fa-moon"></i></button>
-    <a href="index.html" class="btn-nav" id="homeLink"><i class="fa-solid fa-house"></i> หน้าหลัก</a>
+    <a href="index.html" class="btn-nav" id="homeLink"><i class="fa-solid fa-house"></i> <span class="btn-nav-text">หน้าหลัก</span></a>
   </div>
 </nav>
 <div class="page-tabs">
-  <a href="dashboard.html" class="page-tab" id="dashLink"><i class="fa-solid fa-house"></i> ข้อมูลของฉัน</a>
-  <a href="summary.html" class="page-tab"><i class="fa-solid fa-chart-pie"></i> สรุปค่าส่วนกลาง</a>
-  <a href="announcements.html" class="page-tab"><i class="fa-solid fa-bullhorn"></i> ประกาศ</a>
-  <a href="niti-report.html" class="page-tab active"><i class="fa-solid fa-clipboard-list"></i> ผลงานนิติ</a>
+  <a href="dashboard.html" class="page-tab" id="dashLink"><i class="fa-solid fa-house"></i><span>ข้อมูลของฉัน</span></a>
+  <a href="summary.html" class="page-tab"><i class="fa-solid fa-chart-pie"></i><span>สรุปค่าส่วนกลาง</span></a>
+  <a href="announcements.html" class="page-tab"><i class="fa-solid fa-bullhorn"></i><span>ประกาศ</span></a>
+  <a href="niti-report.html" class="page-tab active"><i class="fa-solid fa-clipboard-list"></i><span>ผลงานนิติ</span></a>
 </div>
 <main>
   <div class="toolbar">

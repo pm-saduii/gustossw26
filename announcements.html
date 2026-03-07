@@ -22,10 +22,24 @@
     .btn-nav:hover{background:rgba(255,255,255,.28);}
     .btn-theme{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);color:#fff;width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:.9rem;transition:background .15s;}
     .btn-theme:hover{background:rgba(255,255,255,.28);}
-    .page-tabs{background:var(--card);border-bottom:1px solid var(--border);padding:0 1rem;display:flex;gap:0;overflow-x:auto;transition:background .3s;}
-    .page-tab{white-space:nowrap;padding:.7rem 1rem;font-size:.82rem;font-weight:600;text-decoration:none;color:var(--muted);border-bottom:2.5px solid transparent;display:flex;align-items:center;gap:.35rem;transition:all .15s;}
+        /* ── PAGE TABS: desktop horizontal bar ── */
+    .page-tabs{background:var(--card);border-bottom:1px solid var(--border);padding:0 1rem;display:flex;gap:0;transition:background .3s,border-color .3s;position:sticky;top:54px;z-index:100;}
+    .page-tab{white-space:nowrap;padding:.72rem 1.1rem;font-size:.84rem;font-weight:600;text-decoration:none;color:var(--muted);border-bottom:2.5px solid transparent;display:flex;align-items:center;gap:.4rem;transition:color .15s,border-color .15s;flex-shrink:0;}
+    .page-tab i{font-size:.82rem;}
     .page-tab:hover{color:var(--primary);}
     .page-tab.active{color:var(--primary);border-bottom-color:var(--primary);}
+    .btn-nav-text{}
+    /* ── PAGE TABS: mobile bottom navigation bar ── */
+    @media(max-width:600px){
+      body{padding-bottom:68px;}
+      .page-tabs{position:fixed;bottom:0;left:0;right:0;top:auto;padding:0;border-bottom:none;border-top:1px solid var(--border);background:var(--card);box-shadow:0 -4px 20px rgba(0,0,0,.08);display:grid;grid-template-columns:repeat(4,1fr);gap:0;z-index:300;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);}
+      .page-tab{flex-direction:column;align-items:center;justify-content:center;padding:.6rem .3rem .55rem;gap:.18rem;border-bottom:none;border-top:3px solid transparent;color:var(--muted);transition:color .15s,border-color .15s,background .15s;}
+      .page-tab i{font-size:1.05rem;}
+      .page-tab span{font-size:.67rem;font-weight:600;line-height:1;}
+      .page-tab:hover{background:var(--bg2);color:var(--primary);}
+      .page-tab.active{color:var(--primary);border-top-color:var(--primary);background:var(--primary-l);}
+      .btn-nav-text{display:none;}
+    }
     main{max-width:860px;margin:0 auto;padding:1.5rem 1rem;}
     .toolbar{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.75rem;margin-bottom:1.25rem;animation:fadeSlideIn .4s ease both;}
     .toolbar h2{font-size:1.05rem;font-weight:700;display:flex;align-items:center;gap:.5rem;}
@@ -73,21 +87,6 @@
     .file-viewer-wrap.open{display:block;}
     .file-viewer-wrap iframe{width:100%;height:480px;border:none;display:block;}
     .file-viewer-wrap img{width:100%;max-height:480px;object-fit:contain;display:block;}
-
-    @media(max-width:600px){
-      main{padding:1rem .75rem;}
-      .toolbar{flex-direction:column;align-items:flex-start;}
-      .ann-top{padding:.85rem 1rem;}
-      .ann-body.open{padding:0 1rem .85rem;}
-      .ann-icon{width:38px;height:38px;font-size:1rem;}
-      .ann-title{font-size:.9rem;}
-      .filter-btns{width:100%;}
-      .filter-btn{font-size:.75rem;padding:.28rem .65rem;}
-    }
-    @media(max-width:400px){
-      .filter-btns{flex-wrap:wrap;}
-      .ann-meta{flex-direction:column;gap:.2rem;}
-    }
   </style>
 </head>
 <body>
@@ -96,15 +95,15 @@
   <div class="nav-brand"><i class="fa-solid fa-bullhorn"></i> ประกาศหมู่บ้าน</div>
   <div class="nav-right">
     <button class="btn-theme" onclick="toggleTheme()"><i id="themeIcon" class="fa-solid fa-moon"></i></button>
-    <a href="index.html" class="btn-nav" id="homeLink"><i class="fa-solid fa-house"></i> หน้าหลัก</a>
+    <a href="index.html" class="btn-nav" id="homeLink"><i class="fa-solid fa-house"></i> <span class="btn-nav-text">หน้าหลัก</span></a>
   </div>
 </nav>
 
 <div class="page-tabs">
-  <a href="dashboard.html" class="page-tab" id="dashLink"><i class="fa-solid fa-house"></i> ข้อมูลของฉัน</a>
-  <a href="summary.html" class="page-tab"><i class="fa-solid fa-chart-pie"></i> สรุปค่าส่วนกลาง</a>
-  <a href="announcements.html" class="page-tab active"><i class="fa-solid fa-bullhorn"></i> ประกาศ</a>
-  <a href="niti-report.html" class="page-tab"><i class="fa-solid fa-clipboard-list"></i> ผลงานนิติ</a>
+  <a href="dashboard.html" class="page-tab" id="dashLink"><i class="fa-solid fa-house"></i><span>ข้อมูลของฉัน</span></a>
+  <a href="summary.html" class="page-tab"><i class="fa-solid fa-chart-pie"></i><span>สรุปค่าส่วนกลาง</span></a>
+  <a href="announcements.html" class="page-tab active"><i class="fa-solid fa-bullhorn"></i><span>ประกาศ</span></a>
+  <a href="niti-report.html" class="page-tab"><i class="fa-solid fa-clipboard-list"></i><span>ผลงานนิติ</span></a>
 </div>
 
 <main>
