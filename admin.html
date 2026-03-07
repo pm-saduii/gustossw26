@@ -141,7 +141,7 @@
       .mini-stats{grid-template-columns:repeat(2,1fr);}
     }
 
-    /* Mobile ≤ 768px — sidebar off-canvas */
+    /* Mobile ≤ 768px */
     @media(max-width:768px){
       .sidebar{transform:translateX(-100%);}
       .sidebar.open{transform:translateX(0);}
@@ -151,28 +151,26 @@
       .form-grid{grid-template-columns:1fr;}
       .form-group.full{grid-column:1;}
       .card-header{flex-wrap:wrap;gap:.4rem;}
-
-      /* Each table has correct min-width so horizontal scroll works */
-      /* Houses: 8 cols */
-      #sec-houses .table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;}
-      #sec-houses .table-wrap table{min-width:700px;}
-      /* Fees: 11 cols + merged headers */
-      #sec-fees .table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;}
-      #sec-fees .table-wrap table{min-width:920px;}
-      /* Users: 6 cols */
-      #sec-users .table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;}
-      #sec-users .table-wrap table{min-width:520px;}
-      /* Announcements: 5 cols */
-      #sec-announcements .table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;}
-      #sec-announcements .table-wrap table{min-width:500px;}
-      /* Niti: 5 cols */
-      #sec-niti .table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;}
-      #sec-niti .table-wrap table{min-width:480px;}
-
       .search-box{width:100%;}
       .year-filter-bar{gap:.35rem;}
       .year-card{font-size:.8rem;padding:.35rem .75rem;}
       #sec-overview .card-body [style*="grid"]{grid-template-columns:1fr 1fr!important;}
+
+      /* ✅ แต่ละตารางมี min-width ตามจำนวนคอลัมน์จริง */
+      #sec-houses .table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+      #sec-houses .table-wrap table{min-width:700px;}
+
+      #sec-fees .table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+      #sec-fees .table-wrap table{min-width:920px;}
+
+      #sec-users .table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+      #sec-users .table-wrap table{min-width:520px;}
+
+      #sec-announcements .table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+      #sec-announcements .table-wrap table{min-width:500px;}
+
+      #sec-niti .table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+      #sec-niti .table-wrap table{min-width:480px;}
     }
 
     /* ── CUSTOM MODAL ── */
@@ -211,13 +209,11 @@
     .detail-item-label{font-size:.72rem;color:var(--muted);font-weight:600;margin-bottom:.18rem;display:flex;align-items:center;gap:.25rem;}
     .detail-item-label i{font-size:.68rem;}
     .detail-item-value{font-size:.9rem;font-weight:700;color:var(--text);}
-    /* Mobile ≤ 600px — modal bottom-sheet + form 1-col */
+    /* Mobile ≤ 600px — modal bottom-sheet */
     @media(max-width:600px){
       .mf-grid,.mf-grid.cols3{grid-template-columns:1fr;}
       .mf-full{grid-column:1;}
       .detail-grid{grid-template-columns:1fr;}
-
-      /* Modal slides up from bottom */
       .modal-backdrop{align-items:flex-end;padding:0;}
       .modal,.modal-lg{
         border-radius:20px 20px 0 0;
@@ -229,20 +225,17 @@
       @keyframes modalUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
       .modal-body{padding:1rem;}
       .modal-head{padding:1rem 1.1rem;}
-      .modal-foot{padding:.75rem 1rem;flex-direction:row;flex-wrap:wrap;gap:.5rem;}
+      .modal-foot{padding:.75rem 1rem;flex-wrap:wrap;gap:.5rem;}
       .modal-foot .btn{flex:1;justify-content:center;min-width:0;font-size:.82rem;}
-
-      /* House detail hero stack */
       .detail-hero{flex-direction:column;text-align:center;padding:1rem;}
       .detail-hero>div:last-child{margin-left:0!important;}
       .detail-avatar{margin:0 auto;}
-
       .form-actions{flex-wrap:wrap;}
       .form-actions .btn{flex:1;justify-content:center;}
       .mini-stats{grid-template-columns:1fr 1fr;}
     }
 
-    /* Small phone ≤ 420px */
+    /* Small ≤ 420px */
     @media(max-width:420px){
       main{padding:.6rem;}
       .mini-stats{grid-template-columns:1fr;}
@@ -251,8 +244,6 @@
       .btn{font-size:.78rem;padding:.38rem .7rem;}
       .btn-sm{font-size:.72rem;padding:.24rem .55rem;}
       td,th{font-size:.76rem;padding:.45rem .55rem;}
-      .year-filter-bar{gap:.2rem;}
-      .year-card{font-size:.74rem;padding:.25rem .55rem;}
       #sec-overview .card-body [style*="grid"]{grid-template-columns:1fr!important;}
     }
 
