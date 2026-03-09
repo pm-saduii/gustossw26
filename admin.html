@@ -748,12 +748,28 @@
   }
 
   function toBase64(file){return new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result.split(',')[1]);r.onerror=rej;r.readAsDataURL(file);});}
-  async function api(params){if(!params.token)params.token=token;const r=await fetch(API_URL+'?'+new URLSearchParams(params));return r.json();}
+
+  // ✅ FIX: ตรวจสอบ token หมดอายุ — ถ้า API ตอบ "ไม่มีสิทธิ์" ให้ redirect กลับ Login
+  function _handleExpired(data){
+    if(!data.success && (data.message==='ไม่มีสิทธิ์เข้าถึง'||data.message==='ต้องการสิทธิ์ Admin'||data.message==='กรุณาเข้าสู่ระบบ')){
+      Swal.fire({icon:'warning',title:'Session หมดอายุ',text:'กรุณาเข้าสู่ระบบใหม่',confirmButtonColor:'#4f7ef7'})
+        .then(()=>{localStorage.clear();window.location.href='index.html';});
+    }
+  }
+  async function api(params){
+    if(!params.token)params.token=token;
+    const r=await fetch(API_URL+'?'+new URLSearchParams(params));
+    const d=await r.json();
+    _handleExpired(d);
+    return d;
+  }
   // ✅ FIX: ใช้ POST สำหรับ uploadFile เพื่อหลีกเลี่ยง 413 error จาก base64 ขนาดใหญ่
   async function apiPost(params){
     if(!params.token)params.token=token;
     const r=await fetch(API_URL,{method:'POST',body:JSON.stringify(params)});
-    return r.json();
+    const d=await r.json();
+    _handleExpired(d);
+    return d;
   }
   function toast(icon,title){Swal.fire({icon,title,toast:true,position:'top-end',showConfirmButton:false,timer:2200});}
 
@@ -764,15 +780,36 @@
     if(s.col===col)s.dir*=-1;else{s.col=col;s.dir=1;}
     document.querySelectorAll(`#sec-${table==='ann'?'announcements':table==='niti'?'niti':table} th`).forEach(t=>{t.classList.remove('asc','desc');});
     th.classList.add(s.dir===1?'asc':'desc');
-    const fn={houses:()=>renderHouses(housesData),fees:()=>renderFees(feesData),users:()=>renderUsers(usersData),ann:()=>renderAnn(annData),niti:()=>renderNiti(nitiData)};
+    const fn={houses:()=>renderHouses(housesFiltered),fees:()=>renderFees(feesData),users:()=>renderUsers(usersData),ann:()=>renderAnn(annData),niti:()=>renderNiti(nitiData)};
     if(fn[table])fn[table]();
+  }
+  // ✅ FIX: sortArr รองรับ numeric sort สำหรับซอย (0–22) และบ้านเลขที่ (9/4 → numeric part)
+  function _soiNum(v){
+    // แปลงซอย เช่น "ซอย 3", "3", "Soi 5" → ตัวเลข
+    if(v===null||v===undefined||v==='')return 9999;
+    const n=parseInt(String(v).replace(/[^\d]/g,''));
+    return isNaN(n)?9999:n;
+  }
+  function _houseNum(v){
+    // บ้านเลขที่ เช่น "9/4", "101/1", "23" → เรียงตามตัวเลขหน้า "/" ก่อน แล้วตัวหลัง
+    if(!v)return[9999,0];
+    const parts=String(v).split('/');
+    return[parseInt(parts[0])||9999, parseInt(parts[1])||0];
   }
   function sortArr(arr,col,dir){
     if(!col)return arr;
     return [...arr].sort((a,b)=>{
-      const va=a[col]||'',vb=b[col]||'';
-      if(!isNaN(va)&&!isNaN(vb))return(Number(va)-Number(vb))*dir;
-      return String(va).localeCompare(String(vb),'th')*dir;
+      const va=a[col]??'', vb=b[col]??'';
+      // numeric sort สำหรับ soi
+      if(col==='soi'){return(_soiNum(va)-_soiNum(vb))*dir;}
+      // numeric sort สำหรับ house_no (เปรียบเทียบ [mainNum, subNum])
+      if(col==='house_no'){
+        const [am,as]=_houseNum(va), [bm,bs]=_houseNum(vb);
+        if(am!==bm)return(am-bm)*dir;
+        return(as-bs)*dir;
+      }
+      if(!isNaN(va)&&!isNaN(vb)&&va!==''&&vb!=='')return(Number(va)-Number(vb))*dir;
+      return String(va).localeCompare(String(vb),'th',{numeric:true})*dir;
     });
   }
 
@@ -815,13 +852,51 @@
   async function loadHouses(){
     document.getElementById('houseTbody').innerHTML='<tr><td colspan="8" style="text-align:center;color:var(--muted)">กำลังโหลด...</td></tr>';
     const d=await api({action:'getHouses'});
-    housesData=d.data||[];housesFiltered=[...housesData];renderHouses(housesFiltered);
+    // ── sanitize: บังคับ house_no และ soi เป็น string เสมอ
+    // กรณีที่ GAS ยังส่ง Date object มา (ก่อน redeploy Code.gs) จะได้ไม่แสดงผิด
+    housesData=(d.data||[]).map(h=>({
+      ...h,
+      house_no: sanitizeHouseNo(h.house_no),
+      soi:      String(h.soi??''),
+    }));
+    housesFiltered=[...housesData];
+    renderHouses(housesFiltered);
+  }
+
+  // แปลง house_no ให้เป็น string ที่ถูกต้องเสมอ
+  // ถ้า GAS ส่งมาเป็น Date object (เช่น "9/4" ถูกแปลงเป็น Date) → ดึง d/m กลับมา
+  function sanitizeHouseNo(val){
+    if(!val && val!==0) return '';
+    // เป็น object ที่มี getDate (Date instance) → แปลงกลับเป็น "วัน/เดือน"
+    if(typeof val==='object' && val instanceof Date){
+      return val.getDate()+'/'+(val.getMonth()+1);
+    }
+    const s=String(val).trim();
+    // ถ้าเป็น string ที่มีรูปแบบ "dd/mm/yyyy" หรือ "dd/mm/yyyy" (GAS stringify Date)
+    // เช่น "09/04/2569" → แปลงกลับเป็น "9/4" โดยตัด leading zero + year ออก
+    const datePattern=/^(\d{1,2})\/(\d{1,2})\/\d{4}$/;
+    const m=s.match(datePattern);
+    if(m){
+      return parseInt(m[1])+'/'+parseInt(m[2]); // "09/04/2569" → "9/4"
+    }
+    return s;
   }
   function renderHouses(list){
     const s=sortState.houses;
-    const sorted=sortArr(list,s.col,s.dir);
+    let sorted;
+    if(s.col){
+      sorted=sortArr(list,s.col,s.dir);
+    } else {
+      // ✅ FIX: default sort — ซอย (numeric 0→22) แล้วตามบ้านเลขที่ (numeric)
+      sorted=[...list].sort((a,b)=>{
+        const soiDiff=_soiNum(a.soi)-_soiNum(b.soi);
+        if(soiDiff!==0)return soiDiff;
+        const [am,as]=_houseNum(a.house_no),[bm,bs]=_houseNum(b.house_no);
+        if(am!==bm)return am-bm;
+        return as-bs;
+      });
+    }
     if(!sorted.length){document.getElementById('houseTbody').innerHTML='<tr class="empty-row"><td colspan="8">ไม่มีข้อมูล</td></tr>';return;}
-    // ✅ BUG FIX: ลำดับคอลัมน์ตรงกับ header ทั้ง 8 คอลัมน์
     document.getElementById('houseTbody').innerHTML=sorted.map(h=>{
       const hst=h.account_status||'ปกติ';
       return`<tr>
@@ -841,7 +916,12 @@
   }
   function filterHouses(){
     const q=document.getElementById('houseSearch').value.toLowerCase();
-    housesFiltered=housesData.filter(h=>h.house_no.toLowerCase().includes(q)||h.owner_name.toLowerCase().includes(q));
+    housesFiltered=housesData.filter(h=>{
+      const no=String(h.house_no||'').toLowerCase();
+      const owner=String(h.owner_name||'').toLowerCase();
+      const soi=String(h.soi||'').toLowerCase();
+      return !q || no.includes(q) || owner.includes(q) || soi.includes(q);
+    });
     renderHouses(housesFiltered);
   }
   async function saveHouse(){
