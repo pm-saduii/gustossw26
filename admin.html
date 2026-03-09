@@ -271,11 +271,11 @@
               <div class="form-group"><label>ชื่อ-นามสกุลเจ้าของ</label><input type="text" id="h_owner" placeholder="ชื่อ นามสกุล"/></div>
               <div class="form-group full"><label>ที่อยู่</label><input type="text" id="h_addr" placeholder="ที่อยู่เต็ม"/></div>
               <div class="form-group"><label>พื้นที่ (ตร.ม.)</label><input type="number" step="0.01" id="h_area" placeholder="120" oninput="calcFeeAdd()"/></div>
-              <div class="form-group"><label>ซอย</label><input type="number" id="h_soi" placeholder="1" min="0" max="22"/></div>
+              <div class="form-group"><label>ซอย (ตัวเลข 0-22)</label><input type="number" id="h_soi" placeholder="0" min="0" max="22" value="0"/></div>
               <div class="form-group"><label>ประเภทบ้าน</label><select id="h_type"><option>บ้านเดี่ยว</option><option>ทาวน์โฮม</option><option>บ้านแฝด</option></select></div>
-              <div class="form-group"><label>เบอร์โทร</label><input type="text" id="h_phone" placeholder="0812345678" inputmode="tel"/></div>
+              <div class="form-group"><label>เบอร์โทร</label><input type="text" id="h_phone" placeholder="0812345678" inputmode="tel" autocomplete="off"/></div>
               <div class="form-group"><label>อัตราค่าส่วนกลาง (บาท/ตร.ม./เดือน)</label><input type="number" step="0.01" id="h_rate" placeholder="เช่น 10.00" oninput="calcFeeAdd()"/></div>
-              <div class="form-group"><label>ค่าส่วนกลาง/ครึ่งปี (บาท) <small style="color:var(--muted);font-weight:400">คำนวณอัตโนมัติ</small></label><input type="number" step="1" id="h_fee" placeholder="คำนวณจาก rate×ตร.ม.×6" readonly style="background:var(--bg2);color:var(--muted)"/></div>
+              <div class="form-group"><label>ค่าส่วนกลาง/ครึ่งปี (บาท) <small style="color:var(--muted);font-weight:400">คำนวณอัตโนมัติ</small></label><input type="number" id="h_fee" placeholder="คำนวณจาก rate×ตร.ม.×6" readonly style="background:var(--bg2)"/></div>
               <div class="form-group"><label>สถานะบัญชี</label><select id="h_acst"><option value="ปกติ">ปกติ</option><option value="ค้างชำระ">ค้างชำระ</option><option value="ระงับกรมที่ดิน">ระงับกรมที่ดิน</option><option value="ฟ้องร้อง">ฟ้องร้อง</option></select></div>
               <div class="form-group full"><label>หมายเหตุ</label><input type="text" id="h_note" placeholder="(ถ้ามี)"/></div>
             </div>
@@ -484,7 +484,7 @@
         <div class="mf-section-title"><i class="fa-solid fa-house"></i> ข้อมูลบ้าน</div>
         <div class="mf-grid">
           <div class="mf-group"><div class="mf-label"><i class="fa-solid fa-hashtag"></i> บ้านเลขที่</div><input class="mf-input" id="eh_no" type="text"/></div>
-          <div class="mf-group"><div class="mf-label"><i class="fa-solid fa-road"></i> ซอย</div><input class="mf-input" id="eh_soi" type="text"/></div>
+          <div class="mf-group"><div class="mf-label"><i class="fa-solid fa-road"></i> ซอย (0-22)</div><input class="mf-input" id="eh_soi" type="number" min="0" max="22"/></div>
           <div class="mf-group mf-full"><div class="mf-label"><i class="fa-solid fa-location-dot"></i> ที่อยู่</div><input class="mf-input" id="eh_addr" type="text"/></div>
           <div class="mf-group"><div class="mf-label"><i class="fa-solid fa-ruler-combined"></i> พื้นที่ (ตร.ม.)</div><input class="mf-input" id="eh_area" type="number" step="0.01" oninput="calcFeeEdit()"/></div>
           <div class="mf-group"><div class="mf-label"><i class="fa-solid fa-house-chimney"></i> ประเภทบ้าน</div>
@@ -502,8 +502,8 @@
       <div class="mf-section">
         <div class="mf-section-title"><i class="fa-solid fa-money-bill"></i> ข้อมูลการเงิน</div>
         <div class="mf-grid">
-          <div class="mf-group"><div class="mf-label"><i class="fa-solid fa-percent"></i> อัตราค่าส่วนกลาง (บาท/ตร.ม./เดือน)</div><input class="mf-input" id="eh_rate" type="number" step="0.01" placeholder="เช่น 10.00" oninput="calcFeeEdit()"/></div>
-          <div class="mf-group"><div class="mf-label"><i class="fa-solid fa-coins"></i> ค่าส่วนกลาง/ครึ่งปี (฿) <small style="color:var(--muted);font-weight:400">คำนวณอัตโนมัติ</small></div><input class="mf-input" id="eh_fee" type="number" step="1" readonly style="background:var(--bg2);color:var(--muted)"/></div>
+          <div class="mf-group"><div class="mf-label"><i class="fa-solid fa-percent"></i> อัตราค่าส่วนกลาง (บาท/ตร.ม./เดือน)</div><input class="mf-input" id="eh_rate" type="number" step="0.01" oninput="calcFeeEdit()"/></div>
+          <div class="mf-group"><div class="mf-label"><i class="fa-solid fa-coins"></i> ค่าส่วนกลาง/ครึ่งปี (บาท) <small style="color:var(--muted);font-weight:400">คำนวณอัตโนมัติ</small></div><input class="mf-input" id="eh_fee" type="number" readonly style="background:var(--bg2)"/></div>
           <div class="mf-group"><div class="mf-label"><i class="fa-solid fa-circle-half-stroke"></i> สถานะบัญชี</div>
             <select class="mf-input" id="eh_acst">
               <option value="ปกติ">✅ ปกติ</option>
@@ -515,7 +515,7 @@
           <div class="mf-group"><div class="mf-label"><i class="fa-solid fa-toggle-on"></i> สถานะบ้าน</div>
             <select class="mf-input" id="eh_status"><option value="active">✅ Active</option><option value="inactive">❌ Inactive</option></select>
           </div>
-          <div class="mf-group mf-full"><div class="mf-label"><i class="fa-solid fa-note-sticky"></i> หมายเหตุ</div><input class="mf-input" id="eh_note" type="text"/></div>
+          <div class="mf-group"><div class="mf-label"><i class="fa-solid fa-note-sticky"></i> หมายเหตุ</div><input class="mf-input" id="eh_note" type="text"/></div>
         </div>
       </div>
     </div>
@@ -769,12 +769,26 @@
     const fn={houses:()=>renderHouses(housesData),fees:()=>renderFees(feesData),users:()=>renderUsers(usersData),ann:()=>renderAnn(annData),niti:()=>renderNiti(nitiData)};
     if(fn[table])fn[table]();
   }
+  // ── helper: ซอย → ตัวเลข (0 ถ้าว่าง) ──────────────────────────
+  function _soiN(v){ const n=parseFloat(String(v??'')); return isNaN(n)?0:n; }
+  // ── helper: house_no → [main, sub] numeric ─────────────────────
+  function _houseN(v){
+    if(!v&&v!==0)return[99999,0];
+    const p=String(v).split('/');
+    return[parseInt(p[0])||99999, parseInt(p[1])||0];
+  }
   function sortArr(arr,col,dir){
     if(!col)return arr;
+    const numCols=new Set(['fee_per_half','fee_rate','area_sqm','year','h1_amount','h2_amount','h1_paid','h2_paid','income','expense','month']);
     return [...arr].sort((a,b)=>{
-      const va=a[col]||'',vb=b[col]||'';
-      if(!isNaN(va)&&!isNaN(vb))return(Number(va)-Number(vb))*dir;
-      return String(va).localeCompare(String(vb),'th')*dir;
+      if(col==='soi') return (_soiN(a.soi)-_soiN(b.soi))*dir;
+      if(col==='house_no'){
+        const[am,as]=_houseN(a.house_no),[bm,bs]=_houseN(b.house_no);
+        if(am!==bm)return(am-bm)*dir; return(as-bs)*dir;
+      }
+      const va=String(a[col]??''), vb=String(b[col]??'');
+      if(numCols.has(col)) return ((parseFloat(va)||0)-(parseFloat(vb)||0))*dir;
+      return va.localeCompare(vb,undefined,{numeric:true,sensitivity:'base'})*dir;
     });
   }
 
@@ -817,13 +831,55 @@
   async function loadHouses(){
     document.getElementById('houseTbody').innerHTML='<tr><td colspan="8" style="text-align:center;color:var(--muted)">กำลังโหลด...</td></tr>';
     const d=await api({action:'getHouses'});
-    housesData=d.data||[];housesFiltered=[...housesData];renderHouses(housesFiltered);
+    housesData=(d.data||[]).map(h=>({
+      ...h,
+      house_no: _fixHouseNo(h.house_no),    // ป้องกัน "09/04/2569"
+      soi:      _fixSoi(h.soi),             // 0 ถ้าว่าง
+      phone:    _fixPhone(h.phone),         // รักษา leading 0
+    }));
+    housesFiltered=[...housesData];
+    renderHouses(housesFiltered);
+  }
+
+  // ── Sanitize helpers (frontend safety net) ─────────────────────
+  function _fixHouseNo(v){
+    if(v===null||v===undefined||v==='') return '';
+    if(typeof v==='object'&&typeof v.getDate==='function')
+      return v.getDate()+'/'+(v.getMonth()+1);              // Date → "d/m"
+    const s=String(v).trim();
+    // "09/04/2569" → ตัด year → "9/4"
+    const m=s.match(/^(\d{1,2})\/(\d{1,2})\/\d{4}$/);
+    if(m) return parseInt(m[1])+'/'+parseInt(m[2]);
+    return s;
+  }
+  function _fixSoi(v){
+    const n=parseFloat(String(v??''));
+    return isNaN(n) ? 0 : n;
+  }
+  function _fixPhone(v){
+    if(v===null||v===undefined) return '';
+    if(typeof v==='number'){
+      // GAS ตัด leading 0 → ใส่ 0 กลับ เช่น 810012012 → "0810012012"
+      const s=String(v);
+      return s.length===9?'0'+s:s;
+    }
+    return String(v);
   }
   function renderHouses(list){
     const s=sortState.houses;
-    const sorted=sortArr(list,s.col,s.dir);
+    let sorted;
+    if(s.col){
+      sorted=sortArr(list,s.col,s.dir);
+    } else {
+      // default: เรียงซอย 0→22 (numeric) แล้วตาม house_no
+      sorted=[...list].sort((a,b)=>{
+        const sd=_soiN(a.soi)-_soiN(b.soi);
+        if(sd!==0)return sd;
+        const[am,as]=_houseN(a.house_no),[bm,bs]=_houseN(b.house_no);
+        if(am!==bm)return am-bm; return as-bs;
+      });
+    }
     if(!sorted.length){document.getElementById('houseTbody').innerHTML='<tr class="empty-row"><td colspan="8">ไม่มีข้อมูล</td></tr>';return;}
-    // ✅ BUG FIX: ลำดับคอลัมน์ตรงกับ header ทั้ง 8 คอลัมน์
     document.getElementById('houseTbody').innerHTML=sorted.map(h=>{
       const hst=h.account_status||'ปกติ';
       return`<tr>
@@ -842,34 +898,33 @@
     }).join('');
   }
   function filterHouses(){
-    const q=document.getElementById('houseSearch').value.toLowerCase();
-    housesFiltered=housesData.filter(h=>h.house_no.toLowerCase().includes(q)||h.owner_name.toLowerCase().includes(q));
+    const q=document.getElementById('houseSearch').value.toLowerCase().trim();
+    if(!q){ housesFiltered=[...housesData]; }
+    else {
+      housesFiltered=housesData.filter(h=>
+        String(h.house_no||'').toLowerCase().includes(q)||
+        String(h.owner_name||'').toLowerCase().includes(q)||
+        String(h.soi||'').includes(q)||
+        String(h.phone||'').includes(q)
+      );
+    }
     renderHouses(housesFiltered);
   }
-  // ── คำนวณ fee_per_half = fee_rate × area_sqm × 6 ─────────────────
+
+  // ── คำนวณ fee_per_half = fee_rate × area_sqm × 6 ────────────────
   function calcFeeAdd(){
     const rate=parseFloat(document.getElementById('h_rate').value)||0;
     const area=parseFloat(document.getElementById('h_area').value)||0;
-    const fee=document.getElementById('h_fee');
-    if(rate>0&&area>0){
-      fee.value=Math.round(rate*area*6);
-      fee.style.color='var(--primary)';fee.style.fontWeight='700';
-    }else{
-      fee.value='';
-      fee.style.color='var(--muted)';fee.style.fontWeight='';
-    }
+    const el=document.getElementById('h_fee');
+    if(rate>0&&area>0){ el.value=Math.round(rate*area*6); el.style.color='var(--primary)'; }
+    else{ el.value=''; el.style.color=''; }
   }
   function calcFeeEdit(){
     const rate=parseFloat(document.getElementById('eh_rate').value)||0;
     const area=parseFloat(document.getElementById('eh_area').value)||0;
-    const fee=document.getElementById('eh_fee');
-    if(rate>0&&area>0){
-      fee.value=Math.round(rate*area*6);
-      fee.style.color='var(--primary)';fee.style.fontWeight='700';
-    }else{
-      fee.value='';
-      fee.style.color='var(--muted)';fee.style.fontWeight='';
-    }
+    const el=document.getElementById('eh_fee');
+    if(rate>0&&area>0){ el.value=Math.round(rate*area*6); el.style.color='var(--primary)'; }
+    else{ el.value=''; el.style.color=''; }
   }
 
   async function saveHouse(){
@@ -906,8 +961,7 @@
         <div class="detail-item"><div class="detail-item-label"><i class="fa-solid fa-ruler-combined"></i> พื้นที่</div><div class="detail-item-value">${h.area_sqm||'—'} ตร.ม.</div></div>
         <div class="detail-item" style="grid-column:1/-1"><div class="detail-item-label"><i class="fa-solid fa-location-dot"></i> ที่อยู่</div><div class="detail-item-value">${h.address||'—'}</div></div>
         <div class="detail-item"><div class="detail-item-label"><i class="fa-solid fa-phone"></i> เบอร์โทร</div><div class="detail-item-value">${h.phone||'—'}</div></div>
-        <div class="detail-item"><div class="detail-item-label"><i class="fa-solid fa-percent"></i> อัตราค่าส่วนกลาง</div><div class="detail-item-value">${h.fee_rate?Number(h.fee_rate).toFixed(2)+' บาท/ตร.ม./เดือน':'—'}</div></div>
-        <div class="detail-item"><div class="detail-item-label"><i class="fa-solid fa-coins"></i> ค่าส่วนกลาง/ครึ่งปี</div><div class="detail-item-value" style="color:var(--primary)">${Number(h.fee_per_half||0).toLocaleString()} บาท</div></div>
+        <div class="detail-item"><div class="detail-item-label"><i class="fa-solid fa-coins"></i> ค่าส่วนกลาง/ครึ่งปี</div><div class="detail-item-value" style="color:var(--primary)">${Number(h.fee_per_half||0).toLocaleString()} ฿</div></div>
         <div class="detail-item"><div class="detail-item-label"><i class="fa-solid fa-toggle-on"></i> สถานะบ้าน</div><div class="detail-item-value">${h.status==='active'?'✅ Active':'❌ Inactive'}</div></div>
         <div class="detail-item"><div class="detail-item-label"><i class="fa-solid fa-circle-half-stroke"></i> สถานะบัญชี</div><div class="detail-item-value" style="color:${stColor[hst]||'var(--text)'}">${hst}</div></div>
         ${h.note?`<div class="detail-item" style="grid-column:1/-1"><div class="detail-item-label"><i class="fa-solid fa-note-sticky"></i> หมายเหตุ</div><div class="detail-item-value">${h.note}</div></div>`:''}
