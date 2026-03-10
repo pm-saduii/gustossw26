@@ -1578,45 +1578,87 @@
     input.files=dt.files;previewNitiEditPhotos(input);
   }
   async function uploadNitiEditPhotos(){
-    const input=document.getElementById('en_photos');if(!input.files.length)return null;
+    const input=document.getElementById('en_photos');
+    if(!input||!input.files.length) return null; // ไม่มีไฟล์ → null (ไม่เปลี่ยนรูปเดิม)
     const files=Array.from(input.files).slice(0,10);
-    const prog=document.getElementById('en_photos_progress');prog.style.display='block';
-    prog.innerHTML='<i class="fa-solid fa-spinner fa-spin"></i> กำลังอัปโหลด 0/'+files.length+'...';
+    const prog=document.getElementById('en_photos_progress');
+    if(prog){prog.style.display='block';prog.innerHTML='<i class="fa-solid fa-spinner fa-spin"></i> กำลังอัปโหลด 0/'+files.length+'...';}
     const urls=[];
+    const failed=[];
     for(let i=0;i<files.length;i++){
-      prog.innerHTML='<i class="fa-solid fa-spinner fa-spin"></i> กำลังอัปโหลด '+(i+1)+'/'+files.length+'...';
-      const base64=await toBase64(files[i]);
-      const r=await apiPost({action:'uploadFile',base64Data:base64,fileName:files[i].name,mimeType:files[i].type,folderId:DRIVE_FOLDER_ID});
-      if(r.success)urls.push(r.fileUrl);
+      if(prog) prog.innerHTML='<i class="fa-solid fa-spinner fa-spin"></i> กำลังอัปโหลด '+(i+1)+'/'+files.length+': '+files[i].name+'...';
+      try{
+        const base64=await toBase64(files[i]);
+        const r=await apiPost({
+          action:'uploadFile',
+          base64Data:base64,
+          fileName:files[i].name,
+          mimeType:files[i].type||'image/jpeg',
+          folderId:DRIVE_FOLDER_ID
+        });
+        if(r&&r.success&&r.fileUrl){
+          urls.push(r.fileUrl);
+          if(prog) prog.innerHTML='<i class="fa-solid fa-check" style="color:#059669"></i> อัปโหลดแล้ว '+(i+1)+'/'+files.length;
+        } else {
+          failed.push(files[i].name+': '+(r&&r.message||'ไม่ทราบสาเหตุ'));
+        }
+      } catch(e){
+        failed.push(files[i].name+': '+e.message);
+      }
     }
-    prog.style.display='none';
-    return urls.join(',');
+    if(prog) prog.style.display='none';
+    if(failed.length) toast('warning','อัปโหลดบางไฟล์ไม่สำเร็จ: '+failed.join(', '));
+    // ถ้าไม่มี URL เลย return null (ให้ backend คง existing ไว้)
+    return urls.length ? urls.join(',') : null;
   }
   async function submitNitiEdit(){
     const btn=document.querySelector('#modalNitiEdit .btn-primary');
     btn.disabled=true;btn.innerHTML='<i class="fa-solid fa-spinner fa-spin"></i> บันทึก...';
-    // รวม URL: existing (ถ้ายังไม่ล้าง) + upload ใหม่
+
+    // ── รวม photo_urls ──────────────────────────────────────────
+    // existingUrls = รูปเดิมที่ยังคงไว้ (ถ้าผู้ใช้กด "ลบรูปทั้งหมด" จะเป็น "")
     const existingUrls=document.getElementById('en_existing_urls').value||'';
+    const userClearedPhotos=document.getElementById('en_existing_wrap').style.display==='none'
+                             && !existingUrls;
+
+    // upload รูปใหม่ (null = ไม่มีไฟล์ใหม่)
     const newUrls=await uploadNitiEditPhotos();
-    let finalUrls='';
-    if(existingUrls&&newUrls) finalUrls=existingUrls+','+newUrls;
-    else if(existingUrls)     finalUrls=existingUrls;
-    else if(newUrls)          finalUrls=newUrls;
-    // ถ้าไม่มีรูปเลยส่ง undefined ให้ backend คงค่าเดิม
-    const payload={action:'updateNitiReport',report_id:_editNitiId,
+
+    // ตัดสินใจ photo_urls ที่จะส่ง:
+    let finalPhotoUrls;
+    if(newUrls!==null){
+      // มีอัปโหลดใหม่ → รวม existing + ใหม่
+      const parts=[existingUrls,newUrls].filter(Boolean);
+      finalPhotoUrls=parts.join(',');
+    } else if(userClearedPhotos){
+      // ผู้ใช้กด "ลบรูปทั้งหมด" และไม่ได้ upload ใหม่ → ล้างจริง
+      finalPhotoUrls='';
+    } else {
+      // ไม่มีการเปลี่ยนรูปเลย → ส่ง sentinel ให้ backend คงเดิม
+      finalPhotoUrls = existingUrls || '__KEEP__';
+    }
+
+    const payload={
+      action:'updateNitiReport',
+      report_id:_editNitiId,
       month:document.getElementById('en_month').value,
       year:document.getElementById('en_year').value,
       title:document.getElementById('en_title').value,
       content:document.getElementById('en_content').value,
       income:document.getElementById('en_income').value,
       expense:document.getElementById('en_expense').value,
+      photo_urls:finalPhotoUrls,
     };
-    // ส่ง photo_urls เสมอ (ว่าง = ล้างรูป, มีค่า = อัปเดต)
-    payload.photo_urls=finalUrls;
+
     const r=await apiPost(payload);
     btn.disabled=false;btn.innerHTML='<i class="fa-solid fa-floppy-disk"></i> บันทึก';
-    if(r.success){toast('success','อัปเดตสำเร็จ');closeModal('modalNitiEdit');loadNiti();}
-    else toast('error',r.message||'เกิดข้อผิดพลาด');
+    if(r.success){
+      toast('success','อัปเดตสำเร็จ');
+      closeModal('modalNitiEdit');
+      loadNiti();
+    } else {
+      toast('error',r.message||'เกิดข้อผิดพลาด');
+    }
   }
   async function delNiti(id){
     const c=await Swal.fire({icon:'warning',title:'ลบรายงาน?',showCancelButton:true,confirmButtonColor:'#dc2626',confirmButtonText:'ลบ',cancelButtonText:'ยกเลิก'});

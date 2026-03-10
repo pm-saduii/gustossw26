@@ -204,7 +204,9 @@ const HOUSE_TEXT_COLS = new Set(['house_no', 'phone', 'address', 'note',
   'house_id', 'user_id', 'fee_id', 'ann_id', 'report_id', 'owner_name',
   'username', 'full_name', 'category', 'title', 'content',
   // date columns — เก็บเป็น string พ.ศ. ไม่ให้ GAS re-parse เป็น Date แล้วบวก 543 ซ้ำ
-  'date', 'created_date', 'h1_date', 'h2_date']);
+  'date', 'created_date', 'h1_date', 'h2_date',
+  // URL / file columns — ต้องเป็น string เสมอ
+  'photo_urls', 'file_url', 'file_urls']);
 
 function sheetToObjects(sheet) {
   const range    = sheet.getDataRange();
@@ -667,25 +669,38 @@ function addNitiReport(data, user) {
 }
 
 function updateNitiReport(data, user) {
-  const sheet = getSheet(SHEETS.NITI_REPORT);
-  const rows  = sheet.getDataRange().getValues();
+  const sheet   = getSheet(SHEETS.NITI_REPORT);
+  const rows    = sheet.getDataRange().getValues();
   const headers = rows[0];
   for (let i = 1; i < rows.length; i++) {
     if (rows[i][0] == data.report_id) {
-      // photo_urls: ถ้าส่งมาใหม่ให้ใช้ใหม่, ถ้าไม่ส่งให้คงเดิม
-      const existingPhotos = rows[i][9] || '';
-      const newPhotos = data.photo_urls !== undefined ? data.photo_urls : existingPhotos;
-      // active column (col 10 ถ้ามี)
+      const existingPhotos = String(rows[i][9] || '');
+
+      // ── photo_urls logic ──────────────────────────────────────
+      // client ส่ง sentinel "__KEEP__" = ให้คงรูปเดิมทั้งหมด
+      // client ส่ง string URL = อัปเดตใหม่ (รวม existing ที่ client เลือกไว้แล้ว)
+      // client ส่ง "" หรือไม่ส่ง = ล้างรูปทั้งหมด (intentional clear)
+      let newPhotos;
+      if (data.photo_urls === '__KEEP__' || data.photo_urls === undefined || data.photo_urls === null) {
+        newPhotos = existingPhotos;   // คงเดิม
+      } else {
+        newPhotos = String(data.photo_urls);  // ใช้ค่าจาก client (อาจว่าง = ล้าง)
+      }
+
+      // active column (col index 10 ถ้ามี)
       const colCount = headers.length >= 11 ? 11 : 10;
       const vals = [
-        data.report_id, data.month, data.year, data.title, data.content,
-        data.income || 0, data.expense || 0,
-        user.username, new Date().toLocaleDateString('th-TH'),
+        String(data.report_id), String(data.month), String(data.year),
+        String(data.title || ''), String(data.content || ''),
+        parseFloat(data.income)  || 0,
+        parseFloat(data.expense) || 0,
+        user.username,
+        new Date().toLocaleDateString('th-TH'),
         newPhotos
       ];
-      if (colCount === 11) vals.push(rows[i][10] || 'TRUE'); // คง active เดิม
+      if (colCount === 11) vals.push(rows[i][10] || 'TRUE');
       sheet.getRange(i + 1, 1, 1, colCount).setValues([vals]);
-      return { success: true, message: 'อัปเดตรายงานสำเร็จ' };
+      return { success: true, message: 'อัปเดตรายงานสำเร็จ', photo_urls: newPhotos };
     }
   }
   return { success: false, message: 'ไม่พบรายงาน' };
