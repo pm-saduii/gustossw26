@@ -183,6 +183,12 @@
     [data-theme="dark"] .hst-ค้างชำระ{background:#2a2010;color:#fbbf24;}
     [data-theme="dark"] .hst-ระงับกรมที่ดิน{background:#2a1a08;color:#fb923c;}
     [data-theme="dark"] .hst-ฟ้องร้อง{background:#2a1010;color:#f87171;}
+  /* ── Fee panels: stack on small screens ── */
+  @media(max-width:640px){
+    #modalFeeEdit .modal-body>[style*="grid-template-columns:1fr 1fr"]{
+      grid-template-columns:1fr!important;
+    }
+  }
   .year-filter-bar{display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:1rem;}
   .year-card{padding:.45rem 1rem;border-radius:8px;border:1.5px solid var(--border);background:var(--surface);color:var(--text);font-weight:600;cursor:pointer;font-size:.9rem;transition:all .15s;}
   .year-card:hover{border-color:var(--primary);color:var(--primary);}
@@ -534,38 +540,91 @@
       <button class="modal-close" onclick="closeModal('modalFeeEdit')"><i class="fa-solid fa-xmark"></i></button>
     </div>
     <div class="modal-body">
+      <!-- Hero badge -->
       <div id="feeEditHeroBadge" style="margin-bottom:1.2rem"></div>
-      <div class="mf-section">
-        <div class="mf-section-title"><i class="fa-solid fa-calendar-days"></i> ครึ่งปีแรก (มกราคม – มิถุนายน)</div>
-        <div class="mf-grid cols3">
-          <div class="mf-group"><div class="mf-label"><i class="fa-solid fa-baht-sign"></i> ยอดที่ต้องชำระ (฿)</div><input class="mf-input" id="ef_h1amt" type="number"/></div>
-          <div class="mf-group"><div class="mf-label"><i class="fa-solid fa-circle-check"></i> ชำระแล้ว (฿)</div><input class="mf-input" id="ef_h1p" type="number"/></div>
-          <div class="mf-group"><div class="mf-label"><i class="fa-solid fa-calendar"></i> วันที่ชำระ</div><input class="mf-input" id="ef_h1d" type="text" placeholder="15/01/2567"/></div>
-          <div class="mf-group mf-full"><div class="mf-label"><i class="fa-solid fa-flag"></i> สถานะ</div>
-            <select class="mf-input" id="ef_h1s">
-              <option value="paid">✅ ชำระครบ</option>
-              <option value="partial">⚡ ชำระบางส่วน</option>
-              <option value="unpaid">❌ ยังไม่ชำระ</option>
-            </select>
+
+      <!-- ── Two-panel layout ── -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem">
+
+        <!-- ░░ ครึ่งปีแรก ░░ -->
+        <div style="border:2px solid #4f7ef7;border-radius:14px;overflow:hidden">
+          <!-- panel header -->
+          <div style="background:linear-gradient(135deg,#4f7ef7,#2f5be8);color:#fff;padding:.7rem 1rem;display:flex;align-items:center;gap:.5rem">
+            <span style="font-size:1.25rem">🌸</span>
+            <div>
+              <div style="font-size:.82rem;font-weight:800;letter-spacing:.02em">ครึ่งปีแรก</div>
+              <div style="font-size:.7rem;opacity:.85">มกราคม – มิถุนายน</div>
+            </div>
+            <!-- สถานะ badge ย่อ -->
+            <div id="ef_h1badge" style="margin-left:auto;font-size:.7rem;font-weight:700;padding:.18rem .65rem;border-radius:20px;background:rgba(255,255,255,.25)">—</div>
+          </div>
+          <!-- panel body -->
+          <div style="padding:.9rem;background:var(--card);display:flex;flex-direction:column;gap:.7rem">
+            <div class="mf-group">
+              <div class="mf-label"><i class="fa-solid fa-baht-sign" style="color:#4f7ef7"></i> ยอดที่ต้องชำระ (฿)</div>
+              <input class="mf-input" id="ef_h1amt" type="number" step="0.01" placeholder="0.00"/>
+            </div>
+            <div class="mf-group">
+              <div class="mf-label"><i class="fa-solid fa-circle-check" style="color:#059669"></i> ชำระแล้ว (฿)</div>
+              <input class="mf-input" id="ef_h1p" type="number" step="0.01" placeholder="0.00"/>
+            </div>
+            <div class="mf-group">
+              <div class="mf-label"><i class="fa-solid fa-calendar" style="color:#4f7ef7"></i> วันที่ชำระ</div>
+              <input class="mf-input" id="ef_h1d" type="text" placeholder="15/01/2567"/>
+            </div>
+            <div class="mf-group">
+              <div class="mf-label"><i class="fa-solid fa-flag" style="color:#4f7ef7"></i> สถานะ</div>
+              <select class="mf-input" id="ef_h1s" onchange="updateFeeBadge('h1')">
+                <option value="paid">✅ ชำระครบ</option>
+                <option value="partial">⚡ ชำระบางส่วน</option>
+                <option value="unpaid">❌ ยังไม่ชำระ</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- ░░ ครึ่งปีหลัง ░░ -->
+        <div style="border:2px solid #34c88a;border-radius:14px;overflow:hidden">
+          <!-- panel header -->
+          <div style="background:linear-gradient(135deg,#34c88a,#1ea870);color:#fff;padding:.7rem 1rem;display:flex;align-items:center;gap:.5rem">
+            <span style="font-size:1.25rem">🍂</span>
+            <div>
+              <div style="font-size:.82rem;font-weight:800;letter-spacing:.02em">ครึ่งปีหลัง</div>
+              <div style="font-size:.7rem;opacity:.85">กรกฎาคม – ธันวาคม</div>
+            </div>
+            <div id="ef_h2badge" style="margin-left:auto;font-size:.7rem;font-weight:700;padding:.18rem .65rem;border-radius:20px;background:rgba(255,255,255,.25)">—</div>
+          </div>
+          <!-- panel body -->
+          <div style="padding:.9rem;background:var(--card);display:flex;flex-direction:column;gap:.7rem">
+            <div class="mf-group">
+              <div class="mf-label"><i class="fa-solid fa-baht-sign" style="color:#34c88a"></i> ยอดที่ต้องชำระ (฿)</div>
+              <input class="mf-input" id="ef_h2amt" type="number" step="0.01" placeholder="0.00"/>
+            </div>
+            <div class="mf-group">
+              <div class="mf-label"><i class="fa-solid fa-circle-check" style="color:#059669"></i> ชำระแล้ว (฿)</div>
+              <input class="mf-input" id="ef_h2p" type="number" step="0.01" placeholder="0.00"/>
+            </div>
+            <div class="mf-group">
+              <div class="mf-label"><i class="fa-solid fa-calendar" style="color:#34c88a"></i> วันที่ชำระ</div>
+              <input class="mf-input" id="ef_h2d" type="text" placeholder="15/07/2567"/>
+            </div>
+            <div class="mf-group">
+              <div class="mf-label"><i class="fa-solid fa-flag" style="color:#34c88a"></i> สถานะ</div>
+              <select class="mf-input" id="ef_h2s" onchange="updateFeeBadge('h2')">
+                <option value="paid">✅ ชำระครบ</option>
+                <option value="partial">⚡ ชำระบางส่วน</option>
+                <option value="unpaid">❌ ยังไม่ชำระ</option>
+              </select>
+            </div>
           </div>
         </div>
       </div>
-      <div class="mf-section">
-        <div class="mf-section-title"><i class="fa-solid fa-calendar-days"></i> ครึ่งปีหลัง (กรกฎาคม – ธันวาคม)</div>
-        <div class="mf-grid cols3">
-          <div class="mf-group"><div class="mf-label"><i class="fa-solid fa-baht-sign"></i> ยอดที่ต้องชำระ (฿)</div><input class="mf-input" id="ef_h2amt" type="number"/></div>
-          <div class="mf-group"><div class="mf-label"><i class="fa-solid fa-circle-check"></i> ชำระแล้ว (฿)</div><input class="mf-input" id="ef_h2p" type="number"/></div>
-          <div class="mf-group"><div class="mf-label"><i class="fa-solid fa-calendar"></i> วันที่ชำระ</div><input class="mf-input" id="ef_h2d" type="text" placeholder="15/07/2567"/></div>
-          <div class="mf-group mf-full"><div class="mf-label"><i class="fa-solid fa-flag"></i> สถานะ</div>
-            <select class="mf-input" id="ef_h2s">
-              <option value="paid">✅ ชำระครบ</option>
-              <option value="partial">⚡ ชำระบางส่วน</option>
-              <option value="unpaid">❌ ยังไม่ชำระ</option>
-            </select>
-          </div>
-        </div>
+
+      <!-- หมายเหตุ -->
+      <div class="mf-group">
+        <div class="mf-label"><i class="fa-solid fa-note-sticky"></i> หมายเหตุ</div>
+        <input class="mf-input" id="ef_note" type="text"/>
       </div>
-      <div class="mf-group"><div class="mf-label"><i class="fa-solid fa-note-sticky"></i> หมายเหตุ</div><input class="mf-input" id="ef_note" type="text"/></div>
     </div>
     <div class="modal-foot">
       <button class="btn btn-outline" onclick="closeModal('modalFeeEdit')"><i class="fa-solid fa-xmark"></i> ยกเลิก</button>
@@ -1105,11 +1164,11 @@
       <td>${f.house_no}</td>
       <td>${f.soi}</td>
       <td>${f.owner_name}</td>
-      <td style="text-align:right">${Number(f.h1_amount||0).toLocaleString()}</td>
-      <td style="text-align:right">${Number(f.h1_paid||0).toLocaleString()}</td>
+      <td style="text-align:right">${fmtMoney(f.h1_amount)}</td>
+      <td style="text-align:right">${fmtMoney(f.h1_paid)}</td>
       <td><span class="badge ${f.h1_status}">${stLabel[f.h1_status]||f.h1_status}</span></td>
-      <td style="text-align:right">${Number(f.h2_amount||0).toLocaleString()}</td>
-      <td style="text-align:right">${Number(f.h2_paid||0).toLocaleString()}</td>
+      <td style="text-align:right">${fmtMoney(f.h2_amount)}</td>
+      <td style="text-align:right">${fmtMoney(f.h2_paid)}</td>
       <td><span class="badge ${f.h2_status}">${stLabel[f.h2_status]||f.h2_status}</span></td>
       <td><button class="btn btn-primary btn-sm" onclick="editFee('${f.fee_id}')"><i class="fa-solid fa-pen"></i> แก้ไข</button></td>
     </tr>`).join('');
@@ -1149,15 +1208,17 @@
         <div style="width:40px;height:40px;background:linear-gradient(135deg,var(--primary),var(--accent));border-radius:10px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:1rem"><i class="fa-solid fa-receipt"></i></div>
         <div><div style="font-size:.75rem;color:var(--muted)">หมายเลขบ้าน · ปี</div><div style="font-weight:700">${f.house_id} · พ.ศ. ${f.year}</div></div>
       </div>`;
-    document.getElementById('ef_h1amt').value=f.h1_amount||'';
-    document.getElementById('ef_h1p').value=f.h1_paid||'';
+    document.getElementById('ef_h1amt').value=f.h1_amount?parseFloat(f.h1_amount).toFixed(2):'';
+    document.getElementById('ef_h1p').value=f.h1_paid?parseFloat(f.h1_paid).toFixed(2):'';
     document.getElementById('ef_h1d').value=f.h1_date||'';
     document.getElementById('ef_h1s').value=f.h1_status||'unpaid';
-    document.getElementById('ef_h2amt').value=f.h2_amount||'';
-    document.getElementById('ef_h2p').value=f.h2_paid||'';
+    document.getElementById('ef_h2amt').value=f.h2_amount?parseFloat(f.h2_amount).toFixed(2):'';
+    document.getElementById('ef_h2p').value=f.h2_paid?parseFloat(f.h2_paid).toFixed(2):'';
     document.getElementById('ef_h2d').value=f.h2_date||'';
     document.getElementById('ef_h2s').value=f.h2_status||'unpaid';
     document.getElementById('ef_note').value=f.note||'';
+    // อัปเดต badge สถานะทั้งสอง panel
+    updateFeeBadge('h1'); updateFeeBadge('h2');
     openModal('modalFeeEdit');
   }
   async function submitFeeEdit(){
@@ -1178,6 +1239,15 @@
     btn.disabled=false;btn.innerHTML='<i class="fa-solid fa-floppy-disk"></i> บันทึก';
     if(r.success){toast('success','อัปเดตสำเร็จ');closeModal('modalFeeEdit');loadFees();}
     else toast('error',r.message||'เกิดข้อผิดพลาด');
+  }
+
+  // ── helper: อัปเดต badge สถานะบน panel header ─────────────────
+  function updateFeeBadge(half){
+    const sel=document.getElementById('ef_'+half+'s');
+    const badge=document.getElementById('ef_'+half+'badge');
+    if(!sel||!badge)return;
+    const map={paid:'✅ ชำระครบ',partial:'⚡ บางส่วน',unpaid:'❌ ค้างชำระ'};
+    badge.textContent=map[sel.value]||sel.value;
   }
 
   // ── USERS ─────────────────────────────────────────────────────
