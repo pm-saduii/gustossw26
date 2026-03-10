@@ -1371,7 +1371,19 @@
     _editAnnId=id;
     document.getElementById('ea_title').value=a.title||'';
     document.getElementById('ea_cat').value=a.category||'ทั่วไป';
-    document.getElementById('ea_date').value=a.date||'';
+    // sanitize date: ถ้า API ส่งปี > 2100 ถือเป็น พ.ศ. แล้ว ไม่ต้อง convert
+    // ถ้าส่งปี CE (< 2100) ให้บวก 543 ก่อนแสดง
+    (function(){
+      const raw=a.date||'';
+      const m=raw.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+      if(m){
+        const yr=parseInt(m[3]);
+        document.getElementById('ea_date').value=
+          m[1].padStart(2,'0')+'/'+m[2].padStart(2,'0')+'/'+(yr<2100?yr+543:yr);
+      } else {
+        document.getElementById('ea_date').value=raw;
+      }
+    })();
     document.getElementById('ea_content').value=a.content||'';
     document.getElementById('ea_active').value=a.active==='TRUE'?'TRUE':'FALSE';
     // โหลด file_url เดิม
@@ -1406,11 +1418,35 @@
     let fileUrl=document.getElementById('ea_file_url').value||'';
     const newFileInput=document.getElementById('ea_new_file');
     if(newFileInput&&newFileInput.files.length){
+      const file=newFileInput.files[0];
       const prog=document.getElementById('ea_new_file_name');
-      if(prog)prog.textContent='อัปโหลด...';
-      const base64=await toBase64(newFileInput.files[0]);
-      const up=await apiPost({action:'uploadFile',base64Data:base64,fileName:newFileInput.files[0].name,mimeType:newFileInput.files[0].type,folderId:DRIVE_FOLDER_ID});
-      if(up.success)fileUrl=up.fileUrl;else toast('error','อัปโหลดไฟล์ไม่สำเร็จ');
+      // แสดง progress + ขนาดไฟล์
+      if(prog)prog.innerHTML='<i class="fa-solid fa-spinner fa-spin"></i> กำลังอัปโหลด '+file.name+' ('+(file.size/1024).toFixed(1)+' KB)...';
+      try {
+        const base64=await toBase64(file);
+        const up=await apiPost({
+          action:'uploadFile',
+          base64Data:base64,
+          fileName:file.name,
+          mimeType:file.type||'image/jpeg',   // ← fallback mimeType ถ้าว่าง
+          folderId:DRIVE_FOLDER_ID
+        });
+        if(up&&up.success){
+          fileUrl=up.fileUrl;
+          if(prog)prog.innerHTML='<i class="fa-solid fa-check" style="color:#059669"></i> อัปโหลดสำเร็จ';
+        } else {
+          const msg=(up&&up.message)||'อัปโหลดไฟล์ไม่สำเร็จ';
+          if(prog)prog.innerHTML='<span style="color:#dc2626">❌ '+msg+'</span>';
+          btn.disabled=false;btn.innerHTML='<i class="fa-solid fa-floppy-disk"></i> บันทึก';
+          toast('error',msg);
+          return; // ← หยุด ไม่บันทึกถ้า upload fail
+        }
+      } catch(err){
+        if(prog)prog.innerHTML='<span style="color:#dc2626">❌ เกิดข้อผิดพลาด: '+err.message+'</span>';
+        btn.disabled=false;btn.innerHTML='<i class="fa-solid fa-floppy-disk"></i> บันทึก';
+        toast('error','อัปโหลดล้มเหลว: '+err.message);
+        return;
+      }
     }
     const r=await apiPost({action:'updateAnnouncement',ann_id:_editAnnId,
       title:document.getElementById('ea_title').value,
