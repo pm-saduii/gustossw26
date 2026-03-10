@@ -754,6 +754,11 @@
     }
   }
   function g(id){return document.getElementById(id)?.value||'';}
+  // ── formatMoney: แสดงตัวเลขเงินแบบ 999,999.99 ──────────────
+  function fmtMoney(v){
+    const n=parseFloat(String(v).replace(/,/g,''))||0;
+    return n.toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2});
+  }
 
   // ── แปลงวันที่จาก API ให้เป็น dd/mm/พ.ศ. ──────────────────────────
   // GAS มักส่งวันที่เป็น ISO string (CE) หรือ string "dd/mm/yyyy" (พ.ศ.)
@@ -918,7 +923,7 @@
         <td>${h.soi}</td>
         <td>${h.house_type}</td>
         <td><span class="hst-badge hst-${hst}">${hst}</span></td>
-        <td style="text-align:right">${Number(h.fee_per_half||0).toLocaleString()}</td>
+        <td style="text-align:right">${fmtMoney(h.fee_per_half)}</td>
         <td><span class="badge ${h.status==='active'?'paid':'unpaid'}">${h.status}</span></td>
         <td><div class="actions">
           <button class="btn btn-outline btn-sm" title="ดูรายละเอียด" onclick="showHouseDetail('${h.house_id}')"><i class="fa-solid fa-eye"></i> ดู</button>
@@ -946,14 +951,14 @@
     const rate=parseFloat(document.getElementById('h_rate').value)||0;
     const area=parseFloat(document.getElementById('h_area').value)||0;
     const el=document.getElementById('h_fee');
-    if(rate>0&&area>0){ el.value=Math.round(rate*area*6); el.style.color='var(--primary)'; }
+    if(rate>0&&area>0){ el.value=(rate*area*6).toFixed(2); el.style.color='var(--primary)'; }
     else{ el.value=''; el.style.color=''; }
   }
   function calcFeeEdit(){
     const rate=parseFloat(document.getElementById('eh_rate').value)||0;
     const area=parseFloat(document.getElementById('eh_area').value)||0;
     const el=document.getElementById('eh_fee');
-    if(rate>0&&area>0){ el.value=Math.round(rate*area*6); el.style.color='var(--primary)'; }
+    if(rate>0&&area>0){ el.value=(rate*area*6).toFixed(2); el.style.color='var(--primary)'; }
     else{ el.value=''; el.style.color=''; }
   }
 
@@ -991,8 +996,8 @@
         <div class="detail-item"><div class="detail-item-label"><i class="fa-solid fa-ruler-combined"></i> พื้นที่</div><div class="detail-item-value">${h.area_sqm||'—'} ตร.ม.</div></div>
         <div class="detail-item" style="grid-column:1/-1"><div class="detail-item-label"><i class="fa-solid fa-location-dot"></i> ที่อยู่</div><div class="detail-item-value">${h.address||'—'}</div></div>
         <div class="detail-item"><div class="detail-item-label"><i class="fa-solid fa-phone"></i> เบอร์โทร</div><div class="detail-item-value">${h.phone||'—'}</div></div>
-        <div class="detail-item"><div class="detail-item-label"><i class="fa-solid fa-percentage"></i> อัตราค่าส่วนกลาง</div><div class="detail-item-value">${h.fee_rate?Number(h.fee_rate).toLocaleString()+' ฿/ตร.ม./เดือน':'—'}</div></div>
-        <div class="detail-item"><div class="detail-item-label"><i class="fa-solid fa-coins"></i> ค่าส่วนกลาง/ครึ่งปี</div><div class="detail-item-value" style="color:var(--primary)">${Number(h.fee_per_half||0).toLocaleString()} บาท</div></div>
+        <div class="detail-item"><div class="detail-item-label"><i class="fa-solid fa-percentage"></i> อัตราค่าส่วนกลาง</div><div class="detail-item-value">${h.fee_rate?fmtMoney(h.fee_rate)+' ฿/ตร.ม./เดือน':'—'}</div></div>
+        <div class="detail-item"><div class="detail-item-label"><i class="fa-solid fa-coins"></i> ค่าส่วนกลาง/ครึ่งปี</div><div class="detail-item-value" style="color:var(--primary)">${fmtMoney(h.fee_per_half)} บาท</div></div>
         <div class="detail-item"><div class="detail-item-label"><i class="fa-solid fa-toggle-on"></i> สถานะบ้าน</div><div class="detail-item-value">${h.status==='active'?'✅ Active':'❌ Inactive'}</div></div>
         <div class="detail-item"><div class="detail-item-label"><i class="fa-solid fa-circle-half-stroke"></i> สถานะบัญชี</div><div class="detail-item-value" style="color:${stColor[hst]||'var(--text)'}">${hst}</div></div>
         ${h.note?`<div class="detail-item" style="grid-column:1/-1"><div class="detail-item-label"><i class="fa-solid fa-note-sticky"></i> หมายเหตุ</div><div class="detail-item-value">${h.note}</div></div>`:''}
@@ -1013,8 +1018,8 @@
     document.getElementById('eh_type').value=h.house_type||'บ้านเดี่ยว';
     document.getElementById('eh_phone').value=h.phone||'';
 
-    document.getElementById('eh_rate').value=h.fee_rate||'';
-    document.getElementById('eh_fee').value=h.fee_per_half||'';
+    document.getElementById('eh_rate').value=h.fee_rate?parseFloat(h.fee_rate).toFixed(2):'';
+    document.getElementById('eh_fee').value=h.fee_per_half?parseFloat(h.fee_per_half).toFixed(2):'';
     document.getElementById('eh_acst').value=h.account_status||'ปกติ';
     document.getElementById('eh_status').value=h.status||'active';
     document.getElementById('eh_note').value=h.note||'';
