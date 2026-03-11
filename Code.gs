@@ -195,6 +195,25 @@ function uploadFileToDrive(base64Data, fileName, mimeType, folderId) {
   return { ok: true, fileId: fileId, fileUrl: fileUrl };
 }
 
+function buildFileName(originalName, prefix) {
+  // สร้างชื่อไฟล์ format: prefix_YYYYMMDD_HHmmss_millisec.ext
+  // เช่น annou_20250310_143022_456.jpg หรือ niti_20250310_143022_789.png
+  var now  = new Date();
+  var pad  = function(n,len){ return String(n).padStart(len||2,'0'); };
+  var date = now.getFullYear().toString() +
+             pad(now.getMonth()+1) +
+             pad(now.getDate());
+  var time = pad(now.getHours()) +
+             pad(now.getMinutes()) +
+             pad(now.getSeconds());
+  var ms   = pad(now.getMilliseconds(), 3);
+  // แยกนามสกุลจากชื่อไฟล์เดิม
+  var ext  = '';
+  var dot  = originalName.lastIndexOf('.');
+  if (dot >= 0) ext = originalName.substring(dot).toLowerCase(); // .jpg .png .pdf
+  return (prefix||'file') + '_' + date + '_' + time + '_' + ms + ext;
+}
+
 function handleUpload(p) {
   if (!p.base64Data || !p.fileName || !p.mimeType) {
     return { success:false, message:'ข้อมูลไฟล์ไม่ครบ (base64Data/fileName/mimeType)' };
@@ -204,15 +223,19 @@ function handleUpload(p) {
   if (allowed.indexOf(p.mimeType) < 0 && p.mimeType.indexOf('image/') !== 0) {
     return { success:false, message:'รองรับเฉพาะ PDF และรูปภาพเท่านั้น (got: '+p.mimeType+')' };
   }
+  // ── Rename ตาม prefix_YYYYMMDD_HHmmss_ms.ext ──────────────────
+  // prefix มาจาก client: 'annou' หรือ 'niti' หรือ 'file'
+  var prefix   = p.filePrefix || 'file';
+  var newName  = buildFileName(p.fileName, prefix);
   var folderId = p.folderId || DRIVE_FOLDER_ID;
-  Logger.log('uploadFile: folder=' + folderId + ' file=' + p.fileName + ' mime=' + p.mimeType);
-  var result = uploadFileToDrive(p.base64Data, p.fileName, p.mimeType, folderId);
+  Logger.log('uploadFile: ' + p.fileName + ' → ' + newName + ' folder=' + folderId);
+  var result = uploadFileToDrive(p.base64Data, newName, p.mimeType, folderId);
   if (!result.ok) {
     Logger.log('uploadFile ERROR: ' + result.error);
-    return { success:false, message: result.error };   // ← ส่ง error จริงกลับไป client
+    return { success:false, message: result.error };
   }
   Logger.log('uploadFile OK: ' + result.fileUrl);
-  return { success:true, fileId: result.fileId, fileUrl: result.fileUrl };
+  return { success:true, fileId: result.fileId, fileUrl: result.fileUrl, fileName: newName };
 }
 
 // ── คอลัมน์ที่ต้องได้รับการปกป้องจาก GAS auto-parse ──────────

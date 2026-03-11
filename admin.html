@@ -1352,7 +1352,7 @@
     const file=input.files[0];const prog=document.getElementById('a_file_progress');
     prog.style.display='block';
     const base64=await toBase64(file);
-    const r=await apiPost({action:'uploadFile',base64Data:base64,fileName:file.name,mimeType:file.type,folderId:DRIVE_FOLDER_ID});
+    const r=await apiPost({action:'uploadFile',base64Data:base64,fileName:file.name,mimeType:file.type||'image/jpeg',folderId:DRIVE_FOLDER_ID,filePrefix:'annou'});
     prog.style.display='none';
     if(r.success)return r.fileUrl;
     toast('error','อัปโหลดไฟล์ไม่สำเร็จ');return'';
@@ -1448,8 +1448,9 @@
           action:'uploadFile',
           base64Data:base64,
           fileName:file.name,
-          mimeType:file.type||'image/jpeg',   // ← fallback mimeType ถ้าว่าง
-          folderId:DRIVE_FOLDER_ID
+          mimeType:file.type||'image/jpeg',
+          folderId:DRIVE_FOLDER_ID,
+          filePrefix:'annou'                  // rename: annou_YYYYMMDD_HHmmss_ms.ext
         });
         if(up&&up.success){
           fileUrl=up.fileUrl;
@@ -1532,7 +1533,7 @@
     for(let i=0;i<files.length;i++){
       prog.innerHTML='<i class="fa-solid fa-spinner fa-spin"></i> กำลังอัปโหลด '+(i+1)+'/'+files.length+'...';
       const base64=await toBase64(files[i]);
-      const r=await apiPost({action:'uploadFile',base64Data:base64,fileName:files[i].name,mimeType:files[i].type,folderId:DRIVE_FOLDER_ID});
+      const r=await apiPost({action:'uploadFile',base64Data:base64,fileName:files[i].name,mimeType:files[i].type||'image/jpeg',folderId:DRIVE_FOLDER_ID,filePrefix:'niti'});
       if(r.success)urls.push(r.fileUrl);
     }
     prog.style.display='none';return urls.join(',');
@@ -1614,7 +1615,8 @@
           base64Data:base64,
           fileName:files[i].name,
           mimeType:files[i].type||'image/jpeg',
-          folderId:DRIVE_FOLDER_ID
+          folderId:DRIVE_FOLDER_ID,
+          filePrefix:'niti'                   // rename: niti_YYYYMMDD_HHmmss_ms.ext
         });
         if(r&&r.success&&r.fileUrl){
           urls.push(r.fileUrl);
