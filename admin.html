@@ -92,7 +92,7 @@
     .form-actions{display:flex;gap:.6rem;justify-content:flex-end;margin-top:.9rem;}
 
     /* BADGE */
-    .badge{font-size:.7rem;padding:.16rem .58px;border-radius:10px;font-weight:700;}
+    .badge{font-size:.7rem;padding:.16rem .58rem;border-radius:10px;font-weight:700;}
     .badge.paid{background:#d1fae5;color:#059669;}
     .badge.partial{background:#fef3c7;color:#d97706;}
     .badge.unpaid{background:#fee2e2;color:#dc2626;}
@@ -149,6 +149,15 @@
     .modal-body{padding:1.4rem;overflow-y:auto;flex:1;}
     .modal-foot{padding:.9rem 1.4rem;background:var(--card2);border-top:1px solid var(--border);display:flex;gap:.6rem;justify-content:flex-end;flex-shrink:0;transition:background .3s;}
     /* Modal form styles */
+    /* ── Car badges ─────────────────────────────────── */
+    .car-type-badge{display:inline-flex;align-items:center;gap:.3rem;padding:.18rem .6rem;border-radius:20px;font-size:.7rem;font-weight:700;}
+    .car-type-badge.car{background:#dbeafe;color:#1d4ed8;}
+    .car-type-badge.motorcycle{background:#fef9c3;color:#854d0e;}
+    .car-type-badge.truck{background:#f3e8ff;color:#7e22ce;}
+    .car-type-badge.other{background:var(--bg2);color:var(--muted);}
+    [data-theme="dark"] .car-type-badge.car{background:#1e3a5f;color:#93c5fd;}
+    [data-theme="dark"] .car-type-badge.motorcycle{background:#2a2010;color:#fbbf24;}
+    .car-park-badge{font-size:.7rem;padding:.15rem .5rem;border-radius:10px;background:var(--bg2);color:var(--muted);font-weight:600;}
     .mf-section{margin-bottom:1.2rem;}
     .mf-section-title{font-size:.72rem;font-weight:800;color:var(--primary);text-transform:uppercase;letter-spacing:.08em;margin-bottom:.75rem;padding-bottom:.35rem;border-bottom:2px solid var(--primary-l);display:flex;align-items:center;gap:.4rem;}
     .mf-grid{display:grid;grid-template-columns:1fr 1fr;gap:.8rem;}
@@ -183,6 +192,12 @@
     [data-theme="dark"] .hst-ค้างชำระ{background:#2a2010;color:#fbbf24;}
     [data-theme="dark"] .hst-ระงับกรมที่ดิน{background:#2a1a08;color:#fb923c;}
     [data-theme="dark"] .hst-ฟ้องร้อง{background:#2a1010;color:#f87171;}
+  /* ── Fee panels: stack on small screens ── */
+  @media(max-width:640px){
+    #modalFeeEdit .modal-body>[style*="grid-template-columns:1fr 1fr"]{
+      grid-template-columns:1fr!important;
+    }
+  }
   .year-filter-bar{display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:1rem;}
   .year-card{padding:.45rem 1rem;border-radius:8px;border:1.5px solid var(--border);background:var(--surface);color:var(--text);font-weight:600;cursor:pointer;font-size:.9rem;transition:all .15s;}
   .year-card:hover{border-color:var(--primary);color:var(--primary);}
@@ -208,6 +223,7 @@
       <div class="nav-section">เนื้อหา</div>
       <button class="nav-item" onclick="showSection('announcements',this)"><i class="fa-solid fa-bullhorn"></i> ประกาศ</button>
       <button class="nav-item" onclick="showSection('niti',this)"><i class="fa-solid fa-clipboard-list"></i> ผลงานนิติ</button>
+      <button class="nav-item" onclick="showSection('cars',this)"><i class="fa-solid fa-car"></i> จัดการรถ</button>
       <div class="nav-section">ลิ้งก์</div>
       <a class="nav-item" href="summary.html" target="_blank"><i class="fa-solid fa-chart-pie"></i> สรุปค่าส่วนกลาง</a>
       <a class="nav-item" href="announcements.html" target="_blank"><i class="fa-solid fa-bullhorn"></i> หน้าประกาศ</a>
@@ -270,11 +286,12 @@
               <div class="form-group"><label>บ้านเลขที่</label><input type="text" id="h_no" placeholder="เช่น 101/1"/></div>
               <div class="form-group"><label>ชื่อ-นามสกุลเจ้าของ</label><input type="text" id="h_owner" placeholder="ชื่อ นามสกุล"/></div>
               <div class="form-group full"><label>ที่อยู่</label><input type="text" id="h_addr" placeholder="ที่อยู่เต็ม"/></div>
-              <div class="form-group"><label>พื้นที่ (ตร.ม.)</label><input type="number" id="h_area" placeholder="120"/></div>
-              <div class="form-group"><label>ซอย</label><input type="text" id="h_soi" placeholder="เช่น ซอย 1"/></div>
+              <div class="form-group"><label>พื้นที่ (ตร.ม.)</label><input type="number" step="0.01" id="h_area" placeholder="120" oninput="calcFeeAdd()"/></div>
+              <div class="form-group"><label>ซอย (ตัวเลข 0-22)</label><input type="number" id="h_soi" placeholder="0" min="0" max="22" value="0"/></div>
               <div class="form-group"><label>ประเภทบ้าน</label><select id="h_type"><option>บ้านเดี่ยว</option><option>ทาวน์โฮม</option><option>บ้านแฝด</option></select></div>
-              <div class="form-group"><label>เบอร์โทร</label><input type="text" id="h_phone" placeholder="0812345678"/></div>
-              <div class="form-group"><label>ค่าส่วนกลาง/ครึ่งปี (บาท)</label><input type="number" id="h_fee" placeholder="3000"/></div>
+              <div class="form-group"><label>เบอร์โทร</label><input type="text" id="h_phone" placeholder="0812345678" inputmode="tel" autocomplete="off"/></div>
+              <div class="form-group"><label>อัตราค่าส่วนกลาง (บาท/ตร.ม./เดือน)</label><input type="number" step="0.01" id="h_rate" placeholder="เช่น 10.00" oninput="calcFeeAdd()"/></div>
+              <div class="form-group"><label>ค่าส่วนกลาง/ครึ่งปี (บาท) <small style="color:var(--muted);font-weight:400">คำนวณอัตโนมัติ</small></label><input type="number" id="h_fee" placeholder="คำนวณจาก rate×ตร.ม.×6" readonly style="background:var(--bg2)"/></div>
               <div class="form-group"><label>สถานะบัญชี</label><select id="h_acst"><option value="ปกติ">ปกติ</option><option value="ค้างชำระ">ค้างชำระ</option><option value="ระงับกรมที่ดิน">ระงับกรมที่ดิน</option><option value="ฟ้องร้อง">ฟ้องร้อง</option></select></div>
               <div class="form-group full"><label>หมายเหตุ</label><input type="text" id="h_note" placeholder="(ถ้ามี)"/></div>
             </div>
@@ -452,6 +469,68 @@
           </tr></thead><tbody id="nitiTbody"><tr><td colspan="5"><div class="skeleton"></div></td></tr></tbody></table></div></div>
         </div>
       </div>
+
+      <!-- ── SECTION: CARS ──────────────────────────────────── -->
+      <div class="section" id="sec-cars">
+        <div class="card">
+          <div class="card-header">
+            <h3><i class="fa-solid fa-car-side"></i> เพิ่มรถใหม่</h3>
+            <button class="btn btn-outline btn-sm" onclick="toggleForm('carForm')"><i class="fa-solid fa-plus"></i> เพิ่มรถ</button>
+          </div>
+          <div class="card-body" id="carForm" style="display:none">
+            <div class="form-grid">
+              <div class="mf-group"><div class="mf-label"><i class="fa-solid fa-house"></i> บ้าน (house_id)</div>
+                <select class="mf-input" id="c_house_id"><option value="">-- เลือกบ้าน --</option></select></div>
+              <div class="mf-group"><div class="mf-label"><i class="fa-solid fa-tag"></i> ประเภท</div>
+                <select class="mf-input" id="c_car_type">
+                  <option value="car">🚗 รถยนต์</option>
+                  <option value="motorcycle">🏍️ มอเตอร์ไซค์</option>
+                  <option value="truck">🚐 รถกระบะ/ตู้</option>
+                  <option value="other">อื่นๆ</option>
+                </select></div>
+              <div class="mf-group"><div class="mf-label"><i class="fa-solid fa-id-badge"></i> ทะเบียนรถ</div>
+                <input class="mf-input" id="c_plate_no" type="text" placeholder="เช่น กจ 5533 กรุงเทพ"/></div>
+              <div class="mf-group"><div class="mf-label"><i class="fa-solid fa-car"></i> ยี่ห้อ</div>
+                <input class="mf-input" id="c_car_brand" type="text" placeholder="เช่น TOYOTA, BYD"/></div>
+              <div class="mf-group"><div class="mf-label"><i class="fa-solid fa-car-rear"></i> รุ่น</div>
+                <input class="mf-input" id="c_car_model" type="text" placeholder="เช่น Sealion 6, Kicks"/></div>
+              <div class="mf-group"><div class="mf-label"><i class="fa-solid fa-palette"></i> สี</div>
+                <input class="mf-input" id="c_car_color" type="text" placeholder="เช่น ขาว, แดง"/></div>
+              <div class="mf-group"><div class="mf-label"><i class="fa-solid fa-square-parking"></i> ที่จอด</div>
+                <select class="mf-input" id="c_car_park">
+                  <option value="หน้าบ้าน">หน้าบ้าน</option>
+                  <option value="ในบ้าน">ในบ้าน</option>
+                  <option value="ส่วนกลาง">ส่วนกลาง</option>
+                  <option value="อื่นๆ">อื่นๆ</option>
+                </select></div>
+              <div class="mf-group"><div class="mf-label"><i class="fa-solid fa-coins"></i> ค่าจอด/เดือน (฿)</div>
+                <input class="mf-input" id="c_car_fee" type="number" min="0" step="50" value="0"/></div>
+            </div>
+            <div style="display:flex;gap:.75rem;margin-top:1rem">
+              <button class="btn btn-primary" onclick="saveCar()"><i class="fa-solid fa-floppy-disk"></i> บันทึก</button>
+              <button class="btn btn-outline" onclick="toggleForm('carForm')">ยกเลิก</button>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <h3><i class="fa-solid fa-table-list"></i> รายการรถทั้งหมด</h3>
+            <div style="display:flex;gap:.5rem;align-items:center">
+              <input type="text" id="carSearch" placeholder="ค้นหาทะเบียน/บ้าน/ยี่ห้อ..." style="width:190px;padding:.35rem .7rem;font-size:.8rem;border:1.5px solid var(--border);border-radius:8px;background:var(--card2);color:var(--text);font-family:'Sarabun',sans-serif" oninput="filterCars()"/>
+              <button class="btn btn-outline btn-sm" onclick="loadCars()"><i class="fa-solid fa-rotate"></i></button>
+            </div>
+          </div>
+          <div class="card-body" style="padding:0;overflow-x:auto">
+            <table class="tbl" id="carTable">
+              <thead><tr>
+                <th>บ้าน</th><th>ประเภท</th><th>ทะเบียน</th><th>ยี่ห้อ / รุ่น</th><th>สี</th><th>ที่จอด</th><th style="text-align:right">ค่าจอด/เดือน</th><th>จัดการ</th>
+              </tr></thead>
+              <tbody id="carTbody"><tr><td colspan="8" style="text-align:center;padding:2rem;color:var(--muted)"><i class="fa-solid fa-spinner fa-spin"></i> กำลังโหลด...</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
     </main>
   </div>
 </div>
@@ -483,9 +562,9 @@
         <div class="mf-section-title"><i class="fa-solid fa-house"></i> ข้อมูลบ้าน</div>
         <div class="mf-grid">
           <div class="mf-group"><div class="mf-label"><i class="fa-solid fa-hashtag"></i> บ้านเลขที่</div><input class="mf-input" id="eh_no" type="text"/></div>
-          <div class="mf-group"><div class="mf-label"><i class="fa-solid fa-road"></i> ซอย</div><input class="mf-input" id="eh_soi" type="text"/></div>
+          <div class="mf-group"><div class="mf-label"><i class="fa-solid fa-road"></i> ซอย (0-22)</div><input class="mf-input" id="eh_soi" type="number" min="0" max="22"/></div>
           <div class="mf-group mf-full"><div class="mf-label"><i class="fa-solid fa-location-dot"></i> ที่อยู่</div><input class="mf-input" id="eh_addr" type="text"/></div>
-          <div class="mf-group"><div class="mf-label"><i class="fa-solid fa-ruler-combined"></i> พื้นที่ (ตร.ม.)</div><input class="mf-input" id="eh_area" type="number"/></div>
+          <div class="mf-group"><div class="mf-label"><i class="fa-solid fa-ruler-combined"></i> พื้นที่ (ตร.ม.)</div><input class="mf-input" id="eh_area" type="number" step="0.01" oninput="calcFeeEdit()"/></div>
           <div class="mf-group"><div class="mf-label"><i class="fa-solid fa-house-chimney"></i> ประเภทบ้าน</div>
             <select class="mf-input" id="eh_type"><option>บ้านเดี่ยว</option><option>ทาวน์โฮม</option><option>บ้านแฝด</option></select>
           </div>
@@ -501,7 +580,8 @@
       <div class="mf-section">
         <div class="mf-section-title"><i class="fa-solid fa-money-bill"></i> ข้อมูลการเงิน</div>
         <div class="mf-grid">
-          <div class="mf-group"><div class="mf-label"><i class="fa-solid fa-coins"></i> ค่าส่วนกลาง/ครึ่งปี (฿)</div><input class="mf-input" id="eh_fee" type="number"/></div>
+          <div class="mf-group"><div class="mf-label"><i class="fa-solid fa-percent"></i> อัตราค่าส่วนกลาง (บาท/ตร.ม./เดือน)</div><input class="mf-input" id="eh_rate" type="number" step="0.01" oninput="calcFeeEdit()"/></div>
+          <div class="mf-group"><div class="mf-label"><i class="fa-solid fa-coins"></i> ค่าส่วนกลาง/ครึ่งปี (บาท) <small style="color:var(--muted);font-weight:400">คำนวณอัตโนมัติ</small></div><input class="mf-input" id="eh_fee" type="number" readonly style="background:var(--bg2)"/></div>
           <div class="mf-group"><div class="mf-label"><i class="fa-solid fa-circle-half-stroke"></i> สถานะบัญชี</div>
             <select class="mf-input" id="eh_acst">
               <option value="ปกติ">✅ ปกติ</option>
@@ -532,38 +612,91 @@
       <button class="modal-close" onclick="closeModal('modalFeeEdit')"><i class="fa-solid fa-xmark"></i></button>
     </div>
     <div class="modal-body">
+      <!-- Hero badge -->
       <div id="feeEditHeroBadge" style="margin-bottom:1.2rem"></div>
-      <div class="mf-section">
-        <div class="mf-section-title"><i class="fa-solid fa-calendar-days"></i> ครึ่งปีแรก (มกราคม – มิถุนายน)</div>
-        <div class="mf-grid cols3">
-          <div class="mf-group"><div class="mf-label"><i class="fa-solid fa-baht-sign"></i> ยอดที่ต้องชำระ (฿)</div><input class="mf-input" id="ef_h1amt" type="number"/></div>
-          <div class="mf-group"><div class="mf-label"><i class="fa-solid fa-circle-check"></i> ชำระแล้ว (฿)</div><input class="mf-input" id="ef_h1p" type="number"/></div>
-          <div class="mf-group"><div class="mf-label"><i class="fa-solid fa-calendar"></i> วันที่ชำระ</div><input class="mf-input" id="ef_h1d" type="text" placeholder="15/01/2567"/></div>
-          <div class="mf-group mf-full"><div class="mf-label"><i class="fa-solid fa-flag"></i> สถานะ</div>
-            <select class="mf-input" id="ef_h1s">
-              <option value="paid">✅ ชำระครบ</option>
-              <option value="partial">⚡ ชำระบางส่วน</option>
-              <option value="unpaid">❌ ยังไม่ชำระ</option>
-            </select>
+
+      <!-- ── Two-panel layout ── -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem">
+
+        <!-- ░░ ครึ่งปีแรก ░░ -->
+        <div style="border:2px solid #4f7ef7;border-radius:14px;overflow:hidden">
+          <!-- panel header -->
+          <div style="background:linear-gradient(135deg,#4f7ef7,#2f5be8);color:#fff;padding:.7rem 1rem;display:flex;align-items:center;gap:.5rem">
+            <span style="font-size:1.25rem">🌸</span>
+            <div>
+              <div style="font-size:.82rem;font-weight:800;letter-spacing:.02em">ครึ่งปีแรก</div>
+              <div style="font-size:.7rem;opacity:.85">มกราคม – มิถุนายน</div>
+            </div>
+            <!-- สถานะ badge ย่อ -->
+            <div id="ef_h1badge" style="margin-left:auto;font-size:.7rem;font-weight:700;padding:.18rem .65rem;border-radius:20px;background:rgba(255,255,255,.25)">—</div>
+          </div>
+          <!-- panel body -->
+          <div style="padding:.9rem;background:var(--card);display:flex;flex-direction:column;gap:.7rem">
+            <div class="mf-group">
+              <div class="mf-label"><i class="fa-solid fa-baht-sign" style="color:#4f7ef7"></i> ยอดที่ต้องชำระ (฿)</div>
+              <input class="mf-input" id="ef_h1amt" type="number" step="0.01" placeholder="0.00"/>
+            </div>
+            <div class="mf-group">
+              <div class="mf-label"><i class="fa-solid fa-circle-check" style="color:#059669"></i> ชำระแล้ว (฿)</div>
+              <input class="mf-input" id="ef_h1p" type="number" step="0.01" placeholder="0.00"/>
+            </div>
+            <div class="mf-group">
+              <div class="mf-label"><i class="fa-solid fa-calendar" style="color:#4f7ef7"></i> วันที่ชำระ</div>
+              <input class="mf-input" id="ef_h1d" type="text" placeholder="15/01/2567"/>
+            </div>
+            <div class="mf-group">
+              <div class="mf-label"><i class="fa-solid fa-flag" style="color:#4f7ef7"></i> สถานะ</div>
+              <select class="mf-input" id="ef_h1s" onchange="updateFeeBadge('h1')">
+                <option value="paid">✅ ชำระครบ</option>
+                <option value="partial">⚡ ชำระบางส่วน</option>
+                <option value="unpaid">❌ ยังไม่ชำระ</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- ░░ ครึ่งปีหลัง ░░ -->
+        <div style="border:2px solid #34c88a;border-radius:14px;overflow:hidden">
+          <!-- panel header -->
+          <div style="background:linear-gradient(135deg,#34c88a,#1ea870);color:#fff;padding:.7rem 1rem;display:flex;align-items:center;gap:.5rem">
+            <span style="font-size:1.25rem">🍂</span>
+            <div>
+              <div style="font-size:.82rem;font-weight:800;letter-spacing:.02em">ครึ่งปีหลัง</div>
+              <div style="font-size:.7rem;opacity:.85">กรกฎาคม – ธันวาคม</div>
+            </div>
+            <div id="ef_h2badge" style="margin-left:auto;font-size:.7rem;font-weight:700;padding:.18rem .65rem;border-radius:20px;background:rgba(255,255,255,.25)">—</div>
+          </div>
+          <!-- panel body -->
+          <div style="padding:.9rem;background:var(--card);display:flex;flex-direction:column;gap:.7rem">
+            <div class="mf-group">
+              <div class="mf-label"><i class="fa-solid fa-baht-sign" style="color:#34c88a"></i> ยอดที่ต้องชำระ (฿)</div>
+              <input class="mf-input" id="ef_h2amt" type="number" step="0.01" placeholder="0.00"/>
+            </div>
+            <div class="mf-group">
+              <div class="mf-label"><i class="fa-solid fa-circle-check" style="color:#059669"></i> ชำระแล้ว (฿)</div>
+              <input class="mf-input" id="ef_h2p" type="number" step="0.01" placeholder="0.00"/>
+            </div>
+            <div class="mf-group">
+              <div class="mf-label"><i class="fa-solid fa-calendar" style="color:#34c88a"></i> วันที่ชำระ</div>
+              <input class="mf-input" id="ef_h2d" type="text" placeholder="15/07/2567"/>
+            </div>
+            <div class="mf-group">
+              <div class="mf-label"><i class="fa-solid fa-flag" style="color:#34c88a"></i> สถานะ</div>
+              <select class="mf-input" id="ef_h2s" onchange="updateFeeBadge('h2')">
+                <option value="paid">✅ ชำระครบ</option>
+                <option value="partial">⚡ ชำระบางส่วน</option>
+                <option value="unpaid">❌ ยังไม่ชำระ</option>
+              </select>
+            </div>
           </div>
         </div>
       </div>
-      <div class="mf-section">
-        <div class="mf-section-title"><i class="fa-solid fa-calendar-days"></i> ครึ่งปีหลัง (กรกฎาคม – ธันวาคม)</div>
-        <div class="mf-grid cols3">
-          <div class="mf-group"><div class="mf-label"><i class="fa-solid fa-baht-sign"></i> ยอดที่ต้องชำระ (฿)</div><input class="mf-input" id="ef_h2amt" type="number"/></div>
-          <div class="mf-group"><div class="mf-label"><i class="fa-solid fa-circle-check"></i> ชำระแล้ว (฿)</div><input class="mf-input" id="ef_h2p" type="number"/></div>
-          <div class="mf-group"><div class="mf-label"><i class="fa-solid fa-calendar"></i> วันที่ชำระ</div><input class="mf-input" id="ef_h2d" type="text" placeholder="15/07/2567"/></div>
-          <div class="mf-group mf-full"><div class="mf-label"><i class="fa-solid fa-flag"></i> สถานะ</div>
-            <select class="mf-input" id="ef_h2s">
-              <option value="paid">✅ ชำระครบ</option>
-              <option value="partial">⚡ ชำระบางส่วน</option>
-              <option value="unpaid">❌ ยังไม่ชำระ</option>
-            </select>
-          </div>
-        </div>
+
+      <!-- หมายเหตุ -->
+      <div class="mf-group">
+        <div class="mf-label"><i class="fa-solid fa-note-sticky"></i> หมายเหตุ</div>
+        <input class="mf-input" id="ef_note" type="text"/>
       </div>
-      <div class="mf-group"><div class="mf-label"><i class="fa-solid fa-note-sticky"></i> หมายเหตุ</div><input class="mf-input" id="ef_note" type="text"/></div>
     </div>
     <div class="modal-foot">
       <button class="btn btn-outline" onclick="closeModal('modalFeeEdit')"><i class="fa-solid fa-xmark"></i> ยกเลิก</button>
@@ -629,6 +762,19 @@
           <div class="mf-group"><div class="mf-label"><i class="fa-solid fa-eye"></i> สถานะการแสดง</div>
             <select class="mf-input" id="ea_active"><option value="TRUE">👁 แสดง</option><option value="FALSE">🙈 ซ่อน</option></select>
           </div>
+          <div class="mf-group mf-full" id="ea_file_wrap" style="display:none">
+            <div class="mf-label"><i class="fa-solid fa-paperclip"></i> ไฟล์แนบเดิม</div>
+            <div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap">
+              <a id="ea_file_link" href="#" target="_blank" class="btn btn-outline btn-sm"><i class="fa-solid fa-file"></i> ดูไฟล์เดิม</a>
+              <button type="button" class="btn btn-danger btn-sm" onclick="clearAnnEditFile()"><i class="fa-solid fa-xmark"></i> ลบไฟล์</button>
+            </div>
+            <input type="hidden" id="ea_file_url"/>
+          </div>
+          <div class="mf-group mf-full">
+            <div class="mf-label"><i class="fa-solid fa-upload"></i> อัปโหลดไฟล์ใหม่ (ทับของเดิม)</div>
+            <input type="file" class="mf-input" id="ea_new_file" accept=".pdf,image/*" onchange="previewAnnEditFile(this)"/>
+            <div id="ea_new_file_name" style="font-size:.78rem;color:var(--muted);margin-top:.3rem"></div>
+          </div>
         </div>
       </div>
     </div>
@@ -669,6 +815,23 @@
           <div class="mf-group"><div class="mf-label"><i class="fa-solid fa-arrow-down" style="color:#dc2626"></i> รายจ่าย (฿)</div><input class="mf-input" id="en_expense" type="number"/></div>
         </div>
       </div>
+      <div class="mf-section">
+        <div class="mf-section-title"><i class="fa-solid fa-images"></i> รูปภาพ</div>
+        <!-- รูปเดิม -->
+        <div id="en_existing_wrap" style="display:none;margin-bottom:.75rem">
+          <div class="mf-label" style="margin-bottom:.4rem"><i class="fa-solid fa-photo-film"></i> รูปภาพที่มีอยู่แล้ว</div>
+          <div id="en_existing_preview" style="display:flex;flex-wrap:wrap;gap:.4rem"></div>
+          <button type="button" class="btn btn-danger btn-sm" style="margin-top:.4rem" onclick="clearNitiEditPhotos()"><i class="fa-solid fa-trash"></i> ลบรูปทั้งหมด</button>
+          <input type="hidden" id="en_existing_urls"/>
+        </div>
+        <!-- upload รูปใหม่ -->
+        <div class="mf-group">
+          <div class="mf-label"><i class="fa-solid fa-upload"></i> เพิ่ม / เปลี่ยนรูปภาพ (สูงสุด 10 รูป)</div>
+          <input type="file" class="mf-input" id="en_photos" accept="image/*" multiple onchange="previewNitiEditPhotos(this)"/>
+          <div id="en_photos_preview" style="display:flex;flex-wrap:wrap;gap:.4rem;margin-top:.5rem"></div>
+          <div id="en_photos_progress" style="display:none;margin-top:.4rem;font-size:.8rem;color:var(--primary)"><i class="fa-solid fa-spinner fa-spin"></i> กำลังอัปโหลด...</div>
+        </div>
+      </div>
     </div>
     <div class="modal-foot">
       <button class="btn btn-outline" onclick="closeModal('modalNitiEdit')"><i class="fa-solid fa-xmark"></i> ยกเลิก</button>
@@ -679,6 +842,7 @@
 
 <script>
   const API_URL='https://script.google.com/macros/s/AKfycbwQbc31pY86tM7EdD41dBsXRQ-OmL6M5m0TJKs_ZJiix2bLEYkHOiQ8eIGazR7ay0_l/exec';
+  const DRIVE_FOLDER_ID='1l4mAepbhZawYphDfE1kybY7bHNHS6IZ-';
   const token=localStorage.getItem('vms_token');
   const role=localStorage.getItem('vms_role');
   const name=localStorage.getItem('vms_name');
@@ -696,9 +860,9 @@
   function toggleTheme(){applyTheme(document.documentElement.getAttribute('data-theme')==='dark'?'light':'dark');}
 
   const MONTHS_TH=['','ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
-  const sectionTitles={overview:'<i class="fa-solid fa-gauge"></i> Dashboard',houses:'<i class="fa-solid fa-house"></i> จัดการข้อมูลบ้าน',fees:'<i class="fa-solid fa-receipt"></i> จัดการค่าส่วนกลาง',users:'<i class="fa-solid fa-users"></i> จัดการผู้ใช้งาน',announcements:'<i class="fa-solid fa-bullhorn"></i> จัดการประกาศ',niti:'<i class="fa-solid fa-clipboard-list"></i> จัดการผลงานนิติ'};
+  const sectionTitles={overview:'<i class="fa-solid fa-gauge"></i> Dashboard',houses:'<i class="fa-solid fa-house"></i> จัดการข้อมูลบ้าน',fees:'<i class="fa-solid fa-receipt"></i> จัดการค่าส่วนกลาง',users:'<i class="fa-solid fa-users"></i> จัดการผู้ใช้งาน',announcements:'<i class="fa-solid fa-bullhorn"></i> จัดการประกาศ',niti:'<i class="fa-solid fa-clipboard-list"></i> จัดการผลงานนิติ',cars:'<i class="fa-solid fa-car"></i> จัดการรถ'};
   // ✅ FIX: ใช้ arrow function แทนการอ้างอิงตรงๆ กัน crash จาก hoisting
-  const sectionLoaders={houses:()=>loadHouses(),fees:()=>loadFees(),users:()=>loadUsers(),announcements:()=>loadAnn(),niti:()=>loadNiti()};
+  const sectionLoaders={houses:()=>loadHouses(),fees:()=>loadFees(),users:()=>loadUsers(),announcements:()=>loadAnn(),niti:()=>loadNiti(),cars:()=>loadCars()};
 
   function showSection(id,btn){
     document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
@@ -721,7 +885,11 @@
     }
   }
   function g(id){return document.getElementById(id)?.value||'';}
-  function vs(id){return document.getElementById(id)?.value||'';}
+  // ── formatMoney: แสดงตัวเลขเงินแบบ 999,999.99 ──────────────
+  function fmtMoney(v){
+    const n=parseFloat(String(v).replace(/,/g,''))||0;
+    return n.toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2});
+  }
 
   // ── แปลงวันที่จาก API ให้เป็น dd/mm/พ.ศ. ──────────────────────────
   // GAS มักส่งวันที่เป็น ISO string (CE) หรือ string "dd/mm/yyyy" (พ.ศ.)
@@ -737,11 +905,12 @@
       const yyyy=d.getFullYear()+543;
       return `${dd}/${mm}/${yyyy}`;
     }
-    // dd/mm/yyyy format — ถ้าปี < 2500 = CE ให้บวก 543
+    // dd/mm/yyyy format — ถ้าปี < 2100 ถือว่าเป็น CE → บวก 543 เป็น พ.ศ.
+    // (เดิมใช้ < 2500 ซึ่งผิดสำหรับปี CE 2024+ เพราะ 2024 < 2500)
     const m=s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
     if(m){
       const yr=parseInt(m[3]);
-      return `${m[1].padStart(2,'0')}/${m[2].padStart(2,'0')}/${yr<2500?yr+543:yr}`;
+      return `${m[1].padStart(2,'0')}/${m[2].padStart(2,'0')}/${yr<2100?yr+543:yr}`;
     }
     return s;
   }
@@ -766,57 +935,37 @@
     const fn={houses:()=>renderHouses(housesData),fees:()=>renderFees(feesData),users:()=>renderUsers(usersData),ann:()=>renderAnn(annData),niti:()=>renderNiti(nitiData)};
     if(fn[table])fn[table]();
   }
+  // ── helper: ซอย → ตัวเลข (0 ถ้าว่าง) ──────────────────────────
+  function _soiN(v){ const n=parseFloat(String(v??'')); return isNaN(n)?0:n; }
+  // ── helper: house_no → [main, sub] numeric ─────────────────────
+  function _houseN(v){
+    if(!v&&v!==0)return[99999,0];
+    const p=String(v).split('/');
+    return[parseInt(p[0])||99999, parseInt(p[1])||0];
+  }
   function sortArr(arr,col,dir){
     if(!col)return arr;
+    const numCols=new Set(['fee_per_half','fee_rate','area_sqm','year','h1_amount','h2_amount','h1_paid','h2_paid','income','expense','month']);
     return [...arr].sort((a,b)=>{
-      const va=a[col]||'',vb=b[col]||'';
-      if(!isNaN(va)&&!isNaN(vb))return(Number(va)-Number(vb))*dir;
-      return String(va).localeCompare(String(vb),'th')*dir;
+      if(col==='soi') return (_soiN(a.soi)-_soiN(b.soi))*dir;
+      if(col==='house_no'){
+        const[am,as]=_houseN(a.house_no),[bm,bs]=_houseN(b.house_no);
+        if(am!==bm)return(am-bm)*dir; return(as-bs)*dir;
+      }
+      const va=String(a[col]??''), vb=String(b[col]??'');
+      if(numCols.has(col)) return ((parseFloat(va)||0)-(parseFloat(vb)||0))*dir;
+      return va.localeCompare(vb,undefined,{numeric:true,sensitivity:'base'})*dir;
     });
   }
 
   // ── OVERVIEW ──────────────────────────────────────────────────
 
-  // ✅ PERF: คำนวณ summary จาก data ที่มีอยู่แล้ว ไม่ต้องเรียก API ซ้ำ
-  function buildOverviewSummary(housesArr, feesArr){
-    const activeHouses=housesArr.filter(h=>String(h.status||'active').toLowerCase()==='active');
-    const currentBE=new Date().getFullYear()+543;
-    const years=[...new Set(feesArr.map(f=>String(f.year)).filter(Boolean))].sort((a,b)=>b-a);
-    const year=years[0]||String(currentBE);
-    const yearFees=feesArr.filter(f=>String(f.year)===String(year));
-    const feeMap={};yearFees.forEach(f=>{feeMap[String(f.house_id)]=f;});
-    let hFullPaid=0,hPartial=0,hUnpaid=0,amtDue=0,amtPaid=0;
-    const bySoi={};
-    activeHouses.forEach(h=>{
-      const soi=h.soi||'อื่นๆ';
-      if(!bySoi[soi])bySoi[soi]={total:0,fullPaid:0,partial:0,unpaid:0,h1Paid:0,h1Unpaid:0,h2Paid:0,h2Unpaid:0};
-      const s=bySoi[soi];s.total++;
-      const fph=parseFloat(String(h.fee_per_half||0).replace(/,/g,''))||0;
-      amtDue+=fph*2;
-      const f=feeMap[String(h.house_id)];
-      if(!f){hUnpaid++;s.unpaid++;s.h1Unpaid++;s.h2Unpaid++;return;}
-      const h1s=f.h1_status||'unpaid',h2s=f.h2_status||'unpaid';
-      amtPaid+=(parseFloat(String(f.h1_paid||0).replace(/,/g,''))||0)+(parseFloat(String(f.h2_paid||0).replace(/,/g,''))||0);
-      if(h1s==='paid')s.h1Paid++;else s.h1Unpaid++;
-      if(h2s==='paid')s.h2Paid++;else s.h2Unpaid++;
-      if(h1s==='paid'&&h2s==='paid'){hFullPaid++;s.fullPaid++;}
-      else if(h1s==='unpaid'&&h2s==='unpaid'){hUnpaid++;s.unpaid++;}
-      else{hPartial++;s.partial++;}
-    });
-    const totalHouses=activeHouses.length||housesArr.length;
-    return{year,years,totalHouses,hFullPaid,hPartial,hUnpaid,
-      amtDue,amtPaid,paidPct:amtDue>0?Math.round(amtPaid/amtDue*100):0,
-      housePaidPct:totalHouses>0?Math.round(hFullPaid/totalHouses*100):0,bySoi};
-  }
-
   async function loadOverview(){
-    // ✅ PERF: ลด 5→4 API calls — คำนวณ summary จาก houses+fees ที่ดึงมาแล้ว
-    const[houses,fees,anns,reports]=await Promise.all([
+    const[houses,fees,anns,reports,summary]=await Promise.all([
       api({action:'getHouses'}),api({action:'getFees'}),api({action:'getAnnouncements'}),
-      api({action:'getNitiReports'})
+      api({action:'getNitiReports'}),api({action:'getFeeSummary'})
     ]);
-    // คำนวณ summary ฝั่ง browser แทนการเรียก getFeeSummary แยก
-    overviewSummary=buildOverviewSummary(houses.data||[],fees.data||[]);
+    overviewSummary=summary.data;
     document.getElementById('overviewStats').innerHTML=`
       <div class="mini-stat"><div class="mini-stat-icon" style="color:var(--primary)"><i class="fa-solid fa-house"></i></div><div class="mini-stat-val">${houses.data?.length||0}</div><div class="mini-stat-label">บ้านทั้งหมด</div></div>
       <div class="mini-stat"><div class="mini-stat-icon" style="color:#059669"><i class="fa-solid fa-receipt"></i></div><div class="mini-stat-val">${fees.data?.length||0}</div><div class="mini-stat-label">รายการค่าส่วนกลาง</div></div>
@@ -848,13 +997,55 @@
   async function loadHouses(){
     document.getElementById('houseTbody').innerHTML='<tr><td colspan="8" style="text-align:center;color:var(--muted)">กำลังโหลด...</td></tr>';
     const d=await api({action:'getHouses'});
-    housesData=d.data||[];housesFiltered=[...housesData];renderHouses(housesFiltered);
+    housesData=(d.data||[]).map(h=>({
+      ...h,
+      house_no: _fixHouseNo(h.house_no),    // ป้องกัน "09/04/2569"
+      soi:      _fixSoi(h.soi),             // 0 ถ้าว่าง
+      phone:    _fixPhone(h.phone),         // รักษา leading 0
+    }));
+    housesFiltered=[...housesData];
+    renderHouses(housesFiltered);
+  }
+
+  // ── Sanitize helpers (frontend safety net) ─────────────────────
+  function _fixHouseNo(v){
+    if(v===null||v===undefined||v==='') return '';
+    if(typeof v==='object'&&typeof v.getDate==='function')
+      return v.getDate()+'/'+(v.getMonth()+1);              // Date → "d/m"
+    const s=String(v).trim();
+    // "09/04/2569" → ตัด year → "9/4"
+    const m=s.match(/^(\d{1,2})\/(\d{1,2})\/\d{4}$/);
+    if(m) return parseInt(m[1])+'/'+parseInt(m[2]);
+    return s;
+  }
+  function _fixSoi(v){
+    const n=parseFloat(String(v??''));
+    return isNaN(n) ? 0 : n;
+  }
+  function _fixPhone(v){
+    if(v===null||v===undefined) return '';
+    if(typeof v==='number'){
+      // GAS ตัด leading 0 → ใส่ 0 กลับ เช่น 810012012 → "0810012012"
+      const s=String(v);
+      return s.length===9?'0'+s:s;
+    }
+    return String(v);
   }
   function renderHouses(list){
     const s=sortState.houses;
-    const sorted=sortArr(list,s.col,s.dir);
+    let sorted;
+    if(s.col){
+      sorted=sortArr(list,s.col,s.dir);
+    } else {
+      // default: เรียงซอย 0→22 (numeric) แล้วตาม house_no
+      sorted=[...list].sort((a,b)=>{
+        const sd=_soiN(a.soi)-_soiN(b.soi);
+        if(sd!==0)return sd;
+        const[am,as]=_houseN(a.house_no),[bm,bs]=_houseN(b.house_no);
+        if(am!==bm)return am-bm; return as-bs;
+      });
+    }
     if(!sorted.length){document.getElementById('houseTbody').innerHTML='<tr class="empty-row"><td colspan="8">ไม่มีข้อมูล</td></tr>';return;}
-    // ✅ BUG FIX: ลำดับคอลัมน์ตรงกับ header ทั้ง 8 คอลัมน์
     document.getElementById('houseTbody').innerHTML=sorted.map(h=>{
       const hst=h.account_status||'ปกติ';
       return`<tr>
@@ -863,7 +1054,7 @@
         <td>${h.soi}</td>
         <td>${h.house_type}</td>
         <td><span class="hst-badge hst-${hst}">${hst}</span></td>
-        <td>${Number(h.fee_per_half).toLocaleString()} ฿</td>
+        <td style="text-align:right">${fmtMoney(h.fee_per_half)}</td>
         <td><span class="badge ${h.status==='active'?'paid':'unpaid'}">${h.status}</span></td>
         <td><div class="actions">
           <button class="btn btn-outline btn-sm" title="ดูรายละเอียด" onclick="showHouseDetail('${h.house_id}')"><i class="fa-solid fa-eye"></i> ดู</button>
@@ -873,12 +1064,37 @@
     }).join('');
   }
   function filterHouses(){
-    const q=document.getElementById('houseSearch').value.toLowerCase();
-    housesFiltered=housesData.filter(h=>h.house_no.toLowerCase().includes(q)||h.owner_name.toLowerCase().includes(q));
+    const q=document.getElementById('houseSearch').value.toLowerCase().trim();
+    if(!q){ housesFiltered=[...housesData]; }
+    else {
+      housesFiltered=housesData.filter(h=>
+        String(h.house_no||'').toLowerCase().includes(q)||
+        String(h.owner_name||'').toLowerCase().includes(q)||
+        String(h.soi||'').includes(q)||
+        String(h.phone||'').includes(q)
+      );
+    }
     renderHouses(housesFiltered);
   }
+
+  // ── คำนวณ fee_per_half = fee_rate × area_sqm × 6 ────────────────
+  function calcFeeAdd(){
+    const rate=parseFloat(document.getElementById('h_rate').value)||0;
+    const area=parseFloat(document.getElementById('h_area').value)||0;
+    const el=document.getElementById('h_fee');
+    if(rate>0&&area>0){ el.value=(rate*area*6).toFixed(2); el.style.color='var(--primary)'; }
+    else{ el.value=''; el.style.color=''; }
+  }
+  function calcFeeEdit(){
+    const rate=parseFloat(document.getElementById('eh_rate').value)||0;
+    const area=parseFloat(document.getElementById('eh_area').value)||0;
+    const el=document.getElementById('eh_fee');
+    if(rate>0&&area>0){ el.value=(rate*area*6).toFixed(2); el.style.color='var(--primary)'; }
+    else{ el.value=''; el.style.color=''; }
+  }
+
   async function saveHouse(){
-    const data={action:'addHouse',house_no:g('h_no'),owner_name:g('h_owner'),address:g('h_addr'),area_sqm:g('h_area'),soi:g('h_soi'),house_type:g('h_type'),phone:g('h_phone'),fee_per_half:g('h_fee'),account_status:g('h_acst'),note:g('h_note')};
+    const data={action:'addHouse',house_no:g('h_no'),owner_name:g('h_owner'),address:g('h_addr'),area_sqm:g('h_area'),soi:g('h_soi'),house_type:g('h_type'),phone:g('h_phone'),fee_rate:g('h_rate'),fee_per_half:g('h_fee'),account_status:g('h_acst'),note:g('h_note')};
     if(!data.house_no||!data.owner_name){toast('warning','กรุณากรอกข้อมูลให้ครบ');return;}
     const r=await api(data);
     if(r.success){toast('success',r.message);toggleForm('houseForm');loadHouses();}else toast('error',r.message);
@@ -900,7 +1116,7 @@
         <div class="detail-avatar"><i class="fa-solid ${typeIcon[h.house_type]||'fa-house'}"></i></div>
         <div>
           <h4>บ้านเลขที่ ${h.house_no}</h4>
-          <p>${h.owner_name} · ${h.soi}</p>
+          <p>${h.owner_name} · ซอย ${h.soi||'—'}</p>
         </div>
         <div style="margin-left:auto"><span class="hst-badge hst-${hst}" style="font-size:.82rem;padding:.3rem .85rem">${hst}</span></div>
       </div>
@@ -911,7 +1127,8 @@
         <div class="detail-item"><div class="detail-item-label"><i class="fa-solid fa-ruler-combined"></i> พื้นที่</div><div class="detail-item-value">${h.area_sqm||'—'} ตร.ม.</div></div>
         <div class="detail-item" style="grid-column:1/-1"><div class="detail-item-label"><i class="fa-solid fa-location-dot"></i> ที่อยู่</div><div class="detail-item-value">${h.address||'—'}</div></div>
         <div class="detail-item"><div class="detail-item-label"><i class="fa-solid fa-phone"></i> เบอร์โทร</div><div class="detail-item-value">${h.phone||'—'}</div></div>
-        <div class="detail-item"><div class="detail-item-label"><i class="fa-solid fa-coins"></i> ค่าส่วนกลาง/ครึ่งปี</div><div class="detail-item-value" style="color:var(--primary)">${Number(h.fee_per_half||0).toLocaleString()} ฿</div></div>
+        <div class="detail-item"><div class="detail-item-label"><i class="fa-solid fa-percentage"></i> อัตราค่าส่วนกลาง</div><div class="detail-item-value">${h.fee_rate?fmtMoney(h.fee_rate)+' ฿/ตร.ม./เดือน':'—'}</div></div>
+        <div class="detail-item"><div class="detail-item-label"><i class="fa-solid fa-coins"></i> ค่าส่วนกลาง/ครึ่งปี</div><div class="detail-item-value" style="color:var(--primary)">${fmtMoney(h.fee_per_half)} บาท</div></div>
         <div class="detail-item"><div class="detail-item-label"><i class="fa-solid fa-toggle-on"></i> สถานะบ้าน</div><div class="detail-item-value">${h.status==='active'?'✅ Active':'❌ Inactive'}</div></div>
         <div class="detail-item"><div class="detail-item-label"><i class="fa-solid fa-circle-half-stroke"></i> สถานะบัญชี</div><div class="detail-item-value" style="color:${stColor[hst]||'var(--text)'}">${hst}</div></div>
         ${h.note?`<div class="detail-item" style="grid-column:1/-1"><div class="detail-item-label"><i class="fa-solid fa-note-sticky"></i> หมายเหตุ</div><div class="detail-item-value">${h.note}</div></div>`:''}
@@ -932,7 +1149,8 @@
     document.getElementById('eh_type').value=h.house_type||'บ้านเดี่ยว';
     document.getElementById('eh_phone').value=h.phone||'';
 
-    document.getElementById('eh_fee').value=h.fee_per_half||'';
+    document.getElementById('eh_rate').value=h.fee_rate?parseFloat(h.fee_rate).toFixed(2):'';
+    document.getElementById('eh_fee').value=h.fee_per_half?parseFloat(h.fee_per_half).toFixed(2):'';
     document.getElementById('eh_acst').value=h.account_status||'ปกติ';
     document.getElementById('eh_status').value=h.status||'active';
     document.getElementById('eh_note').value=h.note||'';
@@ -950,6 +1168,7 @@
       soi:document.getElementById('eh_soi').value,
       house_type:document.getElementById('eh_type').value,
       phone:document.getElementById('eh_phone').value,
+      fee_rate:document.getElementById('eh_rate').value,
       fee_per_half:document.getElementById('eh_fee').value,
       status:document.getElementById('eh_status').value,
       account_status:document.getElementById('eh_acst').value,
@@ -1002,10 +1221,12 @@
     if(s.col){
       sorted=sortArr(enriched,s.col,s.dir);
     } else {
+      // ใช้ _soiN() เพื่อให้ soi=0 เรียงก่อนเสมอ (ไม่ใช่ localeCompare ที่เรียง "" ก่อน "0")
       sorted=[...enriched].sort((a,b)=>{
-        const soiCmp=String(a.soi||'').localeCompare(String(b.soi||''),undefined,{numeric:true});
-        if(soiCmp!==0)return soiCmp;
-        return String(a.house_no||'').localeCompare(String(b.house_no||''),undefined,{numeric:true});
+        const sd=_soiN(a.soi)-_soiN(b.soi);
+        if(sd!==0)return sd;
+        const[am,as2]=_houseN(a.house_no),[bm,bs2]=_houseN(b.house_no);
+        if(am!==bm)return am-bm; return as2-bs2;
       });
     }
     if(!sorted.length){document.getElementById('feeTbody').innerHTML='<tr class="empty-row"><td colspan="11">ไม่มีข้อมูล</td></tr>';return;}
@@ -1015,20 +1236,30 @@
       <td>${f.house_no}</td>
       <td>${f.soi}</td>
       <td>${f.owner_name}</td>
-      <td style="text-align:right">${Number(f.h1_amount||0).toLocaleString()}</td>
-      <td style="text-align:right">${Number(f.h1_paid||0).toLocaleString()}</td>
+      <td style="text-align:right">${fmtMoney(f.h1_amount)}</td>
+      <td style="text-align:right">${fmtMoney(f.h1_paid)}</td>
       <td><span class="badge ${f.h1_status}">${stLabel[f.h1_status]||f.h1_status}</span></td>
-      <td style="text-align:right">${Number(f.h2_amount||0).toLocaleString()}</td>
-      <td style="text-align:right">${Number(f.h2_paid||0).toLocaleString()}</td>
+      <td style="text-align:right">${fmtMoney(f.h2_amount)}</td>
+      <td style="text-align:right">${fmtMoney(f.h2_paid)}</td>
       <td><span class="badge ${f.h2_status}">${stLabel[f.h2_status]||f.h2_status}</span></td>
       <td><button class="btn btn-primary btn-sm" onclick="editFee('${f.fee_id}')"><i class="fa-solid fa-pen"></i> แก้ไข</button></td>
     </tr>`).join('');
   }
   function filterFees(){
-    const q=document.getElementById('feeSearch').value.toLowerCase();
-    feesFiltered=feesData.filter(f=>{
+    const q=document.getElementById('feeSearch').value.toLowerCase().trim();
+    // ค้นจาก enriched data (มี house_no, soi, owner_name จาก join)
+    const enriched=feesData.map(f=>{
+      const h=housesData.find(x=>x.house_id===f.house_id)||{};
+      return{...f,house_no:h.house_no||f.house_id,soi:h.soi||'',owner_name:h.owner_name||''};
+    });
+    feesFiltered=enriched.filter(f=>{
       const matchYear=_selectedYear===null||String(f.year)===String(_selectedYear);
-      const matchQ=!q||String(f.house_id).toLowerCase().includes(q)||String(f.year).includes(q);
+      const matchQ=!q||
+        String(f.house_no||'').toLowerCase().includes(q)||
+        String(f.owner_name||'').toLowerCase().includes(q)||
+        String(f.house_id||'').toLowerCase().includes(q)||
+        String(f.soi||'').includes(q)||
+        String(f.year).includes(q);
       return matchYear&&matchQ;
     });
     renderFees(feesFiltered);
@@ -1049,15 +1280,17 @@
         <div style="width:40px;height:40px;background:linear-gradient(135deg,var(--primary),var(--accent));border-radius:10px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:1rem"><i class="fa-solid fa-receipt"></i></div>
         <div><div style="font-size:.75rem;color:var(--muted)">หมายเลขบ้าน · ปี</div><div style="font-weight:700">${f.house_id} · พ.ศ. ${f.year}</div></div>
       </div>`;
-    document.getElementById('ef_h1amt').value=f.h1_amount||'';
-    document.getElementById('ef_h1p').value=f.h1_paid||'';
+    document.getElementById('ef_h1amt').value=f.h1_amount?parseFloat(f.h1_amount).toFixed(2):'';
+    document.getElementById('ef_h1p').value=f.h1_paid?parseFloat(f.h1_paid).toFixed(2):'';
     document.getElementById('ef_h1d').value=f.h1_date||'';
     document.getElementById('ef_h1s').value=f.h1_status||'unpaid';
-    document.getElementById('ef_h2amt').value=f.h2_amount||'';
-    document.getElementById('ef_h2p').value=f.h2_paid||'';
+    document.getElementById('ef_h2amt').value=f.h2_amount?parseFloat(f.h2_amount).toFixed(2):'';
+    document.getElementById('ef_h2p').value=f.h2_paid?parseFloat(f.h2_paid).toFixed(2):'';
     document.getElementById('ef_h2d').value=f.h2_date||'';
     document.getElementById('ef_h2s').value=f.h2_status||'unpaid';
     document.getElementById('ef_note').value=f.note||'';
+    // อัปเดต badge สถานะทั้งสอง panel
+    updateFeeBadge('h1'); updateFeeBadge('h2');
     openModal('modalFeeEdit');
   }
   async function submitFeeEdit(){
@@ -1080,6 +1313,15 @@
     else toast('error',r.message||'เกิดข้อผิดพลาด');
   }
 
+  // ── helper: อัปเดต badge สถานะบน panel header ─────────────────
+  function updateFeeBadge(half){
+    const sel=document.getElementById('ef_'+half+'s');
+    const badge=document.getElementById('ef_'+half+'badge');
+    if(!sel||!badge)return;
+    const map={paid:'✅ ชำระครบ',partial:'⚡ บางส่วน',unpaid:'❌ ค้างชำระ'};
+    badge.textContent=map[sel.value]||sel.value;
+  }
+
   // ── USERS ─────────────────────────────────────────────────────
   let usersData=[];
   async function loadUsers(){
@@ -1093,7 +1335,12 @@
       <td><span class="badge ${u.role}">${u.role}</span></td>
       <td>${u.house_id||'—'}</td>
       <td><span class="badge ${u.active==='TRUE'?'paid':'unpaid'}">${u.active==='TRUE'?'เปิดใช้':'ปิด'}</span></td>
-      <td><button class="btn btn-primary btn-sm" onclick="editUser('${u.user_id}')"><i class="fa-solid fa-pen"></i> แก้ไข</button></td>
+      <td><div class="actions">
+        <button class="btn btn-primary btn-sm" onclick="editUser('${u.user_id}')"><i class="fa-solid fa-pen"></i> แก้ไข</button>
+        <button class="btn btn-danger btn-sm" onclick="deactivateUser('${u.user_id}')" title="ปิดใช้งาน" ${u.active==='FALSE'?'disabled style="opacity:.4"':''}>
+          <i class="fa-solid fa-ban"></i>
+        </button>
+      </div></td>
     </tr>`).join('')||'<tr class="empty-row"><td colspan="6">ไม่มีข้อมูล</td></tr>';
   }
   async function saveUser(){
@@ -1101,6 +1348,18 @@
     if(!data.username||!data.password){toast('warning','กรุณากรอกข้อมูลให้ครบ');return;}
     const r=await api(data);
     if(r.success){toast('success',r.message);toggleForm('userForm');loadUsers();}else toast('error',r.message);
+  }
+  async function deactivateUser(id){
+    const u=usersData.find(x=>x.user_id===id);if(!u)return;
+    const c=await Swal.fire({icon:'warning',title:'ปิดใช้งานผู้ใช้?',
+      text:`${u.full_name} (${u.username}) จะไม่สามารถเข้าสู่ระบบได้`,
+      showCancelButton:true,confirmButtonColor:'#dc2626',confirmButtonText:'ปิดใช้งาน',cancelButtonText:'ยกเลิก'});
+    if(!c.isConfirmed)return;
+    const r=await api({action:'updateUser',user_id:id,username:u.username,
+      password:'***',role:u.role,house_id:u.house_id||'',
+      full_name:u.full_name,active:'FALSE'});
+    if(r.success){toast('success','ปิดใช้งานสำเร็จ');loadUsers();}
+    else toast('error',r.message||'เกิดข้อผิดพลาด');
   }
   let _editUserId='';
   function editUser(id){
@@ -1162,13 +1421,10 @@
   function clearAnnFile(){document.getElementById('a_file').value='';document.getElementById('a_file_preview').style.display='none';}
   async function uploadAnnFile(){
     const input=document.getElementById('a_file');if(!input.files.length)return'';
-    const file=input.files[0];
-    // ✅ PERF-2: จำกัดขนาดไฟล์ 10MB
-    if(file.size>10*1024*1024){toast('warning','ไฟล์ใหญ่เกิน 10MB กรุณาเลือกไฟล์ที่เล็กกว่า');return'';}
-    const prog=document.getElementById('a_file_progress');
+    const file=input.files[0];const prog=document.getElementById('a_file_progress');
     prog.style.display='block';
     const base64=await toBase64(file);
-    const r=await apiPost({action:'uploadFile',base64Data:base64,fileName:file.name,mimeType:file.type});
+    const r=await apiPost({action:'uploadFile',base64Data:base64,fileName:file.name,mimeType:file.type||'image/jpeg',folderId:DRIVE_FOLDER_ID,filePrefix:'annou'});
     prog.style.display='none';
     if(r.success)return r.fileUrl;
     toast('error','อัปโหลดไฟล์ไม่สำเร็จ');return'';
@@ -1177,29 +1433,121 @@
     const data={action:'addAnnouncement',title:g('a_title'),content:g('a_content'),category:g('a_cat'),date:g('a_date')};
     if(!data.title||!data.content){toast('warning','กรุณากรอกข้อมูลให้ครบ');return;}
     data.file_url=await uploadAnnFile();
-    const r=await api(data);
+    // ใช้ POST เพื่อรองรับเนื้อหายาวและไฟล์ขนาดใหญ่ (หลีกเลี่ยง URL limit)
+    const r=await apiPost(data);
     if(r.success){toast('success',r.message);toggleForm('annForm');loadAnn();}else toast('error',r.message);
   }
+  // แปลง date string ทุกรูปแบบ → dd/mm/พ.ศ.
+  function _parseAnnDate(raw){
+    if(!raw) return '';
+    // รูปแบบ dd/mm/yyyy (ถ้า yyyy < 2100 = CE → บวก 543)
+    const slash=raw.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+    if(slash){
+      const yr=parseInt(slash[3]);
+      return slash[1].padStart(2,'0')+'/'+slash[2].padStart(2,'0')+'/'+(yr<2100?yr+543:yr);
+    }
+    // รูปแบบ JS Date string เช่น "Mon Mar 01 3655 00:00:00 GMT+0700 (Indochina Time)"
+    // หรือ "Fri Jan 01 2016 ..."
+    const jsDate=raw.match(/([A-Za-z]{3})\s+(\d{1,2})\s+(\d{4})/);
+    if(jsDate){
+      const months={Jan:1,Feb:2,Mar:3,Apr:4,May:5,Jun:6,Jul:7,Aug:8,Sep:9,Oct:10,Nov:11,Dec:12};
+      const d=parseInt(jsDate[2]);
+      const m=months[jsDate[1]]||1;
+      const yr=parseInt(jsDate[3]);
+      // ถ้าปี > 2500 แสดงว่าบวก 543 ไปแล้ว (หรือบวกซ้ำ); ถ้า <= 2500 ให้บวก
+      // แต่ภาพแสดง "3655" = 2025+543+543 → ปี > 2500 = พ.ศ. แล้ว ใช้ตรงๆ
+      const displayYr = yr > 2500 ? yr : yr + 543;
+      return d.toString().padStart(2,'0')+'/'+m.toString().padStart(2,'0')+'/'+displayYr;
+    }
+    // รูปแบบ ISO "2025-03-01"
+    const iso=raw.match(/^(\d{4})-(\d{2})-(\d{2})/);
+    if(iso){
+      const yr=parseInt(iso[1]);
+      return iso[3]+'/'+iso[2]+'/'+(yr<2100?yr+543:yr);
+    }
+    return raw; // fallback คืนตรงๆ
+  }
+
   let _editAnnId='';
   function editAnn(id){
     const a=annData.find(x=>x.ann_id===id);if(!a)return;
     _editAnnId=id;
     document.getElementById('ea_title').value=a.title||'';
     document.getElementById('ea_cat').value=a.category||'ทั่วไป';
-    document.getElementById('ea_date').value=a.date||'';
+    // sanitize date: รองรับทุกรูปแบบที่ API อาจส่งมา
+    document.getElementById('ea_date').value=_parseAnnDate(a.date||'');
     document.getElementById('ea_content').value=a.content||'';
     document.getElementById('ea_active').value=a.active==='TRUE'?'TRUE':'FALSE';
+    // โหลด file_url เดิม
+    const fileWrap=document.getElementById('ea_file_wrap');
+    const fileLink=document.getElementById('ea_file_link');
+    const fileUrlInput=document.getElementById('ea_file_url');
+    const newFileInput=document.getElementById('ea_new_file');
+    if(a.file_url){
+      fileWrap.style.display='';
+      fileLink.href=a.file_url;
+      fileUrlInput.value=a.file_url;
+    }else{
+      fileWrap.style.display='none';
+      fileUrlInput.value='';
+    }
+    if(newFileInput){newFileInput.value='';document.getElementById('ea_new_file_name').textContent='';}
     openModal('modalAnnEdit');
+  }
+  function clearAnnEditFile(){
+    document.getElementById('ea_file_url').value='';
+    document.getElementById('ea_file_wrap').style.display='none';
+  }
+  function previewAnnEditFile(input){
+    if(!input.files.length)return;
+    const f=input.files[0];
+    document.getElementById('ea_new_file_name').textContent=f.name+' ('+(f.size/1024).toFixed(1)+' KB)';
   }
   async function submitAnnEdit(){
     const btn=document.querySelector('#modalAnnEdit .btn-primary');
     btn.disabled=true;btn.innerHTML='<i class="fa-solid fa-spinner fa-spin"></i> บันทึก...';
-    const r=await api({action:'updateAnnouncement',ann_id:_editAnnId,
+    // ตรวจไฟล์ใหม่ก่อน ถ้ามีให้ upload แล้วใช้ URL ใหม่, ไม่มีให้ใช้ URL เดิม
+    let fileUrl=document.getElementById('ea_file_url').value||'';
+    const newFileInput=document.getElementById('ea_new_file');
+    if(newFileInput&&newFileInput.files.length){
+      const file=newFileInput.files[0];
+      const prog=document.getElementById('ea_new_file_name');
+      // แสดง progress + ขนาดไฟล์
+      if(prog)prog.innerHTML='<i class="fa-solid fa-spinner fa-spin"></i> กำลังอัปโหลด '+file.name+' ('+(file.size/1024).toFixed(1)+' KB)...';
+      try {
+        const base64=await toBase64(file);
+        const up=await apiPost({
+          action:'uploadFile',
+          base64Data:base64,
+          fileName:file.name,
+          mimeType:file.type||'image/jpeg',
+          folderId:DRIVE_FOLDER_ID,
+          filePrefix:'annou'                  // rename: annou_YYYYMMDD_HHmmss_ms.ext
+        });
+        if(up&&up.success){
+          fileUrl=up.fileUrl;
+          if(prog)prog.innerHTML='<i class="fa-solid fa-check" style="color:#059669"></i> อัปโหลดสำเร็จ';
+        } else {
+          const msg=(up&&up.message)||'อัปโหลดไฟล์ไม่สำเร็จ';
+          if(prog)prog.innerHTML='<span style="color:#dc2626">❌ '+msg+'</span>';
+          btn.disabled=false;btn.innerHTML='<i class="fa-solid fa-floppy-disk"></i> บันทึก';
+          toast('error',msg);
+          return; // ← หยุด ไม่บันทึกถ้า upload fail
+        }
+      } catch(err){
+        if(prog)prog.innerHTML='<span style="color:#dc2626">❌ เกิดข้อผิดพลาด: '+err.message+'</span>';
+        btn.disabled=false;btn.innerHTML='<i class="fa-solid fa-floppy-disk"></i> บันทึก';
+        toast('error','อัปโหลดล้มเหลว: '+err.message);
+        return;
+      }
+    }
+    const r=await apiPost({action:'updateAnnouncement',ann_id:_editAnnId,
       title:document.getElementById('ea_title').value,
       category:document.getElementById('ea_cat').value,
       date:document.getElementById('ea_date').value,
       content:document.getElementById('ea_content').value,
       active:document.getElementById('ea_active').value,
+      file_url:fileUrl,
     });
     btn.disabled=false;btn.innerHTML='<i class="fa-solid fa-floppy-disk"></i> บันทึก';
     if(r.success){toast('success','อัปเดตสำเร็จ');closeModal('modalAnnEdit');loadAnn();}
@@ -1233,11 +1581,6 @@
   }
 
   async function previewNitiPhotos(input){
-    // ✅ PERF-3: แสดง warning ถ้ารูปเกิน 5 ใบหรือใหญ่เกิน 5MB
-    const allF=Array.from(input.files||[]);
-    if(allF.length>5){toast('warning','เลือกได้สูงสุด 5 รูป (ได้ '+allF.length+' รูป)');}
-    const bigF=allF.find(f=>f.size>5*1024*1024);
-    if(bigF)toast('warning',`รูป "${bigF.name}" ใหญ่เกิน 5MB จะไม่สามารถอัปโหลดได้`);
     const files=Array.from(input.files).slice(0,10);
     const prev=document.getElementById('n_photos_preview');
     prev.innerHTML=files.map((f,i)=>{
@@ -1255,21 +1598,15 @@
   }
   async function uploadNitiPhotos(){
     const input=document.getElementById('n_photos');if(!input.files.length)return'';
-    // ✅ PERF-2: จำกัด 5 รูป และขนาด 5MB/รูป
-    const allFiles=Array.from(input.files);
-    if(allFiles.length>5){toast('warning','อัปโหลดได้สูงสุด 5 รูปต่อครั้ง');return'';}
-    const oversized=allFiles.find(f=>f.size>5*1024*1024);
-    if(oversized){toast('warning',`รูป "${oversized.name}" ใหญ่เกิน 5MB`);return'';}
-    const files=allFiles;
+    const files=Array.from(input.files).slice(0,10);
     const prog=document.getElementById('n_photos_progress');prog.style.display='block';
     prog.innerHTML='<i class="fa-solid fa-spinner fa-spin"></i> กำลังอัปโหลด 0/'+files.length+'...';
     const urls=[];
     for(let i=0;i<files.length;i++){
       prog.innerHTML='<i class="fa-solid fa-spinner fa-spin"></i> กำลังอัปโหลด '+(i+1)+'/'+files.length+'...';
       const base64=await toBase64(files[i]);
-      const r=await apiPost({action:'uploadFile',base64Data:base64,fileName:files[i].name,mimeType:files[i].type,folderId:'1RF2J9YDSmhg_iGLzvyAGRqzSMQ1FuaHw'});
+      const r=await apiPost({action:'uploadFile',base64Data:base64,fileName:files[i].name,mimeType:files[i].type||'image/jpeg',folderId:DRIVE_FOLDER_ID,filePrefix:'niti'});
       if(r.success)urls.push(r.fileUrl);
-      else{toast('error',`อัปโหลด "${files[i].name}" ไม่สำเร็จ`);}
     }
     prog.style.display='none';return urls.join(',');
   }
@@ -1290,22 +1627,132 @@
     document.getElementById('en_content').value=r.content||'';
     document.getElementById('en_income').value=r.income||'';
     document.getElementById('en_expense').value=r.expense||'';
+    // reset upload input
+    const photoInput=document.getElementById('en_photos');
+    if(photoInput){photoInput.value='';document.getElementById('en_photos_preview').innerHTML='';}
+    document.getElementById('en_photos_progress').style.display='none';
+    // โหลดรูปเดิม
+    const existWrap=document.getElementById('en_existing_wrap');
+    const existPrev=document.getElementById('en_existing_preview');
+    const existUrls=document.getElementById('en_existing_urls');
+    const urls=(r.photo_urls||'').split(',').filter(u=>u.trim());
+    if(urls.length){
+      existWrap.style.display='';
+      existUrls.value=r.photo_urls||'';
+      existPrev.innerHTML=urls.map((u,i)=>`<div style="position:relative;width:70px;height:70px">
+        <img src="${u.replace('/preview','/thumbnail?sz=70')}" style="width:70px;height:70px;object-fit:cover;border-radius:8px;border:1.5px solid var(--border)" onerror="this.src='${u}'">
+        <a href="${u}" target="_blank" style="position:absolute;bottom:0;right:0;background:rgba(0,0,0,.5);color:#fff;border-radius:4px;padding:1px 4px;font-size:.6rem">ดู</a>
+      </div>`).join('');
+    }else{
+      existWrap.style.display='none';
+      existUrls.value='';
+      existPrev.innerHTML='';
+    }
     openModal('modalNitiEdit');
+  }
+  function clearNitiEditPhotos(){
+    document.getElementById('en_existing_urls').value='';
+    document.getElementById('en_existing_wrap').style.display='none';
+  }
+  function previewNitiEditPhotos(input){
+    const files=Array.from(input.files).slice(0,10);
+    const prev=document.getElementById('en_photos_preview');
+    prev.innerHTML=files.map((f,i)=>{
+      const url=URL.createObjectURL(f);
+      return`<div style="position:relative;width:70px;height:70px">
+        <img src="${url}" style="width:70px;height:70px;object-fit:cover;border-radius:8px;border:1.5px solid var(--border)">
+        <span style="position:absolute;top:-4px;right:-4px;background:#dc2626;color:#fff;border-radius:50%;width:18px;height:18px;font-size:.65rem;display:flex;align-items:center;justify-content:center;cursor:pointer" onclick="removeNitiEditPhoto(${i})">${i+1}</span>
+      </div>`;
+    }).join('');
+  }
+  function removeNitiEditPhoto(idx){
+    const dt=new DataTransfer();const input=document.getElementById('en_photos');
+    Array.from(input.files).forEach((f,i)=>{if(i!==idx)dt.items.add(f);});
+    input.files=dt.files;previewNitiEditPhotos(input);
+  }
+  async function uploadNitiEditPhotos(){
+    const input=document.getElementById('en_photos');
+    if(!input||!input.files.length) return null; // ไม่มีไฟล์ → null (ไม่เปลี่ยนรูปเดิม)
+    const files=Array.from(input.files).slice(0,10);
+    const prog=document.getElementById('en_photos_progress');
+    if(prog){prog.style.display='block';prog.innerHTML='<i class="fa-solid fa-spinner fa-spin"></i> กำลังอัปโหลด 0/'+files.length+'...';}
+    const urls=[];
+    const failed=[];
+    for(let i=0;i<files.length;i++){
+      if(prog) prog.innerHTML='<i class="fa-solid fa-spinner fa-spin"></i> กำลังอัปโหลด '+(i+1)+'/'+files.length+': '+files[i].name+'...';
+      try{
+        const base64=await toBase64(files[i]);
+        const r=await apiPost({
+          action:'uploadFile',
+          base64Data:base64,
+          fileName:files[i].name,
+          mimeType:files[i].type||'image/jpeg',
+          folderId:DRIVE_FOLDER_ID,
+          filePrefix:'niti'                   // rename: niti_YYYYMMDD_HHmmss_ms.ext
+        });
+        if(r&&r.success&&r.fileUrl){
+          urls.push(r.fileUrl);
+          if(prog) prog.innerHTML='<i class="fa-solid fa-check" style="color:#059669"></i> อัปโหลดแล้ว '+(i+1)+'/'+files.length;
+        } else {
+          failed.push(files[i].name+': '+(r&&r.message||'ไม่ทราบสาเหตุ'));
+        }
+      } catch(e){
+        failed.push(files[i].name+': '+e.message);
+      }
+    }
+    if(prog) prog.style.display='none';
+    if(failed.length) toast('warning','อัปโหลดบางไฟล์ไม่สำเร็จ: '+failed.join(', '));
+    // ถ้าไม่มี URL เลย return null (ให้ backend คง existing ไว้)
+    return urls.length ? urls.join(',') : null;
   }
   async function submitNitiEdit(){
     const btn=document.querySelector('#modalNitiEdit .btn-primary');
     btn.disabled=true;btn.innerHTML='<i class="fa-solid fa-spinner fa-spin"></i> บันทึก...';
-    const r=await api({action:'updateNitiReport',report_id:_editNitiId,
+
+    // ── รวม photo_urls ──────────────────────────────────────────
+    // existingUrls = รูปเดิมที่ยังคงไว้ (ถ้าผู้ใช้กด "ลบรูปทั้งหมด" จะเป็น "")
+    const existingUrls=document.getElementById('en_existing_urls').value||'';
+    const userClearedPhotos=document.getElementById('en_existing_wrap').style.display==='none'
+                             && !existingUrls;
+
+    // upload รูปใหม่ (null = ไม่มีไฟล์ใหม่)
+    const newUrls=await uploadNitiEditPhotos();
+
+    // ตัดสินใจ photo_urls ที่จะส่ง:
+    let finalPhotoUrls;
+    if(newUrls!==null){
+      // มีอัปโหลดใหม่ → รวม existing + ใหม่
+      const parts=[existingUrls,newUrls].filter(Boolean);
+      finalPhotoUrls=parts.join(',');
+    } else if(userClearedPhotos){
+      // ผู้ใช้กด "ลบรูปทั้งหมด" และไม่ได้ upload ใหม่ → ล้างจริง
+      finalPhotoUrls='';
+    } else {
+      // ไม่มีการเปลี่ยนรูปเลย → ส่ง sentinel ให้ backend คงเดิม
+      finalPhotoUrls = existingUrls || '__KEEP__';
+    }
+
+    const payload={
+      action:'updateNitiReport',
+      report_id:_editNitiId,
       month:document.getElementById('en_month').value,
       year:document.getElementById('en_year').value,
       title:document.getElementById('en_title').value,
       content:document.getElementById('en_content').value,
       income:document.getElementById('en_income').value,
       expense:document.getElementById('en_expense').value,
-    });
+      photo_urls:finalPhotoUrls,
+    };
+
+    const r=await apiPost(payload);
     btn.disabled=false;btn.innerHTML='<i class="fa-solid fa-floppy-disk"></i> บันทึก';
-    if(r.success){toast('success','อัปเดตสำเร็จ');closeModal('modalNitiEdit');loadNiti();}
-    else toast('error',r.message||'เกิดข้อผิดพลาด');
+    if(r.success){
+      toast('success','อัปเดตสำเร็จ');
+      closeModal('modalNitiEdit');
+      loadNiti();
+    } else {
+      toast('error',r.message||'เกิดข้อผิดพลาด');
+    }
   }
   async function delNiti(id){
     const c=await Swal.fire({icon:'warning',title:'ลบรายงาน?',showCancelButton:true,confirmButtonColor:'#dc2626',confirmButtonText:'ลบ',cancelButtonText:'ยกเลิก'});
@@ -1319,7 +1766,167 @@
     .then(r=>{if(r.isConfirmed){localStorage.removeItem('vms_token');localStorage.removeItem('vms_role');localStorage.removeItem('vms_name');localStorage.removeItem('vms_house');window.location.href='index.html';}});
   }
 
+  // ════════════════════════════════════════════════════════
+  // CARS — Admin functions
+  // ════════════════════════════════════════════════════════
+  let carsData=[];
+  let _editCarId='';
+
+  const carTypeLabel={car:'🚗 รถยนต์',motorcycle:'🏍️ มอเตอร์ไซค์',truck:'🚐 รถกระบะ/ตู้',other:'🚙 อื่นๆ'};
+  const parkLabel={'หน้าบ้าน':'🏠 หน้าบ้าน','ในบ้าน':'🔒 ในบ้าน','ส่วนกลาง':'🅿️ ส่วนกลาง','อื่นๆ':'📍 อื่นๆ'};
+
+  function carTypeBadge(t){
+    const label=carTypeLabel[t]||t||'—';
+    const cls=t==='car'?'car':t==='motorcycle'?'motorcycle':t==='truck'?'truck':'other';
+    return`<span class="car-type-badge ${cls}">${label}</span>`;
+  }
+
+  async function loadCars(){
+    const r=await api({action:'getCars'});
+    if(!r.success){toast('error',r.message);return;}
+    carsData=r.data||[];
+    // populate house dropdown
+    populateCarHouseDropdown('c_house_id');
+    populateCarHouseDropdown('ec_house_id');
+    renderCars(carsData);
+  }
+
+  function populateCarHouseDropdown(selectId){
+    const sel=document.getElementById(selectId);if(!sel)return;
+    const cur=sel.value;
+    sel.innerHTML='<option value="">-- เลือกบ้าน --</option>';
+    (housesData||[]).forEach(h=>{
+      const opt=document.createElement('option');
+      opt.value=h.house_id;
+      opt.textContent=h.house_id+' — '+h.house_no+' ('+h.owner_name+')';
+      sel.appendChild(opt);
+    });
+    sel.value=cur;
+  }
+
+  function renderCars(data){
+    const tbody=document.getElementById('carTbody');
+    if(!data.length){tbody.innerHTML='<tr><td colspan="8" style="text-align:center;padding:2rem;color:var(--muted)"><i class="fa-solid fa-car-side" style="opacity:.3;font-size:2rem;display:block;margin-bottom:.5rem"></i>ยังไม่มีข้อมูลรถ</td></tr>';return;}
+    tbody.innerHTML=data.map(c=>{
+      const fee=parseFloat(c.car_fee)||0;
+      const houseInfo=housesData?housesData.find(h=>h.house_id===c.house_id):null;
+      const houseLabel=houseInfo?c.house_id+' ('+houseInfo.house_no+')':c.house_id;
+      return`<tr>
+        <td><strong>${houseLabel}</strong></td>
+        <td>${carTypeBadge(c.car_type)}</td>
+        <td><strong style="letter-spacing:.05em">${c.plate_no||'—'}</strong></td>
+        <td>${c.car_brand||''} <span style="color:var(--muted)">${c.car_model||''}</span></td>
+        <td>${c.car_color||'—'}</td>
+        <td><span class="car-park-badge">${parkLabel[c.car_park]||c.car_park||'—'}</span></td>
+        <td style="text-align:right;font-weight:700">${fee>0?fmtMoney(fee)+' ฿':'<span style="color:var(--accent)">ฟรี</span>'}</td>
+        <td>
+          <button class="btn btn-primary btn-sm" onclick="editCar('${c.car_id}')"><i class="fa-solid fa-pen"></i></button>
+          <button class="btn btn-danger btn-sm" onclick="delCar('${c.car_id}')"><i class="fa-solid fa-trash"></i></button>
+        </td>
+      </tr>`;
+    }).join('');
+  }
+
+  function filterCars(){
+    const q=document.getElementById('carSearch').value.toLowerCase();
+    if(!q){renderCars(carsData);return;}
+    renderCars(carsData.filter(c=>[c.house_id,c.plate_no,c.car_brand,c.car_model,c.car_color,c.car_park].join(' ').toLowerCase().includes(q)));
+  }
+
+  async function saveCar(){
+    const payload={action:'addCar',
+      house_id:document.getElementById('c_house_id').value,
+      car_type:document.getElementById('c_car_type').value,
+      plate_no:document.getElementById('c_plate_no').value,
+      car_brand:document.getElementById('c_car_brand').value,
+      car_model:document.getElementById('c_car_model').value,
+      car_color:document.getElementById('c_car_color').value,
+      car_park:document.getElementById('c_car_park').value,
+      car_fee:document.getElementById('c_car_fee').value,
+    };
+    if(!payload.house_id||!payload.plate_no){toast('warning','กรุณาเลือกบ้านและกรอกทะเบียนรถ');return;}
+    const r=await api(payload);
+    if(r.success){toast('success',r.message);toggleForm('carForm');loadCars();}
+    else toast('error',r.message);
+  }
+
+  function editCar(id){
+    const c=carsData.find(x=>x.car_id===id);if(!c)return;
+    _editCarId=id;
+    populateCarHouseDropdown('ec_house_id');
+    document.getElementById('ec_house_id').value=c.house_id||'';
+    document.getElementById('ec_car_type').value=c.car_type||'car';
+    document.getElementById('ec_plate_no').value=c.plate_no||'';
+    document.getElementById('ec_car_brand').value=c.car_brand||'';
+    document.getElementById('ec_car_model').value=c.car_model||'';
+    document.getElementById('ec_car_color').value=c.car_color||'';
+    document.getElementById('ec_car_park').value=c.car_park||'หน้าบ้าน';
+    document.getElementById('ec_car_fee').value=c.car_fee||0;
+    openModal('modalCarEdit');
+  }
+
+  async function submitCarEdit(){
+    const btn=document.querySelector('#modalCarEdit .btn-primary');
+    btn.disabled=true;btn.innerHTML='<i class="fa-solid fa-spinner fa-spin"></i> บันทึก...';
+    const r=await api({action:'updateCar',car_id:_editCarId,
+      house_id:document.getElementById('ec_house_id').value,
+      car_type:document.getElementById('ec_car_type').value,
+      plate_no:document.getElementById('ec_plate_no').value,
+      car_brand:document.getElementById('ec_car_brand').value,
+      car_model:document.getElementById('ec_car_model').value,
+      car_color:document.getElementById('ec_car_color').value,
+      car_park:document.getElementById('ec_car_park').value,
+      car_fee:document.getElementById('ec_car_fee').value,
+    });
+    btn.disabled=false;btn.innerHTML='<i class="fa-solid fa-floppy-disk"></i> บันทึก';
+    if(r.success){toast('success',r.message);closeModal('modalCarEdit');loadCars();}
+    else toast('error',r.message||'เกิดข้อผิดพลาด');
+  }
+
+  async function delCar(id){
+    const c=carsData.find(x=>x.car_id===id);
+    const label=c?c.plate_no+' ('+c.car_brand+' '+c.car_model+')':id;
+    const conf=await Swal.fire({icon:'warning',title:'ลบรถ?',text:label,showCancelButton:true,confirmButtonColor:'#dc2626',confirmButtonText:'ลบ',cancelButtonText:'ยกเลิก'});
+    if(!conf.isConfirmed)return;
+    const r=await api({action:'deleteCar',car_id:id});
+    if(r.success){toast('success',r.message);loadCars();}
+    else toast('error',r.message);
+  }
+
   loadOverview();
 </script>
+
+<!-- ═══════ MODAL: Edit Car ═══════ -->
+<div class="modal-backdrop" id="modalCarEdit" onclick="closeModalBg(event,'modalCarEdit')">
+  <div class="modal">
+    <div class="modal-header"><h3><i class="fa-solid fa-car"></i> แก้ไขข้อมูลรถ</h3><button class="modal-close" onclick="closeModal('modalCarEdit')"><i class="fa-solid fa-xmark"></i></button></div>
+    <div class="modal-body">
+      <div class="mf-group"><div class="mf-label">บ้าน (house_id)</div><select class="mf-input" id="ec_house_id"><option value="">-- เลือกบ้าน --</option></select></div>
+      <div class="mf-group"><div class="mf-label">ประเภท</div>
+        <select class="mf-input" id="ec_car_type">
+          <option value="car">🚗 รถยนต์</option>
+          <option value="motorcycle">🏍️ มอเตอร์ไซค์</option>
+          <option value="truck">🚐 รถกระบะ/ตู้</option>
+          <option value="other">อื่นๆ</option>
+        </select></div>
+      <div class="mf-group"><div class="mf-label">ทะเบียนรถ</div><input class="mf-input" id="ec_plate_no" type="text"/></div>
+      <div class="mf-group"><div class="mf-label">ยี่ห้อ</div><input class="mf-input" id="ec_car_brand" type="text"/></div>
+      <div class="mf-group"><div class="mf-label">รุ่น</div><input class="mf-input" id="ec_car_model" type="text"/></div>
+      <div class="mf-group"><div class="mf-label">สี</div><input class="mf-input" id="ec_car_color" type="text"/></div>
+      <div class="mf-group"><div class="mf-label">ที่จอด</div>
+        <select class="mf-input" id="ec_car_park">
+          <option value="หน้าบ้าน">หน้าบ้าน</option>
+          <option value="ในบ้าน">ในบ้าน</option>
+          <option value="ส่วนกลาง">ส่วนกลาง</option>
+          <option value="อื่นๆ">อื่นๆ</option>
+        </select></div>
+      <div class="mf-group"><div class="mf-label">ค่าจอด/เดือน (฿)</div><input class="mf-input" id="ec_car_fee" type="number" min="0" step="50"/></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-primary" onclick="submitCarEdit()"><i class="fa-solid fa-floppy-disk"></i> บันทึก</button>
+      <button class="btn btn-outline" onclick="closeModal('modalCarEdit')"><i class="fa-solid fa-xmark"></i> ยกเลิก</button>
+    </div>
+  </div>
+</div>
 </body>
 </html>

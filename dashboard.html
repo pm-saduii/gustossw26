@@ -28,8 +28,8 @@
     .btn-theme:hover{background:rgba(255,255,255,.28);}
 
     /* PAGE TABS */
-    /* ── PAGE TABS: desktop sticky bar ── */
-    .page-tabs{background:var(--card);border-bottom:1px solid var(--border);padding:0 1rem;display:flex;gap:0;transition:background .3s,border-color .3s;position:sticky;top:54px;z-index:99;}
+        /* ── PAGE TABS: desktop horizontal bar ── */
+    .page-tabs{background:var(--card);border-bottom:1px solid var(--border);padding:0 1rem;display:flex;gap:0;transition:background .3s,border-color .3s;position:sticky;top:54px;z-index:100;}
     .page-tab{white-space:nowrap;padding:.72rem 1.1rem;font-size:.84rem;font-weight:600;text-decoration:none;color:var(--muted);border-bottom:2.5px solid transparent;display:flex;align-items:center;gap:.4rem;transition:color .15s,border-color .15s;flex-shrink:0;}
     .page-tab i{font-size:.82rem;}
     .page-tab:hover{color:var(--primary);}
@@ -107,6 +107,29 @@
     .skeleton{background:linear-gradient(90deg,var(--bg2) 25%,var(--card2) 50%,var(--bg2) 75%);background-size:200% 100%;animation:shimmer 1.2s infinite;border-radius:8px;}
     @keyframes shimmer{to{background-position:-200% 0;}}
 
+    /* ── Cars section ─────────────────────────────── */
+    .car-list{display:flex;flex-direction:column;gap:.75rem;}
+    .car-card{background:var(--card);border-radius:14px;border:1px solid var(--border);padding:.9rem 1.1rem;display:flex;align-items:center;gap:1rem;box-shadow:0 2px 10px var(--shadow2);transition:transform .15s,box-shadow .15s,background .3s;}
+    .car-card:hover{transform:translateY(-2px);box-shadow:0 6px 20px var(--shadow);}
+    .car-icon-wrap{width:52px;height:52px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:1.6rem;flex-shrink:0;}
+    .car-icon-wrap.car{background:#dbeafe;}
+    .car-icon-wrap.motorcycle{background:#fef9c3;}
+    .car-icon-wrap.truck{background:#f3e8ff;}
+    .car-icon-wrap.other{background:var(--bg2);}
+    [data-theme="dark"] .car-icon-wrap.car{background:#1e3a5f;}
+    [data-theme="dark"] .car-icon-wrap.motorcycle{background:#2a2010;}
+    .car-info{flex:1;}
+    .car-plate{font-size:1rem;font-weight:800;letter-spacing:.06em;color:var(--text);}
+    .car-sub{font-size:.8rem;color:var(--muted);margin-top:.15rem;}
+    .car-meta{display:flex;flex-wrap:wrap;gap:.4rem;margin-top:.45rem;}
+    .car-tag{font-size:.7rem;padding:.15rem .55rem;border-radius:20px;font-weight:600;background:var(--bg2);color:var(--text2);}
+    .car-tag.park{background:var(--primary-l);color:var(--primary);}
+    .car-fee-badge{font-size:.78rem;font-weight:800;padding:.2rem .7rem;border-radius:20px;flex-shrink:0;}
+    .car-fee-badge.free{background:var(--accent-l,#ecfdf5);color:#059669;}
+    .car-fee-badge.paid{background:#fee2e2;color:#dc2626;}
+    [data-theme="dark"] .car-fee-badge.free{background:#0d2a1e;color:#34d399;}
+    [data-theme="dark"] .car-fee-badge.paid{background:#2a1010;color:#f87171;}
+
     @media(max-width:600px){.half-grid{grid-template-columns:1fr;}.hero{flex-direction:column;text-align:center;}.info-grid{grid-template-columns:1fr 1fr;}.nav-name{display:none;}}
   </style>
 </head>
@@ -117,7 +140,7 @@
   <div class="nav-right">
     <span class="nav-name" id="navName"></span>
     <button class="btn-theme" onclick="toggleTheme()"><i id="themeIcon" class="fa-solid fa-moon"></i></button>
-    <button class="btn-nav" onclick="logout()"><i class="fa-solid fa-right-from-bracket"></i> ออกจากระบบ</button>
+    <button class="btn-nav" onclick="logout()"><i class="fa-solid fa-right-from-bracket"></i> <span class="btn-nav-text">ออกจากระบบ</span></button>
   </div>
 </nav>
 
@@ -149,7 +172,14 @@
     </div>
   </div>
 
-  <div class="section-title"><i class="fa-solid fa-receipt"></i> ประวัติค่าส่วนกลาง</div>
+  <div class="section-title"><i class="fa-solid fa-car"></i> ยานพาหนะของฉัน</div>
+  <div id="carContainer">
+    <div class="car-list">
+      <div class="car-card"><div class="skeleton" style="width:52px;height:52px;border-radius:14px;flex-shrink:0"></div><div style="flex:1"><div class="skeleton" style="height:20px;width:50%;margin-bottom:.4rem"></div><div class="skeleton" style="height:14px;width:70%"></div></div></div>
+    </div>
+  </div>
+
+  <div class="section-title" style="margin-top:1.5rem"><i class="fa-solid fa-receipt"></i> ประวัติค่าส่วนกลาง</div>
   <div id="feeContainer">
     <div class="fee-year"><div class="fee-year-header"><div class="skeleton" style="width:200px;height:24px"></div></div></div>
   </div>
@@ -168,7 +198,16 @@
   function applyTheme(t){document.documentElement.setAttribute('data-theme',t);document.getElementById('themeIcon').className=t==='dark'?'fa-solid fa-sun':'fa-solid fa-moon';localStorage.setItem('vms_theme',t);}
   function toggleTheme(){applyTheme(document.documentElement.getAttribute('data-theme')==='dark'?'light':'dark');}
 
-  async function api(p){const r=await fetch(API_URL+'?'+new URLSearchParams(p));return r.json();}
+  async function api(p){
+    const r=await fetch(API_URL+'?'+new URLSearchParams(p));
+    const d=await r.json();
+    // ✅ FIX: ตรวจ token หมดอายุ → redirect Login
+    if(!d.success&&(d.message==='กรุณาเข้าสู่ระบบ'||d.message==='ไม่มีสิทธิ์เข้าถึง')){
+      Swal.fire({icon:'warning',title:'Session หมดอายุ',text:'กรุณาเข้าสู่ระบบใหม่',confirmButtonColor:'#4f7ef7'})
+        .then(()=>{localStorage.clear();window.location.href='index.html';});
+    }
+    return d;
+  }
 
   async function loadInfo(){
     const d=await api({action:'getMyInfo',token});
@@ -265,10 +304,38 @@
     .then(r=>{if(r.isConfirmed){localStorage.removeItem('vms_token');localStorage.removeItem('vms_role');localStorage.removeItem('vms_name');localStorage.removeItem('vms_house');window.location.href='index.html';}});
   }
 
+  async function loadCars(){
+    const house_id=localStorage.getItem('vms_house');
+    if(!house_id){document.getElementById('carContainer').innerHTML='<p style="color:var(--muted);font-size:.85rem;padding:.5rem 0">ไม่พบข้อมูลบ้าน</p>';return;}
+    const d=await api({action:'getCars',house_id,token});
+    const cars=d.success?d.data:[];
+    if(!cars.length){
+      document.getElementById('carContainer').innerHTML='<p style="color:var(--muted);font-size:.85rem;padding:.5rem 0"><i class="fa-solid fa-car-side" style="opacity:.4"></i> ยังไม่มีข้อมูลยานพาหนะ</p>';return;
+    }
+    const typeIcon={car:'🚗',motorcycle:'🏍️',truck:'🚐',other:'🚙'};
+    const parkIcon={'หน้าบ้าน':'🏠','ในบ้าน':'🔒','ส่วนกลาง':'🅿️','อื่นๆ':'📍'};
+    const typeLabel={car:'รถยนต์',motorcycle:'มอเตอร์ไซค์',truck:'รถกระบะ/ตู้',other:'อื่นๆ'};
+    document.getElementById('carContainer').innerHTML='<div class="car-list">'+cars.map(c=>{
+      const fee=parseFloat(c.car_fee)||0;
+      const typeKey=c.car_type||'car';
+      return`<div class="car-card" style="animation:fadeSlideIn .3s ease both">
+        <div class="car-icon-wrap ${typeKey}">${typeIcon[typeKey]||'🚗'}</div>
+        <div class="car-info">
+          <div class="car-plate">${c.plate_no||'ไม่ระบุทะเบียน'}</div>
+          <div class="car-sub">${c.car_brand||''} ${c.car_model||''} · สี${c.car_color||'—'}</div>
+          <div class="car-meta">
+            <span class="car-tag">${typeLabel[typeKey]||typeKey}</span>
+            <span class="car-tag park">${parkIcon[c.car_park]||''} ${c.car_park||'—'}</span>
+          </div>
+        </div>
+        <div class="car-fee-badge ${fee>0?'paid':'free'}">${fee>0?fee.toLocaleString()+' ฿/เดือน':'ฟรี'}</div>
+      </div>`;
+    }).join('')+'</div>';
+  }
+
   loadInfo();
   loadFees();
-  // โหลดพร้อมกันทั้งสอง API เพื่อลดเวลารอ
-  // (ทั้งคู่ async แยกกัน ไม่รอกัน = parallel)
+  loadCars();
 </script>
 </body>
 </html>

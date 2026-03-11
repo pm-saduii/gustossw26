@@ -22,8 +22,8 @@
     .btn-nav:hover{background:rgba(255,255,255,.28);}
     .btn-theme{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);color:#fff;width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:.9rem;transition:background .15s;}
     .btn-theme:hover{background:rgba(255,255,255,.28);}
-    /* ── PAGE TABS: desktop sticky bar ── */
-    .page-tabs{background:var(--card);border-bottom:1px solid var(--border);padding:0 1rem;display:flex;gap:0;transition:background .3s,border-color .3s;position:sticky;top:54px;z-index:99;}
+        /* ── PAGE TABS: desktop horizontal bar ── */
+    .page-tabs{background:var(--card);border-bottom:1px solid var(--border);padding:0 1rem;display:flex;gap:0;transition:background .3s,border-color .3s;position:sticky;top:54px;z-index:100;}
     .page-tab{white-space:nowrap;padding:.72rem 1.1rem;font-size:.84rem;font-weight:600;text-decoration:none;color:var(--muted);border-bottom:2.5px solid transparent;display:flex;align-items:center;gap:.4rem;transition:color .15s,border-color .15s;flex-shrink:0;}
     .page-tab i{font-size:.82rem;}
     .page-tab:hover{color:var(--primary);}
@@ -87,6 +87,32 @@
     .file-viewer-wrap.open{display:block;}
     .file-viewer-wrap iframe{width:100%;height:480px;border:none;display:block;}
     .file-viewer-wrap img{width:100%;max-height:480px;object-fit:contain;display:block;}
+
+    /* ── Attachment thumbnail strip ───────────────────── */
+    .attach-strip{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:.75rem;align-items:flex-start;}
+    .attach-thumb{width:80px;height:80px;border-radius:10px;overflow:hidden;border:2px solid var(--border);cursor:pointer;flex-shrink:0;background:var(--bg2);position:relative;transition:transform .15s,border-color .15s,box-shadow .15s;}
+    .attach-thumb:hover{transform:scale(1.06);border-color:var(--primary);box-shadow:0 4px 14px var(--shadow);}
+    .attach-thumb img{width:100%;height:100%;object-fit:cover;display:block;}
+    .attach-file-icon{width:80px;height:80px;border-radius:10px;border:2px solid var(--border);cursor:pointer;flex-shrink:0;background:var(--card2);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.25rem;text-decoration:none;transition:all .15s;}
+    .attach-file-icon:hover{border-color:var(--primary);background:var(--primary-l);transform:scale(1.06);}
+    .attach-file-icon i{font-size:1.6rem;}
+    .attach-file-icon.pdf i{color:#dc2626;}
+    .attach-file-icon.doc i{color:#2563eb;}
+    .attach-file-icon.other i{color:var(--muted);}
+    .attach-file-icon span{font-size:.6rem;font-weight:700;color:var(--muted);text-align:center;padding:0 .2rem;}
+    .attach-label{font-size:.78rem;font-weight:700;color:var(--muted);margin-top:.75rem;margin-bottom:.25rem;display:flex;align-items:center;gap:.35rem;}
+
+    /* ── Lightbox ──────────────────────────────────────── */
+    .lightbox{display:none;position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:9999;align-items:center;justify-content:center;flex-direction:column;}
+    .lightbox.open{display:flex;}
+    .lightbox img{max-width:92vw;max-height:80vh;border-radius:12px;object-fit:contain;box-shadow:0 20px 60px rgba(0,0,0,.6);}
+    .lightbox-close{position:absolute;top:1rem;right:1.2rem;background:rgba(255,255,255,.15);border:none;color:#fff;font-size:1.4rem;width:42px;height:42px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .15s;}
+    .lightbox-close:hover{background:rgba(255,255,255,.28);}
+    .lightbox-nav{position:absolute;top:50%;transform:translateY(-50%);background:rgba(255,255,255,.15);border:none;color:#fff;font-size:1.1rem;width:44px;height:44px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .15s;}
+    .lightbox-nav:hover{background:rgba(255,255,255,.28);}
+    .lightbox-nav.prev{left:.85rem;}
+    .lightbox-nav.next{right:.85rem;}
+    .lightbox-counter{color:rgba(255,255,255,.6);font-size:.82rem;margin-top:.55rem;}
   </style>
 </head>
 <body>
@@ -95,7 +121,7 @@
   <div class="nav-brand"><i class="fa-solid fa-bullhorn"></i> ประกาศหมู่บ้าน</div>
   <div class="nav-right">
     <button class="btn-theme" onclick="toggleTheme()"><i id="themeIcon" class="fa-solid fa-moon"></i></button>
-    <a href="index.html" class="btn-nav" id="homeLink"><i class="fa-solid fa-house"></i> หน้าหลัก</a>
+    <a href="index.html" class="btn-nav" id="homeLink"><i class="fa-solid fa-house"></i> <span class="btn-nav-text">หน้าหลัก</span></a>
   </div>
 </nav>
 
@@ -167,6 +193,63 @@
 
   function extractFileId(url){const m=url.match(/\/d\/([a-zA-Z0-9_-]+)/);return m?m[1]:null;}
 
+  /* ── helpers ── */
+  let lbPhotos=[],lbIdx=0;
+  function lbOpen(urls,i){lbPhotos=urls;lbIdx=i;lbShow();document.getElementById('lbAnn').classList.add('open');}
+  function lbClose(){document.getElementById('lbAnn').classList.remove('open');}
+  function lbBg(e){if(e.target===document.getElementById('lbAnn'))lbClose();}
+  function lbNav(d){lbIdx=(lbIdx+d+lbPhotos.length)%lbPhotos.length;lbShow();}
+  function lbShow(){
+    const url=lbPhotos[lbIdx];const fid=extractFileId(url);
+    const img=document.getElementById('lbImg');
+    img.src=fid?`https://lh3.googleusercontent.com/d/${fid}=s1600`:url;
+    img.onerror=function(){this.src=fid?`https://drive.google.com/uc?export=view&id=${fid}`:url;this.onerror=null;};
+    document.getElementById('lbCounter').textContent=(lbIdx+1)+' / '+lbPhotos.length;
+  }
+  document.addEventListener('keydown',e=>{
+    if(!document.getElementById('lbAnn').classList.contains('open'))return;
+    if(e.key==='Escape')lbClose();
+    if(e.key==='ArrowLeft')lbNav(-1);
+    if(e.key==='ArrowRight')lbNav(1);
+  });
+
+  function isImageUrl(url){return/\.(jpg|jpeg|png|gif|webp|bmp|svg)($|\?)/i.test(url)||url.includes('/thumbnail')||url.includes('lh3.google')||url.includes('/preview');}
+
+  function buildAttachment(fileUrl,annIdx){
+    if(!fileUrl)return'';
+    const fid=extractFileId(fileUrl);
+    const lowerUrl=fileUrl.toLowerCase();
+    const isPdf=lowerUrl.includes('.pdf');
+    const isImg=isImageUrl(fileUrl)||(!isPdf&&fid);
+
+    if(isImg){
+      // แสดง thumbnail กดแล้วเปิด lightbox
+      const thumbSrc=fid?`https://lh3.googleusercontent.com/d/${fid}=s400`:fileUrl;
+      const fallback=fid?`https://drive.google.com/thumbnail?id=${fid}&sz=w400`:fileUrl;
+      const urls=[fileUrl];
+      return`<div class="attach-label"><i class="fa-solid fa-image"></i> รูปภาพแนบ</div>
+<div class="attach-strip">
+  <div class="attach-thumb" onclick='lbOpen(${JSON.stringify(urls)},0)' title="คลิกเพื่อดูรูปใหญ่">
+    <img src="${thumbSrc}" loading="lazy" onerror="this.src='${fallback}';this.onerror=null">
+  </div>
+</div>`;
+    } else {
+      // ไม่ใช่รูป → แสดง file icon กดแล้วเปิด link ใหม่
+      const ext=lowerUrl.split('.').pop().split('?')[0]||'file';
+      const isPdfFile=ext==='pdf';
+      const iconClass=isPdfFile?'pdf':'other';
+      const iconName=isPdfFile?'fa-file-pdf':'fa-file-alt';
+      const openUrl=fid?`https://drive.google.com/file/d/${fid}/view`:fileUrl;
+      return`<div class="attach-label"><i class="fa-solid fa-paperclip"></i> ไฟล์แนบ</div>
+<div class="attach-strip">
+  <a class="attach-file-icon ${iconClass}" href="${openUrl}" target="_blank" rel="noopener" title="เปิดไฟล์ ${ext.toUpperCase()}">
+    <i class="fa-solid ${iconName}"></i>
+    <span>${ext.toUpperCase()}</span>
+  </a>
+</div>`;
+    }
+  }
+
   function renderList(){
     const filtered=currentCat?allAnn.filter(a=>a.category===currentCat):allAnn;
     if(!filtered.length){
@@ -174,23 +257,7 @@
     }
     document.getElementById('annList').innerHTML=filtered.map((a,i)=>{
       const cat=a.category||'ทั่วไป';
-      const fileUrl=a.file_url||'';
-      let fileHtml='';
-      if(fileUrl){
-        const fid=extractFileId(fileUrl);
-        const isPdf=fileUrl.toLowerCase().includes('.pdf')||(fid&&!fileUrl.includes('image'));
-        const fileIcon=isPdf?'fa-file-pdf':'fa-image';
-        const fileLabel=isPdf?'ดูเอกสาร PDF':'ดูรูปภาพแนบ';
-        const btnCls=isPdf?'pdf':'';
-        const viewerContent=isPdf
-          ?`<iframe src="${fid?`https://drive.google.com/file/d/${fid}/preview`:fileUrl}" allowfullscreen style="width:100%;height:480px;border:none;display:block"></iframe>`
-          :`<img src="${fid?`https://drive.google.com/thumbnail?id=${fid}&sz=w1200`:fileUrl}" style="width:100%;max-height:520px;object-fit:contain;display:block" onerror="this.src='${fileUrl}'">`;
-        fileHtml=`
-          <button class="ann-file-btn ${btnCls}" onclick="toggleFile(this,'viewer${i}','${viewerContent.replace(/'/g,'&#39;')}')">
-            <i class="fa-solid ${fileIcon}"></i> ${fileLabel}
-          </button>
-          <div class="file-viewer-wrap" id="viewer${i}"></div>`;
-      }
+      const fileHtml=buildAttachment(a.file_url||'',i);
       return`<div class="ann-card" style="animation-delay:${i*0.05}s">
         <div class="ann-top">
           <div class="ann-icon ${cat}"><i class="fa-solid ${catIcon[cat]||'fa-info-circle'}"></i></div>
@@ -200,16 +267,12 @@
           </div>
           <button class="ann-toggle" onclick="toggleAnn(this)"><i class="fa-solid fa-chevron-down"></i></button>
         </div>
-        <div class="ann-body" id="annBody${i}"><p>${a.content}</p>${fileHtml}</div>
+        <div class="ann-body" id="annBody${i}">
+          <p>${a.content}</p>
+          ${fileHtml}
+        </div>
       </div>`;
     }).join('');
-  }
-
-  function toggleFile(btn,viewerId,html){
-    const wrap=document.getElementById(viewerId);
-    if(wrap.classList.contains('open')){wrap.classList.remove('open');wrap.innerHTML='';btn.innerHTML=btn.innerHTML.replace('ซ่อน','ดู').replace('fa-chevron-up','fa-chevron-down');return;}
-    wrap.classList.add('open');
-    wrap.innerHTML=html;
   }
 
   function toggleAnn(btn){
@@ -221,5 +284,13 @@
 
   loadAnnouncements();
 </script>
+<!-- Lightbox -->
+<div class="lightbox" id="lbAnn" onclick="lbBg(event)">
+  <button class="lightbox-close" onclick="lbClose()"><i class="fa-solid fa-xmark"></i></button>
+  <button class="lightbox-nav prev" onclick="lbNav(-1);event.stopPropagation()"><i class="fa-solid fa-chevron-left"></i></button>
+  <img id="lbImg" src="" alt=""/>
+  <div class="lightbox-counter" id="lbCounter"></div>
+  <button class="lightbox-nav next" onclick="lbNav(1);event.stopPropagation()"><i class="fa-solid fa-chevron-right"></i></button>
+</div>
 </body>
 </html>
