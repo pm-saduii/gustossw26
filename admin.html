@@ -400,17 +400,32 @@
         <div class="card">
           <div class="card-header"><h3><i class="fa-solid fa-receipt"></i> บันทึกค่าส่วนกลาง</h3><button class="btn btn-outline btn-sm" onclick="toggleForm('feeForm')"><i class="fa-solid fa-plus"></i> เพิ่ม</button></div>
           <div class="card-body" id="feeForm" style="display:none">
+            <!-- ── House preview strip ── -->
+            <div id="feeFormPreview" style="display:none;margin-bottom:1rem;background:linear-gradient(135deg,var(--primary),var(--primary-d));border-radius:12px;padding:.8rem 1.1rem;display:flex;align-items:center;gap:.8rem;color:#fff">
+              <div style="width:38px;height:38px;background:rgba(255,255,255,.2);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0"><i class="fa-solid fa-house"></i></div>
+              <div>
+                <div style="font-size:.7rem;opacity:.8">บ้านที่เลือก</div>
+                <div style="font-weight:800;font-size:.96rem" id="feeFormPreviewLabel">—</div>
+                <div style="font-size:.73rem;opacity:.82" id="feeFormPreviewSub">—</div>
+              </div>
+            </div>
             <div class="form-grid">
-              <div class="form-group"><label>หมายเลขบ้าน</label><input type="text" id="f_house" placeholder="H001"/></div>
-              <div class="form-group"><label>ปี พ.ศ.</label><input type="number" id="f_year" placeholder="2567"/></div>
+              <!-- Dropdown บ้าน — full width -->
+              <div class="form-group full">
+                <label><i class="fa-solid fa-house" style="color:var(--primary)"></i> บ้านเลขที่</label>
+                <select id="f_house" onchange="onFeeFormHouseChange()">
+                  <option value="">— เลือกบ้าน —</option>
+                </select>
+              </div>
+              <div class="form-group"><label>ปี พ.ศ.</label><input type="number" id="f_year" placeholder="2568"/></div>
               <div class="form-group"><label>ยอดครึ่งปีแรก (บาท)</label><input type="number" id="f_h1amt" placeholder="3000"/></div>
               <div class="form-group"><label>ชำระครึ่งปีแรก (บาท)</label><input type="number" id="f_h1paid" placeholder="0"/></div>
-              <div class="form-group"><label>วันที่ชำระครึ่งปีแรก</label><input type="text" id="f_h1date" placeholder="15/01/2567"/></div>
-              <div class="form-group"><label>สถานะครึ่งปีแรก</label><select id="f_h1status"><option value="paid">ชำระครบ</option><option value="partial">ชำระบางส่วน</option><option value="unpaid" selected>ยังไม่ชำระ</option></select></div>
+              <div class="form-group"><label>วันที่ชำระครึ่งปีแรก</label><input type="text" id="f_h1date" placeholder="15/01/2568"/></div>
+              <div class="form-group"><label>สถานะครึ่งปีแรก</label><select id="f_h1status"><option value="paid">✅ ชำระครบ</option><option value="partial">⚡ ชำระบางส่วน</option><option value="unpaid" selected>❌ ยังไม่ชำระ</option></select></div>
               <div class="form-group"><label>ยอดครึ่งปีหลัง (บาท)</label><input type="number" id="f_h2amt" placeholder="3000"/></div>
               <div class="form-group"><label>ชำระครึ่งปีหลัง (บาท)</label><input type="number" id="f_h2paid" placeholder="0"/></div>
-              <div class="form-group"><label>วันที่ชำระครึ่งปีหลัง</label><input type="text" id="f_h2date" placeholder="15/07/2567"/></div>
-              <div class="form-group"><label>สถานะครึ่งปีหลัง</label><select id="f_h2status"><option value="paid">ชำระครบ</option><option value="partial">ชำระบางส่วน</option><option value="unpaid" selected>ยังไม่ชำระ</option></select></div>
+              <div class="form-group"><label>วันที่ชำระครึ่งปีหลัง</label><input type="text" id="f_h2date" placeholder="15/07/2568"/></div>
+              <div class="form-group"><label>สถานะครึ่งปีหลัง</label><select id="f_h2status"><option value="paid">✅ ชำระครบ</option><option value="partial">⚡ ชำระบางส่วน</option><option value="unpaid" selected>❌ ยังไม่ชำระ</option></select></div>
               <div class="form-group full"><label>หมายเหตุ</label><input type="text" id="f_note" placeholder="(ถ้ามี)"/></div>
             </div>
             <div class="form-actions"><button class="btn btn-outline" onclick="toggleForm('feeForm')">ยกเลิก</button><button class="btn btn-primary" onclick="saveFee()"><i class="fa-solid fa-floppy-disk"></i> บันทึก</button></div>
@@ -1251,6 +1266,7 @@
     const [fd, hd] = await Promise.all([api({action:'getFees'}), housesData.length?Promise.resolve({data:housesData}):api({action:'getHouses'})]);
     feesData=fd.data||[];feesFiltered=[...feesData];
     if(!housesData.length && hd.data) housesData=hd.data;
+    populateFeeHouseDropdown(); // อัปเดต dropdown บ้านทุกครั้ง
     buildYearFilterBar();
     filterFees();
   }
@@ -1309,9 +1325,57 @@
     });
     renderFees(feesFiltered);
   }
+  // ── populate fee form house dropdown ────────────────────────
+  function populateFeeHouseDropdown(){
+    const sel=document.getElementById('f_house');
+    if(!sel)return;
+    const cur=sel.value;
+    sel.innerHTML='<option value="">— เลือกบ้าน —</option>';
+    const sorted=[...(housesData||[])].sort((a,b)=>{
+      const[am,as_]=_houseN(a.house_no),[bm,bs_]=_houseN(b.house_no);
+      if(am!==bm)return am-bm;return as_-bs_;
+    });
+    sorted.forEach(h=>{
+      const opt=document.createElement('option');
+      opt.value=h.house_id;
+      const soi=h.soi&&String(h.soi)!=='0'?` ซอย ${h.soi}`:'';
+      opt.textContent=`${h.house_no}${soi} — ${h.owner_name}`;
+      sel.appendChild(opt);
+    });
+    if(cur)sel.value=cur;
+  }
+  function onFeeFormHouseChange(){
+    const hid=document.getElementById('f_house').value;
+    const preview=document.getElementById('feeFormPreview');
+    const h=(housesData||[]).find(x=>x.house_id===hid);
+    if(h){
+      const soi=h.soi&&String(h.soi)!=='0'?`ซอย ${h.soi}`:'';
+      const parts=[h.house_no,soi].filter(Boolean).join(' ');
+      document.getElementById('feeFormPreviewLabel').textContent=parts;
+      document.getElementById('feeFormPreviewSub').textContent=
+        [h.owner_name,h.house_type,h.address].filter(Boolean).join('  ·  ');
+      preview.style.display='flex';
+      // auto-fill fee_per_half ถ้ามี
+      if(h.fee_per_half){
+        const fph=parseFloat(String(h.fee_per_half).replace(/,/g,''))||0;
+        if(fph){
+          if(!document.getElementById('f_h1amt').value)document.getElementById('f_h1amt').value=fph;
+          if(!document.getElementById('f_h2amt').value)document.getElementById('f_h2amt').value=fph;
+        }
+      }
+    } else {
+      preview.style.display='none';
+    }
+  }
+
   async function saveFee(){
-    const data={action:'addFee',house_id:g('f_house'),year:g('f_year'),h1_amount:g('f_h1amt'),h1_paid:g('f_h1paid'),h1_date:g('f_h1date'),h1_status:g('f_h1status'),h2_amount:g('f_h2amt'),h2_paid:g('f_h2paid'),h2_date:g('f_h2date'),h2_status:g('f_h2status'),note:g('f_note')};
-    if(!data.house_id||!data.year){toast('warning','กรุณากรอกข้อมูลให้ครบ');return;}
+    const house_id=document.getElementById('f_house').value;
+    const year=g('f_year');
+    if(!house_id||!year){toast('warning','กรุณาเลือกบ้านและระบุปี');return;}
+    const data={action:'addFee',house_id,year,
+      h1_amount:g('f_h1amt'),h1_paid:g('f_h1paid'),h1_date:g('f_h1date'),h1_status:g('f_h1status'),
+      h2_amount:g('f_h2amt'),h2_paid:g('f_h2paid'),h2_date:g('f_h2date'),h2_status:g('f_h2status'),
+      note:g('f_note')};
     const r=await api(data);
     if(r.success){toast('success',r.message);toggleForm('feeForm');loadFees();}else toast('error',r.message);
   }
@@ -1319,11 +1383,20 @@
   function editFee(id){
     const f=feesData.find(x=>x.fee_id===id);if(!f)return;
     _editFeeId=id;
-    // hero badge
+    // hero badge — แสดง บ้านเลขที่ - ซอย - ปีพ.ศ.
+    const _fh = (housesData||[]).find(h=>h.house_id===f.house_id)||{};
+    const _hno  = _fh.house_no  || f.house_id;
+    const _hsoi = _fh.soi!=null && String(_fh.soi).trim()!=='' && String(_fh.soi)!=='0' ? `ซอย ${_fh.soi}` : '';
+    const _hown = _fh.owner_name||'';
+    const _heroMain = [_hno, _hsoi, `ปีพ.ศ. ${f.year}`].filter(Boolean).join('  ·  ');
     document.getElementById('feeEditHeroBadge').innerHTML=`
-      <div style="background:var(--primary-l);border:1.5px solid var(--border);border-radius:12px;padding:.8rem 1rem;display:flex;align-items:center;gap:.75rem">
-        <div style="width:40px;height:40px;background:linear-gradient(135deg,var(--primary),var(--accent));border-radius:10px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:1rem"><i class="fa-solid fa-receipt"></i></div>
-        <div><div style="font-size:.75rem;color:var(--muted)">หมายเลขบ้าน · ปี</div><div style="font-weight:700">${f.house_id} · พ.ศ. ${f.year}</div></div>
+      <div style="background:linear-gradient(135deg,var(--primary),var(--primary-d));border-radius:14px;padding:.95rem 1.2rem;display:flex;align-items:center;gap:.85rem;color:#fff;margin-bottom:.2rem">
+        <div style="width:46px;height:46px;background:rgba(255,255,255,.18);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.3rem;flex-shrink:0"><i class="fa-solid fa-receipt"></i></div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:.68rem;opacity:.8;margin-bottom:.2rem;letter-spacing:.04em">แก้ไขค่าส่วนกลาง</div>
+          <div style="font-size:1.05rem;font-weight:900;letter-spacing:.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${_heroMain}</div>
+          ${_hown?`<div style="font-size:.74rem;opacity:.85;margin-top:.15rem"><i class="fa-solid fa-user" style="margin-right:.3rem"></i>${_hown}</div>`:''}
+        </div>
       </div>`;
     document.getElementById('ef_h1amt').value=f.h1_amount?parseFloat(f.h1_amount).toFixed(2):'';
     document.getElementById('ef_h1p').value=f.h1_paid?parseFloat(f.h1_paid).toFixed(2):'';
@@ -1979,14 +2052,75 @@
   }
 
   // ── Reset form ────────────────────────────────────────────
+  // ── Brand dropdown toggle ─────────────────────────────────
+  function carBrandDdChange(pfx) {
+    const dd = document.getElementById(`${pfx}_brand_dd`);
+    const inp = document.getElementById(`${pfx}_car_brand`);
+    if (dd.value === '__other__') {
+      inp.style.display = 'block'; inp.focus(); inp.value = '';
+    } else {
+      inp.style.display = 'none'; inp.value = dd.value;
+    }
+    carPvUpdate(pfx);
+  }
+  function carColorDdChange(pfx) {
+    const dd = document.getElementById(`${pfx}_color_dd`);
+    const inp = document.getElementById(`${pfx}_car_color`);
+    if (dd.value === '__other__') {
+      inp.style.display = 'block'; inp.focus(); inp.value = '';
+    } else {
+      inp.style.display = 'none'; inp.value = dd.value;
+    }
+    carPvUpdate(pfx);
+  }
+  // ── ดึงค่าจริงจาก brand/color field (dd หรือ custom input) ──
+  function getCarBrand(pfx) {
+    const dd = document.getElementById(`${pfx}_brand_dd`);
+    const inp = document.getElementById(`${pfx}_car_brand`);
+    return (dd && dd.value === '__other__') ? inp.value.trim() : (inp ? inp.value.trim() : '');
+  }
+  function getCarColor(pfx) {
+    const dd = document.getElementById(`${pfx}_color_dd`);
+    const inp = document.getElementById(`${pfx}_car_color`);
+    return (dd && dd.value === '__other__') ? inp.value.trim() : (inp ? inp.value.trim() : '');
+  }
+  // ── set brand/color dropdown + custom input ───────────────
+  function setCarBrand(pfx, val) {
+    const dd = document.getElementById(`${pfx}_brand_dd`);
+    const inp = document.getElementById(`${pfx}_car_brand`);
+    if (!dd || !inp) return;
+    // หา option ที่ตรง
+    const match = [...dd.options].find(o=>o.value===val||o.textContent===val);
+    if (match && match.value !== '' && match.value !== '__other__') {
+      dd.value = match.value; inp.style.display='none'; inp.value=val;
+    } else if (val) {
+      dd.value='__other__'; inp.style.display='block'; inp.value=val;
+    } else {
+      dd.value=''; inp.style.display='none'; inp.value='';
+    }
+  }
+  function setCarColor(pfx, val) {
+    const dd = document.getElementById(`${pfx}_color_dd`);
+    const inp = document.getElementById(`${pfx}_car_color`);
+    if (!dd || !inp) return;
+    const match = [...dd.options].find(o=>o.value===val||o.textContent===val);
+    if (match && match.value !== '' && match.value !== '__other__') {
+      dd.value = match.value; inp.style.display='none'; inp.value=val;
+    } else if (val) {
+      dd.value='__other__'; inp.style.display='block'; inp.value=val;
+    } else {
+      dd.value=''; inp.style.display='none'; inp.value='';
+    }
+  }
+
   function resetCarForm(pfx) {
-    ['plate_no','car_brand','car_model','car_color'].forEach(f=>{
-      const el=document.getElementById(`${pfx}_${f}`);
-      if(el) el.value='';
-    });
+    document.getElementById(`${pfx}_plate_no`).value = '';
+    document.getElementById(`${pfx}_car_model`).value = '';
     document.getElementById(`${pfx}_car_fee`).value = '0';
     document.getElementById(`${pfx}_car_park`).value = 'หน้าบ้าน';
     document.getElementById(`${pfx}_house_id`).value = '';
+    setCarBrand(pfx, '');
+    setCarColor(pfx, '');
     setCarTypeChip(pfx,'car');
     carPvUpdate(pfx);
   }
@@ -2005,9 +2139,9 @@
       house_id: document.getElementById('ac_house_id').value,
       car_type:  document.getElementById('ac_car_type').value,
       plate_no:  document.getElementById('ac_plate_no').value.trim(),
-      car_brand: document.getElementById('ac_car_brand').value.trim(),
+      car_brand: getCarBrand('ac'),
       car_model: document.getElementById('ac_car_model').value.trim(),
-      car_color: document.getElementById('ac_car_color').value.trim(),
+      car_color: getCarColor('ac'),
       car_park:  document.getElementById('ac_car_park').value,
       car_fee:   document.getElementById('ac_car_fee').value,
     };
@@ -2030,9 +2164,9 @@
     populateCarHouse('ec_house_id', c.house_id||'');
     setCarTypeChip('ec', c.car_type||'car');
     document.getElementById('ec_plate_no').value  = c.plate_no||'';
-    document.getElementById('ec_car_brand').value = c.car_brand||'';
+    setCarBrand('ec', c.car_brand||'');
     document.getElementById('ec_car_model').value = c.car_model||'';
-    document.getElementById('ec_car_color').value = c.car_color||'';
+    setCarColor('ec', c.car_color||'');
     document.getElementById('ec_car_park').value  = c.car_park||'หน้าบ้าน';
     document.getElementById('ec_car_fee').value   = c.car_fee||0;
     carPvUpdate('ec');
@@ -2048,9 +2182,9 @@
       house_id: document.getElementById('ec_house_id').value,
       car_type:  document.getElementById('ec_car_type').value,
       plate_no:  document.getElementById('ec_plate_no').value.trim(),
-      car_brand: document.getElementById('ec_car_brand').value.trim(),
+      car_brand: getCarBrand('ec'),
       car_model: document.getElementById('ec_car_model').value.trim(),
-      car_color: document.getElementById('ec_car_color').value.trim(),
+      car_color: getCarColor('ec'),
       car_park:  document.getElementById('ec_car_park').value,
       car_fee:   document.getElementById('ec_car_fee').value,
     });
@@ -2081,30 +2215,36 @@
 
 <!-- ═══════ MODAL: Add Car ═══════ -->
 <div class="modal-backdrop" id="modalCarAdd" onclick="closeModalBg(event,'modalCarAdd')">
-  <div class="modal" style="max-width:510px;width:96vw">
+  <div class="modal" style="max-width:540px;width:96vw">
     <div class="modal-header">
       <h3 style="font-family:'Sarabun',sans-serif"><i class="fa-solid fa-circle-plus"></i> เพิ่มรถใหม่</h3>
       <button class="modal-close" onclick="closeModal('modalCarAdd')"><i class="fa-solid fa-xmark"></i></button>
     </div>
     <div class="modal-body">
-      <!-- Live Preview Bar -->
+
+      <!-- ── Hero preview (เหมือน fee modal) ── -->
       <div class="car-modal-preview" id="ac_preview_bar">
         <div class="cmp-emoji" id="ac_pv_emoji">🚗</div>
-        <div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:.68rem;opacity:.8;margin-bottom:.1rem">ข้อมูลรถ</div>
           <div class="cmp-plate" id="ac_pv_plate">— ทะเบียน —</div>
           <div class="cmp-sub" id="ac_pv_sub">เลือกบ้านและกรอกข้อมูลเพื่อดูตัวอย่าง</div>
         </div>
       </div>
-      <!-- House -->
-      <div class="car-field cff" style="margin-bottom:.65rem">
+
+      <!-- ── บ้าน ── -->
+      <div class="car-field" style="margin-bottom:.75rem">
         <label><i class="fa-solid fa-house" style="color:var(--primary)"></i> บ้าน</label>
         <select id="ac_house_id" onchange="carPvUpdate('ac')">
           <option value="">— เลือกบ้าน —</option>
         </select>
       </div>
-      <!-- Type selector -->
+
+      <!-- ── ประเภท ── -->
       <div style="margin-bottom:.75rem">
-        <div style="font-size:.72rem;font-weight:700;color:var(--muted);margin-bottom:.4rem;display:flex;align-items:center;gap:.3rem"><i class="fa-solid fa-tag" style="color:var(--primary)"></i> ประเภทยานพาหนะ</div>
+        <div style="font-size:.72rem;font-weight:700;color:var(--muted);margin-bottom:.4rem;display:flex;align-items:center;gap:.3rem">
+          <i class="fa-solid fa-tag" style="color:var(--primary)"></i> ประเภทยานพาหนะ
+        </div>
         <div class="car-type-sel" id="ac_type_sel">
           <div class="cto sel" data-val="car" onclick="selCarType('ac','car',this)"><span class="cto-emoji">🚗</span>รถยนต์</div>
           <div class="cto" data-val="motorcycle" onclick="selCarType('ac','motorcycle',this)"><span class="cto-emoji">🏍️</span>มอเตอร์ไซค์</div>
@@ -2113,24 +2253,50 @@
         </div>
         <input type="hidden" id="ac_car_type" value="car"/>
       </div>
-      <!-- 2-col grid -->
+
+      <!-- ── 2-col fields ── -->
       <div class="car-form-2col">
         <div class="car-field cff">
           <label><i class="fa-solid fa-id-badge" style="color:var(--primary)"></i> ทะเบียนรถ</label>
           <input type="text" id="ac_plate_no" placeholder="เช่น กจ 5533 กรุงเทพ" oninput="carPvUpdate('ac')"/>
         </div>
+        <!-- ยี่ห้อ: dropdown + custom -->
         <div class="car-field">
           <label><i class="fa-solid fa-car" style="color:var(--primary)"></i> ยี่ห้อ</label>
-          <input type="text" id="ac_car_brand" placeholder="เช่น TOYOTA, BYD" oninput="carPvUpdate('ac')"/>
+          <select id="ac_brand_dd" onchange="carBrandDdChange('ac')" style="border-radius:9px 9px 0 0;border-bottom:none">
+            <option value="">— เลือกยี่ห้อ —</option>
+            <option>BYD</option><option>TOYOTA</option><option>HONDA</option>
+            <option>NISSAN</option><option>MAZDA</option><option>ISUZU</option>
+            <option>MITSUBISHI</option><option>FORD</option><option>CHEVROLET</option>
+            <option>MERCEDES-BENZ</option><option>BMW</option><option>AUDI</option>
+            <option>MG</option><option>GWM</option><option>NETA</option><option>ORA</option>
+            <option>CHANGAN</option><option>VOLVO</option><option>KIA</option><option>HYUNDAI</option>
+            <option>YAMAHA</option><option>KAWASAKI</option><option>SUZUKI</option>
+            <option value="__other__">✏️ อื่นๆ (กรอกเอง)</option>
+          </select>
+          <input type="text" id="ac_car_brand" placeholder="พิมพ์ยี่ห้อ..." oninput="carPvUpdate('ac')"
+            style="display:none;border-radius:0 0 9px 9px;border-top:none"/>
         </div>
+        <!-- รุ่น -->
         <div class="car-field">
           <label><i class="fa-solid fa-car-rear" style="color:var(--primary)"></i> รุ่น</label>
           <input type="text" id="ac_car_model" placeholder="เช่น Sealion 6, Kicks" oninput="carPvUpdate('ac')"/>
         </div>
+        <!-- สี: dropdown + custom -->
         <div class="car-field">
           <label><i class="fa-solid fa-palette" style="color:var(--primary)"></i> สี</label>
-          <input type="text" id="ac_car_color" placeholder="เช่น ขาว, เงิน, แดง" oninput="carPvUpdate('ac')"/>
+          <select id="ac_color_dd" onchange="carColorDdChange('ac')" style="border-radius:9px 9px 0 0;border-bottom:none">
+            <option value="">— เลือกสี —</option>
+            <option>ขาว</option><option>ดำ</option><option>เงิน</option><option>เทา</option>
+            <option>แดง</option><option>น้ำเงิน</option><option>เขียว</option>
+            <option>เหลือง</option><option>ทอง</option><option>ส้ม</option>
+            <option>ม่วง</option><option>ชมพู</option><option>น้ำตาล</option><option>ครีม</option>
+            <option value="__other__">✏️ อื่นๆ (กรอกเอง)</option>
+          </select>
+          <input type="text" id="ac_car_color" placeholder="พิมพ์สี..." oninput="carPvUpdate('ac')"
+            style="display:none;border-radius:0 0 9px 9px;border-top:none"/>
         </div>
+        <!-- ที่จอด -->
         <div class="car-field">
           <label><i class="fa-solid fa-square-parking" style="color:var(--primary)"></i> ที่จอด</label>
           <select id="ac_car_park">
@@ -2140,11 +2306,13 @@
             <option value="อื่นๆ">📍 อื่นๆ</option>
           </select>
         </div>
+        <!-- ค่าจอด -->
         <div class="car-field">
           <label><i class="fa-solid fa-coins" style="color:var(--accent)"></i> ค่าจอด/เดือน (฿)</label>
           <input type="number" id="ac_car_fee" min="0" step="50" value="0" placeholder="0 = ฟรี"/>
         </div>
-      </div></div>
+      </div>
+    </div>
     <div class="modal-footer">
       <button class="btn btn-primary" onclick="saveCar()"><i class="fa-solid fa-floppy-disk"></i> บันทึก</button>
       <button class="btn btn-outline" onclick="closeModal('modalCarAdd')">ยกเลิก</button>
@@ -2154,30 +2322,36 @@
 
 <!-- ═══════ MODAL: Edit Car ═══════ -->
 <div class="modal-backdrop" id="modalCarEdit" onclick="closeModalBg(event,'modalCarEdit')">
-  <div class="modal" style="max-width:510px;width:96vw">
+  <div class="modal" style="max-width:540px;width:96vw">
     <div class="modal-header">
       <h3 style="font-family:'Sarabun',sans-serif"><i class="fa-solid fa-pen-to-square"></i> แก้ไขข้อมูลรถ</h3>
       <button class="modal-close" onclick="closeModal('modalCarEdit')"><i class="fa-solid fa-xmark"></i></button>
     </div>
     <div class="modal-body">
-      <!-- Live Preview Bar -->
+
+      <!-- ── Hero preview ── -->
       <div class="car-modal-preview" id="ec_preview_bar">
         <div class="cmp-emoji" id="ec_pv_emoji">🚗</div>
-        <div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:.68rem;opacity:.8;margin-bottom:.1rem">แก้ไขข้อมูลรถ</div>
           <div class="cmp-plate" id="ec_pv_plate">— ทะเบียน —</div>
-          <div class="cmp-sub" id="ec_pv_sub">เลือกบ้านและกรอกข้อมูลเพื่อดูตัวอย่าง</div>
+          <div class="cmp-sub" id="ec_pv_sub">—</div>
         </div>
       </div>
-      <!-- House -->
-      <div class="car-field cff" style="margin-bottom:.65rem">
+
+      <!-- ── บ้าน ── -->
+      <div class="car-field" style="margin-bottom:.75rem">
         <label><i class="fa-solid fa-house" style="color:var(--primary)"></i> บ้าน</label>
         <select id="ec_house_id" onchange="carPvUpdate('ec')">
           <option value="">— เลือกบ้าน —</option>
         </select>
       </div>
-      <!-- Type selector -->
+
+      <!-- ── ประเภท ── -->
       <div style="margin-bottom:.75rem">
-        <div style="font-size:.72rem;font-weight:700;color:var(--muted);margin-bottom:.4rem;display:flex;align-items:center;gap:.3rem"><i class="fa-solid fa-tag" style="color:var(--primary)"></i> ประเภทยานพาหนะ</div>
+        <div style="font-size:.72rem;font-weight:700;color:var(--muted);margin-bottom:.4rem;display:flex;align-items:center;gap:.3rem">
+          <i class="fa-solid fa-tag" style="color:var(--primary)"></i> ประเภทยานพาหนะ
+        </div>
         <div class="car-type-sel" id="ec_type_sel">
           <div class="cto sel" data-val="car" onclick="selCarType('ec','car',this)"><span class="cto-emoji">🚗</span>รถยนต์</div>
           <div class="cto" data-val="motorcycle" onclick="selCarType('ec','motorcycle',this)"><span class="cto-emoji">🏍️</span>มอเตอร์ไซค์</div>
@@ -2186,24 +2360,50 @@
         </div>
         <input type="hidden" id="ec_car_type" value="car"/>
       </div>
-      <!-- 2-col grid -->
+
+      <!-- ── 2-col fields ── -->
       <div class="car-form-2col">
         <div class="car-field cff">
           <label><i class="fa-solid fa-id-badge" style="color:var(--primary)"></i> ทะเบียนรถ</label>
           <input type="text" id="ec_plate_no" placeholder="เช่น กจ 5533 กรุงเทพ" oninput="carPvUpdate('ec')"/>
         </div>
+        <!-- ยี่ห้อ -->
         <div class="car-field">
           <label><i class="fa-solid fa-car" style="color:var(--primary)"></i> ยี่ห้อ</label>
-          <input type="text" id="ec_car_brand" placeholder="เช่น TOYOTA, BYD" oninput="carPvUpdate('ec')"/>
+          <select id="ec_brand_dd" onchange="carBrandDdChange('ec')" style="border-radius:9px 9px 0 0;border-bottom:none">
+            <option value="">— เลือกยี่ห้อ —</option>
+            <option>BYD</option><option>TOYOTA</option><option>HONDA</option>
+            <option>NISSAN</option><option>MAZDA</option><option>ISUZU</option>
+            <option>MITSUBISHI</option><option>FORD</option><option>CHEVROLET</option>
+            <option>MERCEDES-BENZ</option><option>BMW</option><option>AUDI</option>
+            <option>MG</option><option>GWM</option><option>NETA</option><option>ORA</option>
+            <option>CHANGAN</option><option>VOLVO</option><option>KIA</option><option>HYUNDAI</option>
+            <option>YAMAHA</option><option>KAWASAKI</option><option>SUZUKI</option>
+            <option value="__other__">✏️ อื่นๆ (กรอกเอง)</option>
+          </select>
+          <input type="text" id="ec_car_brand" placeholder="พิมพ์ยี่ห้อ..." oninput="carPvUpdate('ec')"
+            style="display:none;border-radius:0 0 9px 9px;border-top:none"/>
         </div>
+        <!-- รุ่น -->
         <div class="car-field">
           <label><i class="fa-solid fa-car-rear" style="color:var(--primary)"></i> รุ่น</label>
           <input type="text" id="ec_car_model" placeholder="เช่น Sealion 6, Kicks" oninput="carPvUpdate('ec')"/>
         </div>
+        <!-- สี -->
         <div class="car-field">
           <label><i class="fa-solid fa-palette" style="color:var(--primary)"></i> สี</label>
-          <input type="text" id="ec_car_color" placeholder="เช่น ขาว, เงิน, แดง" oninput="carPvUpdate('ec')"/>
+          <select id="ec_color_dd" onchange="carColorDdChange('ec')" style="border-radius:9px 9px 0 0;border-bottom:none">
+            <option value="">— เลือกสี —</option>
+            <option>ขาว</option><option>ดำ</option><option>เงิน</option><option>เทา</option>
+            <option>แดง</option><option>น้ำเงิน</option><option>เขียว</option>
+            <option>เหลือง</option><option>ทอง</option><option>ส้ม</option>
+            <option>ม่วง</option><option>ชมพู</option><option>น้ำตาล</option><option>ครีม</option>
+            <option value="__other__">✏️ อื่นๆ (กรอกเอง)</option>
+          </select>
+          <input type="text" id="ec_car_color" placeholder="พิมพ์สี..." oninput="carPvUpdate('ec')"
+            style="display:none;border-radius:0 0 9px 9px;border-top:none"/>
         </div>
+        <!-- ที่จอด -->
         <div class="car-field">
           <label><i class="fa-solid fa-square-parking" style="color:var(--primary)"></i> ที่จอด</label>
           <select id="ec_car_park">
@@ -2213,11 +2413,13 @@
             <option value="อื่นๆ">📍 อื่นๆ</option>
           </select>
         </div>
+        <!-- ค่าจอด -->
         <div class="car-field">
           <label><i class="fa-solid fa-coins" style="color:var(--accent)"></i> ค่าจอด/เดือน (฿)</label>
           <input type="number" id="ec_car_fee" min="0" step="50" value="0" placeholder="0 = ฟรี"/>
         </div>
-      </div></div>
+      </div>
+    </div>
     <div class="modal-footer">
       <button class="btn btn-primary" id="ecSaveBtn" onclick="submitCarEdit()"><i class="fa-solid fa-floppy-disk"></i> บันทึก</button>
       <button class="btn btn-outline" onclick="closeModal('modalCarEdit')">ยกเลิก</button>
