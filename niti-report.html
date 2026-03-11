@@ -22,14 +22,14 @@
     .btn-nav:hover{background:rgba(255,255,255,.28);}
     .btn-theme{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);color:#fff;width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:.9rem;transition:background .15s;}
     .btn-theme:hover{background:rgba(255,255,255,.28);}
-    /* ── PAGE TABS: desktop ── */
-    .page-tabs{background:var(--card);border-bottom:1px solid var(--border);padding:0 1rem;display:flex;gap:0;transition:background .3s,border-color .3s;position:sticky;top:54px;z-index:100;}
+    /* ── PAGE TABS: desktop sticky bar ── */
+    .page-tabs{background:var(--card);border-bottom:1px solid var(--border);padding:0 1rem;display:flex;gap:0;transition:background .3s,border-color .3s;position:sticky;top:54px;z-index:99;}
     .page-tab{white-space:nowrap;padding:.72rem 1.1rem;font-size:.84rem;font-weight:600;text-decoration:none;color:var(--muted);border-bottom:2.5px solid transparent;display:flex;align-items:center;gap:.4rem;transition:color .15s,border-color .15s;flex-shrink:0;}
     .page-tab i{font-size:.82rem;}
     .page-tab:hover{color:var(--primary);}
     .page-tab.active{color:var(--primary);border-bottom-color:var(--primary);}
     .btn-nav-text{}
-    /* ── PAGE TABS: mobile bottom bar ── */
+    /* ── PAGE TABS: mobile bottom navigation bar ── */
     @media(max-width:600px){
       body{padding-bottom:68px;}
       .page-tabs{position:fixed;bottom:0;left:0;right:0;top:auto;padding:0;border-bottom:none;border-top:1px solid var(--border);background:var(--card);box-shadow:0 -4px 20px rgba(0,0,0,.08);display:grid;grid-template-columns:repeat(4,1fr);gap:0;z-index:300;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);}
@@ -105,21 +105,7 @@
     .niti-file-btn.file-btn-img:hover{background:var(--primary);color:#fff;}
     [data-theme="dark"] .niti-file-btn.file-btn-pdf{background:#2a1010;}
     .niti-file-viewer{margin-top:.6rem;border-radius:12px;overflow:hidden;border:1px solid var(--border);background:var(--bg2);display:none;}
-    .niti-file-viewer.open{display:block;}
-
-    /* ── Attachment strip (shared) ─────────────────────── */
-    .attach-strip{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:.5rem;align-items:flex-start;}
-    .attach-thumb{width:80px;height:80px;border-radius:10px;overflow:hidden;border:2px solid var(--border);cursor:pointer;flex-shrink:0;background:var(--bg2);transition:transform .15s,border-color .15s,box-shadow .15s;}
-    .attach-thumb:hover{transform:scale(1.06);border-color:var(--primary);box-shadow:0 4px 14px var(--shadow);}
-    .attach-thumb img{width:100%;height:100%;object-fit:cover;display:block;}
-    .attach-file-icon{width:80px;height:80px;border-radius:10px;border:2px solid var(--border);cursor:pointer;flex-shrink:0;background:var(--card2);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.25rem;text-decoration:none;transition:all .15s;}
-    .attach-file-icon:hover{border-color:var(--primary);background:var(--primary-l);transform:scale(1.06);}
-    .attach-file-icon i{font-size:1.6rem;}
-    .attach-file-icon.pdf i{color:#dc2626;}
-    .attach-file-icon.doc i{color:#2563eb;}
-    .attach-file-icon.other i{color:var(--muted);}
-    .attach-file-icon span{font-size:.6rem;font-weight:700;color:var(--muted);text-align:center;padding:0 .2rem;}
-    .attach-label{font-size:.78rem;font-weight:700;color:var(--muted);margin-top:.75rem;margin-bottom:.25rem;display:flex;align-items:center;gap:.35rem;}
+    .niti-file-viewer.open{display:block;}}
   </style>
 </head>
 <body>
@@ -127,7 +113,7 @@
   <div class="nav-brand"><i class="fa-solid fa-clipboard-list"></i> ผลงานนิติบุคคล</div>
   <div class="nav-right">
     <button class="btn-theme" onclick="toggleTheme()"><i id="themeIcon" class="fa-solid fa-moon"></i></button>
-    <a href="index.html" class="btn-nav" id="homeLink"><i class="fa-solid fa-house"></i> <span class="btn-nav-text">หน้าหลัก</span></a>
+    <a href="index.html" class="btn-nav" id="homeLink"><i class="fa-solid fa-house"></i> หน้าหลัก</a>
   </div>
 </nav>
 <div class="page-tabs">
@@ -181,57 +167,42 @@
   function driveThumb(fid){return'https://drive.google.com/thumbnail?id='+fid+'&sz=w400';}
   function drivePreview(fid){return'https://drive.google.com/uc?id='+fid;}
 
-  function isImageUrl(url){return/\.(jpg|jpeg|png|gif|webp|bmp|svg)($|\?)/i.test(url)||url.includes('/thumbnail')||url.includes('lh3.google');}
-
   function buildFileAttachment(fileUrl,idx){
     if(!fileUrl)return'';
     const fid=extractFileId(fileUrl);
-    const lowerUrl=fileUrl.toLowerCase();
-    const isPdf=lowerUrl.includes('.pdf');
-    const isImg=isImageUrl(fileUrl)||(!isPdf&&fid);
-    if(isImg){
-      const thumbSrc=fid?`https://lh3.googleusercontent.com/d/${fid}=s400`:fileUrl;
-      const fallback=fid?`https://drive.google.com/thumbnail?id=${fid}&sz=w400`:fileUrl;
-      const urls=[fileUrl];
-      return`<div class="attach-label"><i class="fa-solid fa-paperclip"></i> ไฟล์แนบ</div>
-<div class="attach-strip">
-  <div class="attach-thumb" onclick='openLightbox(${JSON.stringify(urls)},0)' title="คลิกเพื่อดูรูปใหญ่">
-    <img src="${thumbSrc}" loading="lazy" onerror="this.src='${fallback}';this.onerror=null">
-  </div>
-</div>`;
-    }
-    const ext=lowerUrl.split('.').pop().split('?')[0]||'file';
-    const iconClass=isPdf?'pdf':'other';
-    const iconName=isPdf?'fa-file-pdf':'fa-file-alt';
-    const openUrl=fid?`https://drive.google.com/file/d/${fid}/view`:fileUrl;
-    return`<div class="attach-label"><i class="fa-solid fa-paperclip"></i> ไฟล์แนบ</div>
-<div class="attach-strip">
-  <a class="attach-file-icon ${iconClass}" href="${openUrl}" target="_blank" rel="noopener" title="เปิดไฟล์ ${ext.toUpperCase()}">
-    <i class="fa-solid ${iconName}"></i>
-    <span>${ext.toUpperCase()}</span>
-  </a>
-</div>`;
+    const isPdf=fileUrl.toLowerCase().includes('.pdf')||(fid&&!fileUrl.match(/\.(jpg|jpeg|png|gif|webp)/i));
+    const fileIcon=isPdf?'fa-file-pdf':'fa-image';
+    const fileLabel=isPdf?'ดูเอกสารแนบ PDF':'ดูรูปภาพแนบ';
+    const btnCls=isPdf?'file-btn-pdf':'file-btn-img';
+    const previewUrl=isPdf
+      ?(fid?`https://drive.google.com/file/d/${fid}/preview`:fileUrl)
+      :(fid?`https://drive.google.com/thumbnail?id=${fid}&sz=w1200`:fileUrl);
+    const viewerHtml=isPdf
+      ?`<iframe src="${previewUrl}" style="width:100%;height:480px;border:none;display:block"></iframe>`
+      :`<img src="${previewUrl}" style="width:100%;max-height:520px;object-fit:contain;display:block;border-radius:8px" onerror="this.src='${fileUrl}'">`;
+    return`<div style="margin-top:.9rem">
+      <div style="font-size:.8rem;font-weight:700;color:var(--muted);margin-bottom:.4rem"><i class="fa-solid fa-paperclip"></i> ไฟล์แนบ</div>
+      <button class="niti-file-btn ${btnCls}" onclick="toggleNitiFile(this,'nitiFile${idx}','${viewerHtml.replace(/'/g,'&#39;')}')">
+        <i class="fa-solid ${fileIcon}"></i> ${fileLabel}
+      </button>
+      <div class="niti-file-viewer" id="nitiFile${idx}"></div>
+    </div>`;
+  }
+
+  function toggleNitiFile(btn,viewerId,html){
+    const wrap=document.getElementById(viewerId);
+    if(wrap.classList.contains('open')){wrap.classList.remove('open');wrap.innerHTML='';return;}
+    wrap.classList.add('open');wrap.innerHTML=html;
   }
 
   function renderPhotoGallery(photoUrlsStr){
-    if(!photoUrlsStr||String(photoUrlsStr).trim()==='')return'';
-    const urls=String(photoUrlsStr).split(',').map(u=>u.trim()).filter(u=>u.startsWith('http'));
+    if(!photoUrlsStr)return'';
+    const urls=photoUrlsStr.split(',').map(u=>u.trim()).filter(Boolean);
     if(!urls.length)return'';
     const thumbs=urls.map((url,pi)=>{
       const fid=extractFileId(url);
-      const isImg=isImageUrl(url)||(!url.toLowerCase().includes('.pdf')&&fid);
-      if(isImg){
-        const src=fid?`https://lh3.googleusercontent.com/d/${fid}=s400`:url;
-        const srcFallback=fid?`https://drive.google.com/thumbnail?id=${fid}&sz=w400`:url;
-        return`<div class="photo-thumb" onclick='openLightbox(${JSON.stringify(urls)},${pi})' title="คลิกเพื่อดูรูปใหญ่"><img src="${src}" alt="รูป ${pi+1}" loading="lazy" onerror="this.src='${srcFallback}';this.onerror=null"></div>`;
-      }
-      // non-image file in photo_urls → file icon
-      const ext=(url.split('.').pop()||'file').split('?')[0].toLowerCase();
-      const isPdfU=ext==='pdf';
-      const iconCls=isPdfU?'pdf':'other';
-      const iconNm=isPdfU?'fa-file-pdf':'fa-file-alt';
-      const openU=fid?`https://drive.google.com/file/d/${fid}/view`:url;
-      return`<a class="attach-file-icon ${iconCls}" href="${openU}" target="_blank" rel="noopener" title="${ext.toUpperCase()}"><i class="fa-solid ${iconNm}"></i><span>${ext.toUpperCase()}</span></a>`;
+      const src=fid?driveThumb(fid):url;
+      return`<div class="photo-thumb" onclick='openLightbox(${JSON.stringify(urls)},${pi})'><img src="${src}" alt="รูป ${pi+1}" loading="lazy" onerror="this.style.display='none'"></div>`;
     }).join('');
     return`<div style="margin-top:.75rem;font-size:.8rem;font-weight:700;color:var(--muted)"><i class="fa-solid fa-images"></i> รูปภาพ (${urls.length})</div><div class="photo-gallery">${thumbs}</div>`;
   }
@@ -243,13 +214,7 @@
   function showLightboxPhoto(){
     const url=lightboxPhotos[lightboxIdx];
     const fid=extractFileId(url);
-    const img=document.getElementById('lightboxImg');
-    if(fid){
-      img.src=`https://lh3.googleusercontent.com/d/${fid}=s1600`;
-      img.onerror=function(){this.src=`https://drive.google.com/uc?export=view&id=${fid}`;this.onerror=null;};
-    } else {
-      img.src=url;img.onerror=null;
-    }
+    document.getElementById('lightboxImg').src=fid?drivePreview(fid):url;
     document.getElementById('lightboxCounter').textContent=(lightboxIdx+1)+' / '+lightboxPhotos.length;
   }
   document.addEventListener('keydown',e=>{if(e.key==='Escape')closeLightbox();if(e.key==='ArrowLeft')navPhoto(-1);if(e.key==='ArrowRight')navPhoto(1);});
@@ -302,7 +267,7 @@
             <div class="fin-card expense"><i class="fa-solid fa-arrow-circle-down"></i><div><div class="fin-label">รายจ่าย</div><div class="fin-amt">${expense.toLocaleString()} ฿</div></div></div>
             <div class="fin-card balance"><i class="fa-solid fa-scale-balanced"></i><div><div class="fin-label">คงเหลือ</div><div class="fin-amt" style="color:${balColor}">${balance.toLocaleString()} ฿</div></div></div>
           </div>`:''}
-          ${renderPhotoGallery(r.photo_urls||r.photos||'')}
+          ${renderPhotoGallery(r.photo_urls)}
           ${buildFileAttachment(r.file_url||r.report_file_url||'',i)}
           ${r.created_date?`<p style="font-size:.74rem;color:var(--muted);margin-top:.75rem"><i class="fa-solid fa-clock"></i> บันทึกเมื่อ ${r.created_date} โดย ${r.created_by}</p>`:''}
         </div>

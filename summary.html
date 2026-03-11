@@ -15,86 +15,29 @@
     [data-theme="dark"]{--primary:#6b9aff;--primary-d:#4f7ef7;--primary-l:#1a2540;--accent:#3dd68c;--bg:#0f1420;--bg2:#151c2e;--card:#1a2235;--card2:#202840;--text:#e8eeff;--text2:#a0aec0;--muted:#5a6a85;--border:#2a3650;--shadow:rgba(107,154,255,.12);--shadow2:rgba(0,0,0,.3);--paid:#0d2a1e;--paid-c:#34d399;--partial:#2a2010;--partial-c:#fbbf24;--unpaid:#2a1010;--unpaid-c:#f87171;}
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
     body{font-family:'Sarabun',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;transition:background .3s,color .3s;}
-    /* ── NAV ── */
-    nav{background:linear-gradient(135deg,var(--primary),var(--primary-d));color:#fff;padding:.8rem 1.25rem;display:flex;align-items:center;justify-content:space-between;box-shadow:0 2px 16px var(--shadow);position:sticky;top:0;z-index:200;}
+    nav{background:linear-gradient(135deg,var(--primary),var(--primary-d));color:#fff;padding:.85rem 1.25rem;display:flex;align-items:center;justify-content:space-between;box-shadow:0 2px 16px var(--shadow);position:sticky;top:0;z-index:100;}
     .nav-brand{display:flex;align-items:center;gap:.6rem;font-size:1rem;font-weight:700;}
     .nav-right{display:flex;align-items:center;gap:.5rem;}
     .btn-nav{background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.3);color:#fff;padding:.35rem .8rem;border-radius:10px;font-family:'Sarabun',sans-serif;font-size:.8rem;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:.3rem;transition:background .15s;}
     .btn-nav:hover{background:rgba(255,255,255,.28);}
     .btn-theme{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);color:#fff;width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:.9rem;transition:background .15s;}
     .btn-theme:hover{background:rgba(255,255,255,.28);}
-
-    /* ── PAGE TABS — desktop: horizontal pill bar ── */
-    .page-tabs{
-      background:var(--card);
-      border-bottom:1px solid var(--border);
-      padding:0 1rem;
-      display:flex;
-      gap:0;
-      transition:background .3s,border-color .3s;
-      position:sticky;
-      top:54px;
-      z-index:100;
-    }
-    .page-tab{
-      white-space:nowrap;
-      padding:.72rem 1.1rem;
-      font-size:.84rem;
-      font-weight:600;
-      text-decoration:none;
-      color:var(--muted);
-      border-bottom:2.5px solid transparent;
-      display:flex;
-      align-items:center;
-      gap:.4rem;
-      transition:color .15s,border-color .15s;
-      flex-shrink:0;
-    }
+    /* ── PAGE TABS: desktop sticky bar ── */
+    .page-tabs{background:var(--card);border-bottom:1px solid var(--border);padding:0 1rem;display:flex;gap:0;transition:background .3s,border-color .3s;position:sticky;top:54px;z-index:99;}
+    .page-tab{white-space:nowrap;padding:.72rem 1.1rem;font-size:.84rem;font-weight:600;text-decoration:none;color:var(--muted);border-bottom:2.5px solid transparent;display:flex;align-items:center;gap:.4rem;transition:color .15s,border-color .15s;flex-shrink:0;}
     .page-tab i{font-size:.82rem;}
     .page-tab:hover{color:var(--primary);}
     .page-tab.active{color:var(--primary);border-bottom-color:var(--primary);}
-
-    /* ── PAGE TABS — mobile: bottom navigation bar ── */
+    .btn-nav-text{}
+    /* ── PAGE TABS: mobile bottom navigation bar ── */
     @media(max-width:600px){
-      body{padding-bottom:68px;}  /* space for bottom bar */
-      main{padding-bottom:.5rem;}
-
-      .page-tabs{
-        position:fixed;
-        bottom:0; left:0; right:0;
-        top:auto;
-        padding:0;
-        border-bottom:none;
-        border-top:1px solid var(--border);
-        background:var(--card);
-        box-shadow:0 -4px 20px rgba(0,0,0,.08);
-        display:grid;
-        grid-template-columns:repeat(4,1fr);
-        gap:0;
-        z-index:300;
-        backdrop-filter:blur(12px);
-        -webkit-backdrop-filter:blur(12px);
-      }
-      .page-tab{
-        flex-direction:column;
-        align-items:center;
-        justify-content:center;
-        padding:.6rem .3rem .55rem;
-        gap:.18rem;
-        border-bottom:none;
-        border-top:3px solid transparent;
-        font-size:.65rem;
-        color:var(--muted);
-        transition:color .15s,border-color .15s,background .15s;
-      }
+      body{padding-bottom:68px;}
+      .page-tabs{position:fixed;bottom:0;left:0;right:0;top:auto;padding:0;border-bottom:none;border-top:1px solid var(--border);background:var(--card);box-shadow:0 -4px 20px rgba(0,0,0,.08);display:grid;grid-template-columns:repeat(4,1fr);gap:0;z-index:300;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);}
+      .page-tab{flex-direction:column;align-items:center;justify-content:center;padding:.6rem .3rem .55rem;gap:.18rem;border-bottom:none;border-top:3px solid transparent;color:var(--muted);transition:color .15s,border-color .15s,background .15s;}
       .page-tab i{font-size:1.05rem;}
       .page-tab span{font-size:.67rem;font-weight:600;line-height:1;}
       .page-tab:hover{background:var(--bg2);color:var(--primary);}
-      .page-tab.active{
-        color:var(--primary);
-        border-top-color:var(--primary);
-        background:var(--primary-l);
-      }
+      .page-tab.active{color:var(--primary);border-top-color:var(--primary);background:var(--primary-l);}
       .btn-nav-text{display:none;}
     }
     main{max-width:980px;margin:0 auto;padding:1.5rem 1rem;}
@@ -170,28 +113,7 @@
 
     .skeleton{background:linear-gradient(90deg,var(--bg2) 25%,var(--card2) 50%,var(--bg2) 75%);background-size:200% 100%;animation:shimmer 1.2s infinite;border-radius:8px;min-height:80px;}
     @keyframes shimmer{to{background-position:-200% 0;}}
-    /* ── RESPONSIVE ── */
-    body{overflow-x:hidden;}
-    main{overflow-x:hidden;}
-
-    @media(max-width:640px){
-      .half-grid{grid-template-columns:1fr;}
-      .chart-grid{grid-template-columns:1fr;}
-      .top-grid{grid-template-columns:1fr 1fr;}
-      .toolbar{flex-direction:column;align-items:flex-start;gap:.5rem;}
-      .toolbar h2{font-size:.95rem;}
-      .year-select{width:100%;}
-      .progress-top{flex-direction:column;align-items:flex-start;gap:.25rem;}
-      .progress-detail{flex-wrap:wrap;gap:.2rem;}
-      .soi-header{flex-direction:column;align-items:flex-start;gap:.3rem;}
-      .table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;}
-      .table-wrap table{min-width:640px;}
-    }
-    @media(max-width:420px){
-      .top-grid{grid-template-columns:1fr;}
-      .chart-wrap{height:175px;}
-      .stat-value{font-size:1.3rem;}
-    }
+    @media(max-width:640px){.half-grid{grid-template-columns:1fr;}.chart-grid{grid-template-columns:1fr;}.top-grid{grid-template-columns:1fr 1fr;}}
   </style>
 </head>
 <body>
@@ -199,28 +121,14 @@
   <div class="nav-brand"><i class="fa-solid fa-chart-pie"></i> สรุปค่าส่วนกลาง</div>
   <div class="nav-right">
     <button class="btn-theme" onclick="toggleTheme()"><i id="themeIcon" class="fa-solid fa-moon"></i></button>
-    <a href="index.html" class="btn-nav" id="homeLink"><i class="fa-solid fa-house"></i> <span class="btn-nav-text">หน้าหลัก</span></a>
+    <a href="index.html" class="btn-nav" id="homeLink"><i class="fa-solid fa-house"></i> หน้าหลัก</a>
   </div>
 </nav>
-
-<!-- BOTTOM TAB BAR (mobile) + TOP TABS (desktop) -->
-<div class="page-tabs" id="pageTabs">
-  <a href="dashboard.html" class="page-tab" id="dashLink">
-    <i class="fa-solid fa-house"></i>
-    <span>ข้อมูลของฉัน</span>
-  </a>
-  <a href="summary.html" class="page-tab active">
-    <i class="fa-solid fa-chart-pie"></i>
-    <span>สรุปฯ</span>
-  </a>
-  <a href="announcements.html" class="page-tab">
-    <i class="fa-solid fa-bullhorn"></i>
-    <span>ประกาศ</span>
-  </a>
-  <a href="niti-report.html" class="page-tab">
-    <i class="fa-solid fa-clipboard-list"></i>
-    <span>ผลงานนิติ</span>
-  </a>
+<div class="page-tabs">
+  <a href="dashboard.html" class="page-tab" id="dashLink"><i class="fa-solid fa-house"></i><span>ข้อมูลของฉัน</span></a>
+  <a href="summary.html" class="page-tab active"><i class="fa-solid fa-chart-pie"></i><span>สรุปค่าส่วนกลาง</span></a>
+  <a href="announcements.html" class="page-tab"><i class="fa-solid fa-bullhorn"></i><span>ประกาศ</span></a>
+  <a href="niti-report.html" class="page-tab"><i class="fa-solid fa-clipboard-list"></i><span>ผลงานนิติ</span></a>
 </div>
 <main>
   <div class="toolbar">
