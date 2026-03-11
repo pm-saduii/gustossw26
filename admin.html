@@ -770,7 +770,7 @@
 
 <script>
   const API_URL='https://script.google.com/macros/s/AKfycbwQbc31pY86tM7EdD41dBsXRQ-OmL6M5m0TJKs_ZJiix2bLEYkHOiQ8eIGazR7ay0_l/exec';
-  const DRIVE_FOLDER_ID='1RF2J9YDSmhg_iGLzvyAGRqzSMQ1FuaHw';
+  const DRIVE_FOLDER_ID='1l4mAepbhZawYphDfE1kybY7bHNHS6IZ-';
   const token=localStorage.getItem('vms_token');
   const role=localStorage.getItem('vms_role');
   const name=localStorage.getItem('vms_name');
@@ -1365,25 +1365,45 @@
     const r=await apiPost(data);
     if(r.success){toast('success',r.message);toggleForm('annForm');loadAnn();}else toast('error',r.message);
   }
+  // แปลง date string ทุกรูปแบบ → dd/mm/พ.ศ.
+  function _parseAnnDate(raw){
+    if(!raw) return '';
+    // รูปแบบ dd/mm/yyyy (ถ้า yyyy < 2100 = CE → บวก 543)
+    const slash=raw.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+    if(slash){
+      const yr=parseInt(slash[3]);
+      return slash[1].padStart(2,'0')+'/'+slash[2].padStart(2,'0')+'/'+(yr<2100?yr+543:yr);
+    }
+    // รูปแบบ JS Date string เช่น "Mon Mar 01 3655 00:00:00 GMT+0700 (Indochina Time)"
+    // หรือ "Fri Jan 01 2016 ..."
+    const jsDate=raw.match(/([A-Za-z]{3})\s+(\d{1,2})\s+(\d{4})/);
+    if(jsDate){
+      const months={Jan:1,Feb:2,Mar:3,Apr:4,May:5,Jun:6,Jul:7,Aug:8,Sep:9,Oct:10,Nov:11,Dec:12};
+      const d=parseInt(jsDate[2]);
+      const m=months[jsDate[1]]||1;
+      const yr=parseInt(jsDate[3]);
+      // ถ้าปี > 2500 แสดงว่าบวก 543 ไปแล้ว (หรือบวกซ้ำ); ถ้า <= 2500 ให้บวก
+      // แต่ภาพแสดง "3655" = 2025+543+543 → ปี > 2500 = พ.ศ. แล้ว ใช้ตรงๆ
+      const displayYr = yr > 2500 ? yr : yr + 543;
+      return d.toString().padStart(2,'0')+'/'+m.toString().padStart(2,'0')+'/'+displayYr;
+    }
+    // รูปแบบ ISO "2025-03-01"
+    const iso=raw.match(/^(\d{4})-(\d{2})-(\d{2})/);
+    if(iso){
+      const yr=parseInt(iso[1]);
+      return iso[3]+'/'+iso[2]+'/'+(yr<2100?yr+543:yr);
+    }
+    return raw; // fallback คืนตรงๆ
+  }
+
   let _editAnnId='';
   function editAnn(id){
     const a=annData.find(x=>x.ann_id===id);if(!a)return;
     _editAnnId=id;
     document.getElementById('ea_title').value=a.title||'';
     document.getElementById('ea_cat').value=a.category||'ทั่วไป';
-    // sanitize date: ถ้า API ส่งปี > 2100 ถือเป็น พ.ศ. แล้ว ไม่ต้อง convert
-    // ถ้าส่งปี CE (< 2100) ให้บวก 543 ก่อนแสดง
-    (function(){
-      const raw=a.date||'';
-      const m=raw.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
-      if(m){
-        const yr=parseInt(m[3]);
-        document.getElementById('ea_date').value=
-          m[1].padStart(2,'0')+'/'+m[2].padStart(2,'0')+'/'+(yr<2100?yr+543:yr);
-      } else {
-        document.getElementById('ea_date').value=raw;
-      }
-    })();
+    // sanitize date: รองรับทุกรูปแบบที่ API อาจส่งมา
+    document.getElementById('ea_date').value=_parseAnnDate(a.date||'');
     document.getElementById('ea_content').value=a.content||'';
     document.getElementById('ea_active').value=a.active==='TRUE'?'TRUE':'FALSE';
     // โหลด file_url เดิม

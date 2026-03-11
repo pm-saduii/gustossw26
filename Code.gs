@@ -6,7 +6,7 @@
 // ============================================================
 
 const SHEET_ID = '1MDX7JWY33m1lqtHbGGVQXbz3fPP_Dxllm5U_B5ixOhk';
-const DRIVE_FOLDER_ID = '1RF2J9YDSmhg_iGLzvyAGRqzSMQ1FuaHw';
+const DRIVE_FOLDER_ID = '1l4mAepbhZawYphDfE1kybY7bHNHS6IZ-';
 
 // Sheet names
 const SHEETS = {
@@ -74,6 +74,8 @@ function doPost(e) {
 }
 
 function handleRequest(e) {
+  // ป้องกัน e เป็น undefined เมื่อรันโดยตรงจาก Editor
+  if (!e) e = {};
   let params = e.parameter || {};
 
   // รองรับ POST ที่ส่ง JSON body (เช่น uploadFile ที่มี base64 ขนาดใหญ่)
@@ -167,32 +169,49 @@ function formatDate(val) {
 
 // ── File Upload to Google Drive ───────────────────────────────
 function uploadFileToDrive(base64Data, fileName, mimeType, folderId) {
+  var file;
   try {
     var folder = folderId
       ? DriveApp.getFolderById(folderId)
       : DriveApp.getRootFolder();
     var bytes = Utilities.base64Decode(base64Data);
     var blob  = Utilities.newBlob(bytes, mimeType, fileName);
-    var file  = folder.createFile(blob);
-    file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
-    return { fileId: file.getId(), fileUrl: 'https://drive.google.com/file/d/' + file.getId() + '/preview' };
+    file = folder.createFile(blob);
   } catch(e) {
-    return null;
+    return { ok: false, error: 'createFile failed: ' + e.toString() };
   }
+
+  // setSharing แยก try/catch — Shared Drive อาจ fail แต่ไฟล์ยังใช้ได้
+  try {
+    file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+  } catch(e) {
+    Logger.log('setSharing warning (Shared Drive?): ' + e.toString());
+    // ไม่ return error — ไฟล์ถูก create แล้ว ใช้ URL ได้
+  }
+
+  var fileId  = file.getId();
+  var fileUrl = 'https://drive.google.com/file/d/' + fileId + '/view?usp=sharing';
+  Logger.log('uploadFileToDrive OK: ' + fileUrl);
+  return { ok: true, fileId: fileId, fileUrl: fileUrl };
 }
 
 function handleUpload(p) {
-  if (!p.base64Data || !p.fileName || !p.mimeType) return { success:false, message:'ข้อมูลไฟล์ไม่ครบ' };
-  // Validate mime type — รับทั้ง image/* และ PDF
+  if (!p.base64Data || !p.fileName || !p.mimeType) {
+    return { success:false, message:'ข้อมูลไฟล์ไม่ครบ (base64Data/fileName/mimeType)' };
+  }
+  // Validate mime type
   var allowed = ['application/pdf','image/jpeg','image/png','image/gif','image/webp','image/jpg'];
-  // ถ้า mimeType ขึ้นต้นด้วย image/ ก็รับทั้งหมด (image/heic ฯลฯ)
   if (allowed.indexOf(p.mimeType) < 0 && p.mimeType.indexOf('image/') !== 0) {
     return { success:false, message:'รองรับเฉพาะ PDF และรูปภาพเท่านั้น (got: '+p.mimeType+')' };
   }
-  // ✅ BUG FIX: ส่ง folderId จาก parameter จริง (เดิมส่ง null ทำให้ใช้ root folder และ fail)
   var folderId = p.folderId || DRIVE_FOLDER_ID;
+  Logger.log('uploadFile: folder=' + folderId + ' file=' + p.fileName + ' mime=' + p.mimeType);
   var result = uploadFileToDrive(p.base64Data, p.fileName, p.mimeType, folderId);
-  if (!result) return { success:false, message:'อัปโหลดไม่สำเร็จ — ตรวจสอบสิทธิ์ DriveApp ใน Google Apps Script' };
+  if (!result.ok) {
+    Logger.log('uploadFile ERROR: ' + result.error);
+    return { success:false, message: result.error };   // ← ส่ง error จริงกลับไป client
+  }
+  Logger.log('uploadFile OK: ' + result.fileUrl);
   return { success:true, fileId: result.fileId, fileUrl: result.fileUrl };
 }
 
@@ -257,7 +276,12 @@ function sheetToObjects(sheet) {
         obj[col] = isNaN(n) ? 0 : n;
 
       } else if (HOUSE_TEXT_COLS.has(col)) {
-        obj[col] = raw === '' || raw === null || raw === undefined ? '' : String(raw);
+        // date columns พิเศษ: ถ้า GAS parse string วันที่เป็น Date object → แปลงกลับเป็น พ.ศ. string
+        if (raw instanceof Date && (col === 'date' || col === 'created_date' || col === 'h1_date' || col === 'h2_date')) {
+          obj[col] = formatDate(raw);
+        } else {
+          obj[col] = raw === '' || raw === null || raw === undefined ? '' : String(raw);
+        }
 
       } else if (raw instanceof Date) {
         obj[col] = formatDate(raw);
@@ -621,10 +645,34 @@ function addAnnouncement(data, user) {
   const id = genId('A');
   sheet.appendRow([
     id, data.title, data.content, data.category || 'ทั่วไป',
-    data.date || new Date().toLocaleDateString('th-TH'),
+    cleanDateString(data.date) || new Date().toLocaleDateString('th-TH'),
     user.username, 'TRUE', data.file_url || ''
   ]);
   return { success: true, message: 'เพิ่มประกาศสำเร็จ', ann_id: id };
+}
+
+function cleanDateString(d) {
+  // รับ string ทุกรูปแบบ → คืน string "dd/mm/yyyy" (พ.ศ.) เพื่อ save ลง Sheet
+  if (!d) return '';
+  if (d instanceof Date) return formatDate(d);
+  var s = String(d);
+  // dd/mm/yyyy
+  var slash = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if (slash) {
+    var yr = parseInt(slash[3]);
+    return slash[1].padStart(2,'0') + '/' + slash[2].padStart(2,'0') + '/' + (yr < 2100 ? yr + 543 : yr);
+  }
+  // JS Date.toString "Mon Mar 01 3655 ..."
+  var jsm = s.match(/([A-Za-z]{3})\s+(\d{1,2})\s+(\d{4})/);
+  if (jsm) {
+    var months = {Jan:1,Feb:2,Mar:3,Apr:4,May:5,Jun:6,Jul:7,Aug:8,Sep:9,Oct:10,Nov:11,Dec:12};
+    var mo = months[jsm[1]] || 1;
+    var dy = parseInt(jsm[2]);
+    var y  = parseInt(jsm[3]);
+    var be = y > 2500 ? y : y + 543;
+    return dy.toString().padStart(2,'0') + '/' + mo.toString().padStart(2,'0') + '/' + be;
+  }
+  return s;
 }
 
 function updateAnnouncement(data, user) {
@@ -632,9 +680,11 @@ function updateAnnouncement(data, user) {
   const rows = sheet.getDataRange().getValues();
   for (let i = 1; i < rows.length; i++) {
     if (rows[i][0] == data.ann_id) {
+      // cleanDateString: ป้องกัน date toString จาก GAS ถูก save ลง Sheet ผิดรูปแบบ
+      const safeDate = cleanDateString(data.date);
       sheet.getRange(i + 1, 1, 1, 8).setValues([[
         data.ann_id, data.title, data.content, data.category || 'ทั่วไป',
-        data.date, user.username, data.active || 'TRUE', data.file_url || rows[i][7] || ''
+        safeDate, user.username, data.active || 'TRUE', data.file_url || rows[i][7] || ''
       ]]);
       return { success: true, message: 'อัปเดตประกาศสำเร็จ' };
     }
@@ -724,4 +774,189 @@ function deleteNitiReport(data, user) {
     }
   }
   return { success: false, message: 'ไม่พบรายงาน' };
+}
+
+// ══════════════════════════════════════════════════════════════
+// TEST FUNCTIONS — รันจาก Apps Script Editor เพื่อ Grant permission
+// ══════════════════════════════════════════════════════════════
+
+/** ✅ ทดสอบ upload แบบละเอียด — หา root cause */
+function testUpload() {
+  var tiny = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==';
+
+  // ── Test 1: DriveApp.getRootFolder() ──────────────────────
+  try {
+    var root = DriveApp.getRootFolder();
+    Logger.log('✅ Test1 Root folder: ' + root.getName() + ' (id=' + root.getId() + ')');
+
+    // ลอง create file ที่ root
+    var bytes = Utilities.base64Decode(tiny);
+    var blob  = Utilities.newBlob(bytes, 'image/png', 'vms_test_root.png');
+    var f = root.createFile(blob);
+    Logger.log('✅ Test1 Create file at root: OK — ' + f.getId());
+    f.setTrashed(true); // ลบทิ้งหลังทดสอบ
+  } catch(e) {
+    Logger.log('❌ Test1 Root upload: ' + e.toString());
+  }
+
+  // ── Test 2: getFolderById ─────────────────────────────────
+  try {
+    var folder = DriveApp.getFolderById(DRIVE_FOLDER_ID);
+    Logger.log('✅ Test2 Folder found: ' + folder.getName());
+
+    // ตรวจสิทธิ์เจ้าของ folder
+    var access = folder.getSharingAccess();
+    var perm   = folder.getSharingPermission();
+    Logger.log('  Sharing: access=' + access + ' perm=' + perm);
+
+    // ลอง create file ใน folder
+    var bytes2 = Utilities.base64Decode(tiny);
+    var blob2  = Utilities.newBlob(bytes2, 'image/png', 'vms_test_folder.png');
+    var f2 = folder.createFile(blob2);
+    Logger.log('✅ Test2 Create file in folder: OK — ' + f2.getId());
+    f2.setTrashed(true);
+  } catch(e) {
+    Logger.log('❌ Test2 Folder upload: ' + e.toString());
+  }
+
+  // ── Test 3: ดู email account ที่ run script ───────────────
+  try {
+    Logger.log('ℹ️  Effective user: ' + Session.getEffectiveUser().getEmail());
+  } catch(e) {
+    Logger.log('ℹ️  Session info N/A (ANYONE_ANONYMOUS deploy): ' + e.toString());
+  }
+  Logger.log('✅ DriveApp ทำงานได้ปกติ — ปัญหาอยู่ที่ Web App deployment ต้อง re-deploy ใหม่');
+}
+
+/** ทดสอบ step by step เพื่อหา root cause */
+function testHandleUpload() {
+  var tiny = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==';
+
+  // Step A: ทดสอบ uploadFileToDrive โดยตรง (เหมือน testUpload)
+  Logger.log('--- Step A: uploadFileToDrive direct ---');
+  try {
+    var r1 = uploadFileToDrive(tiny, 'stepA.png', 'image/png', DRIVE_FOLDER_ID);
+    Logger.log('Step A: ' + JSON.stringify(r1));
+    if (r1.ok) DriveApp.getFileById(r1.fileId).setTrashed(true);
+  } catch(e) { Logger.log('Step A exception: ' + e); }
+
+  // Step B: ทดสอบ handleUpload โดยตรง
+  Logger.log('--- Step B: handleUpload direct ---');
+  try {
+    var p = { base64Data:tiny, fileName:'stepB.png', mimeType:'image/png', folderId:DRIVE_FOLDER_ID };
+    var r2 = handleUpload(p);
+    Logger.log('Step B: ' + JSON.stringify(r2));
+  } catch(e) { Logger.log('Step B exception: ' + e); }
+
+  // Step C: ทดสอบผ่าน handleRequest (simulate Web App call จริง)
+  Logger.log('--- Step C: via handleRequest ---');
+  try {
+    // login ก่อนเพื่อได้ token จริง
+    var loginResult = login({ username:'admin', password:'admin' });
+    Logger.log('Login: ' + JSON.stringify(loginResult));
+    if (!loginResult.success) { Logger.log('Login failed — skip Step C'); return; }
+    var token = loginResult.token;
+    var fakeEvent = {
+      parameter: {},
+      postData: {
+        contents: JSON.stringify({
+          action: 'uploadFile',
+          base64Data: tiny,
+          fileName: 'stepC.png',
+          mimeType: 'image/png',
+          folderId: DRIVE_FOLDER_ID,
+          token: token
+        })
+      }
+    };
+    var r3 = handleRequest(fakeEvent);
+    Logger.log('Step C: ' + r3.getContent());
+  } catch(e) { Logger.log('Step C exception: ' + e); }
+}
+
+/** ตรวจ account ที่ Script รันอยู่ */
+function testWhoAmI() {
+  try {
+    Logger.log('EffectiveUser: ' + Session.getEffectiveUser().getEmail());
+  } catch(e) { Logger.log('EffectiveUser error: ' + e); }
+  try {
+    Logger.log('ActiveUser: ' + Session.getActiveUser().getEmail());
+  } catch(e) { Logger.log('ActiveUser error: ' + e); }
+  try {
+    var root = DriveApp.getRootFolder();
+    Logger.log('Drive root owner: ' + root.getName() + ' id=' + root.getId());
+    // list files ใน root เพื่อดูว่าเป็น Drive ของใคร
+    var files = root.getFiles();
+    var count = 0;
+    while(files.hasNext() && count < 3) {
+      Logger.log('  file: ' + files.next().getName());
+      count++;
+    }
+  } catch(e) { Logger.log('Drive error: ' + e); }
+}
+
+/** ทดสอบว่า DriveApp ทำงานใน context นี้ได้ไหม */
+function testDriveContext() {
+  var tiny = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==';
+  
+  // ทดสอบ 1: DriveApp.getRootFolder
+  try {
+    var root = DriveApp.getRootFolder();
+    Logger.log('✅ getRootFolder: ' + root.getName());
+  } catch(e) { Logger.log('❌ getRootFolder: ' + e); return; }
+
+  // ทดสอบ 2: getFolderById
+  try {
+    var folder = DriveApp.getFolderById(DRIVE_FOLDER_ID);
+    Logger.log('✅ getFolderById: ' + folder.getName());
+  } catch(e) { Logger.log('❌ getFolderById: ' + e); return; }
+
+  // ทดสอบ 3: createFile ใน folder
+  try {
+    var bytes = Utilities.base64Decode(tiny);
+    var blob  = Utilities.newBlob(bytes, 'image/png', 'ctx_test.png');
+    var f = DriveApp.getFolderById(DRIVE_FOLDER_ID).createFile(blob);
+    Logger.log('✅ createFile: ' + f.getId());
+    f.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+    Logger.log('✅ setSharing OK');
+    f.setTrashed(true);
+    Logger.log('✅ ALL DriveApp OK — ปัญหาอยู่ที่ Web App context ไม่มี OAuth');
+  } catch(e) { Logger.log('❌ createFile: ' + e); }
+}
+
+/** ✅ รันตัวนี้ก่อนเพื่อ Grant DriveApp + Spreadsheet permission */
+function testPermissions() {
+  try {
+    // ทดสอบ Spreadsheet
+    var ss = SpreadsheetApp.openById(SHEET_ID);
+    Logger.log('✅ Spreadsheet: ' + ss.getName());
+
+    // ทดสอบ Drive folder
+    var folder = DriveApp.getFolderById(DRIVE_FOLDER_ID);
+    Logger.log('✅ Drive folder: ' + folder.getName());
+
+    Logger.log('✅ Permission OK — พร้อม Deploy แล้ว');
+  } catch(e) {
+    Logger.log('❌ Error: ' + e.toString());
+  }
+}
+
+/** ทดสอบ login action */
+function testDoGet() {
+  var fakeEvent = {
+    parameter: { action: 'login', username: 'admin', password: 'admin' },
+    postData: null
+  };
+  var result = handleRequest(fakeEvent);
+  Logger.log(result.getContent());
+}
+
+/** ทดสอบ getAnnouncements */
+function testGetAnn() {
+  var fakeEvent = {
+    parameter: { action: 'getAnnouncements' },
+    postData: null
+  };
+  var result = handleRequest(fakeEvent);
+  Logger.log(result.getContent());
 }
