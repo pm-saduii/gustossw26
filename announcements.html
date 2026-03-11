@@ -78,6 +78,11 @@
     .empty i{font-size:2.5rem;margin-bottom:.75rem;opacity:.4;display:block;}
     .skeleton{background:linear-gradient(90deg,var(--bg2) 25%,var(--card2) 50%,var(--bg2) 75%);background-size:200% 100%;animation:shimmer 1.2s infinite;border-radius:8px;}
     @keyframes shimmer{to{background-position:-200% 0;}}
+    /* ── Year filter ────────────────────────────────── */
+    .year-row{display:flex;gap:.4rem;flex-wrap:wrap;align-items:center;}
+    .year-btn{padding:.32rem .82rem;border-radius:20px;border:1.5px solid var(--border);background:var(--card);font-family:'Sarabun',sans-serif;font-size:.8rem;font-weight:600;color:var(--muted);cursor:pointer;transition:all .2s;}
+    .year-btn.active,.year-btn:hover{background:var(--primary);color:#fff;border-color:var(--primary);}
+    .year-label{font-size:.78rem;color:var(--muted);font-weight:600;margin-right:.15rem;}
     .ann-file-btn{display:inline-flex;align-items:center;gap:.4rem;margin:.5rem 0 0;padding:.35rem .85rem;border-radius:20px;border:1.5px solid var(--border);background:var(--card2);font-size:.8rem;font-weight:700;color:var(--primary);cursor:pointer;transition:all .15s;text-decoration:none;}
     .ann-file-btn:hover{background:var(--primary);color:#fff;border-color:var(--primary);}
     .ann-file-btn.pdf{color:#dc2626;border-color:#fca5a5;background:#fff5f5;}
@@ -133,13 +138,19 @@
 </div>
 
 <main>
-  <div class="toolbar">
-    <h2><i class="fa-solid fa-bullhorn"></i> ประกาศทั้งหมด</h2>
-    <div class="filter-btns">
-      <button class="filter-btn active" onclick="filterCat(this,'')">ทั้งหมด</button>
-      <button class="filter-btn ด่วน" onclick="filterCat(this,'ด่วน')"><i class="fa-solid fa-circle-exclamation"></i> ด่วน</button>
-      <button class="filter-btn สำคัญ" onclick="filterCat(this,'สำคัญ')"><i class="fa-solid fa-star"></i> สำคัญ</button>
-      <button class="filter-btn" onclick="filterCat(this,'ทั่วไป')"><i class="fa-solid fa-info-circle"></i> ทั่วไป</button>
+  <div class="toolbar" style="flex-direction:column;align-items:flex-start;gap:.65rem">
+    <div style="display:flex;align-items:center;justify-content:space-between;width:100%;flex-wrap:wrap;gap:.5rem">
+      <h2><i class="fa-solid fa-bullhorn"></i> ประกาศทั้งหมด</h2>
+      <div class="filter-btns">
+        <button class="filter-btn active" onclick="filterCat(this,'')">ทั้งหมด</button>
+        <button class="filter-btn ด่วน" onclick="filterCat(this,'ด่วน')"><i class="fa-solid fa-circle-exclamation"></i> ด่วน</button>
+        <button class="filter-btn สำคัญ" onclick="filterCat(this,'สำคัญ')"><i class="fa-solid fa-star"></i> สำคัญ</button>
+        <button class="filter-btn" onclick="filterCat(this,'ทั่วไป')"><i class="fa-solid fa-info-circle"></i> ทั่วไป</button>
+      </div>
+    </div>
+    <div class="year-row" id="yearBtns">
+      <span class="year-label"><i class="fa-solid fa-calendar-days"></i> ปี :</span>
+      <span style="font-size:.8rem;color:var(--muted)">กำลังโหลด...</span>
     </div>
   </div>
 
@@ -164,12 +175,55 @@
 
   let allAnn=[];
   let currentCat='';
+  let currentYear='';
   const catIcon={'ทั่วไป':'fa-info-circle','ด่วน':'fa-circle-exclamation','สำคัญ':'fa-star'};
+
+  // ── ดึงปี พ.ศ. จาก date field ─────────────────────────────────
+  function extractYear(val){
+    if(!val)return null;
+    const s=String(val).trim();
+    // dd/mm/yyyy
+    const m1=s.match(/^\d{1,2}\/(\d{1,2})\/(\d{4})$/);
+    if(m1){const yr=parseInt(m1[2]);return yr<2500?yr+543:yr;}
+    // ISO yyyy-mm-dd
+    const m2=s.match(/^(\d{4})-\d{2}-\d{2}/);
+    if(m2){const yr=parseInt(m2[1]);return yr<2500?yr+543:yr;}
+    // JS Date.toString() — ดึงปีจาก token สุดท้ายที่เป็นตัวเลข 4 หลัก
+    const nums=s.match(/\b(\d{4})\b/g);
+    if(nums){const yr=parseInt(nums[nums.length-1]);return yr>2400?yr:yr+543;}
+    return null;
+  }
 
   async function loadAnnouncements(){
     const r=await fetch(API_URL+'?'+new URLSearchParams({action:'getAnnouncements'}));
     const d=await r.json();
-    if(d.success){allAnn=d.data;renderList();}
+    if(!d.success)return;
+    allAnn=d.data;
+
+    // ── สร้าง year buttons ──────────────────────────────────────
+    const yearSet=new Set();
+    allAnn.forEach(a=>{const y=extractYear(a.date);if(y)yearSet.add(y);});
+    const years=[...yearSet].sort((a,b)=>b-a);
+    currentYear=years.length?String(years[0]):'';
+
+    const yearWrap=document.getElementById('yearBtns');
+    if(years.length){
+      yearWrap.innerHTML=
+        `<span class="year-label"><i class="fa-solid fa-calendar-days"></i> ปี :</span>`+
+        `<button class="year-btn" onclick="filterYear(this,'')">ทุกปี</button>`+
+        years.map(y=>`<button class="year-btn ${String(y)===currentYear?'active':''}" onclick="filterYear(this,'${y}')">${y}</button>`).join('');
+    } else {
+      yearWrap.innerHTML='<span class="year-label"><i class="fa-solid fa-calendar-days"></i> ปี :</span><span style="font-size:.8rem;color:var(--muted)">ไม่มีข้อมูลปี</span>';
+    }
+
+    renderList();
+  }
+
+  function filterYear(btn,yr){
+    document.querySelectorAll('.year-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    currentYear=yr;
+    renderList();
   }
 
   function filterCat(btn,cat){
@@ -193,7 +247,7 @@
 
   function extractFileId(url){const m=url.match(/\/d\/([a-zA-Z0-9_-]+)/);return m?m[1]:null;}
 
-  /* ── helpers ── */
+  /* ── Lightbox ─────────────────────────────────────────────── */
   let lbPhotos=[],lbIdx=0;
   function lbOpen(urls,i){lbPhotos=urls;lbIdx=i;lbShow();document.getElementById('lbAnn').classList.add('open');}
   function lbClose(){document.getElementById('lbAnn').classList.remove('open');}
@@ -221,9 +275,7 @@
     const lowerUrl=fileUrl.toLowerCase();
     const isPdf=lowerUrl.includes('.pdf');
     const isImg=isImageUrl(fileUrl)||(!isPdf&&fid);
-
     if(isImg){
-      // แสดง thumbnail กดแล้วเปิด lightbox
       const thumbSrc=fid?`https://lh3.googleusercontent.com/d/${fid}=s400`:fileUrl;
       const fallback=fid?`https://drive.google.com/thumbnail?id=${fid}&sz=w400`:fileUrl;
       const urls=[fileUrl];
@@ -233,29 +285,33 @@
     <img src="${thumbSrc}" loading="lazy" onerror="this.src='${fallback}';this.onerror=null">
   </div>
 </div>`;
-    } else {
-      // ไม่ใช่รูป → แสดง file icon กดแล้วเปิด link ใหม่
-      const ext=lowerUrl.split('.').pop().split('?')[0]||'file';
-      const isPdfFile=ext==='pdf';
-      const iconClass=isPdfFile?'pdf':'other';
-      const iconName=isPdfFile?'fa-file-pdf':'fa-file-alt';
-      const openUrl=fid?`https://drive.google.com/file/d/${fid}/view`:fileUrl;
-      return`<div class="attach-label"><i class="fa-solid fa-paperclip"></i> ไฟล์แนบ</div>
+    }
+    const ext=lowerUrl.split('.').pop().split('?')[0]||'file';
+    const isPdfFile=ext==='pdf';
+    const iconClass=isPdfFile?'pdf':'other';
+    const iconName=isPdfFile?'fa-file-pdf':'fa-file-alt';
+    const openUrl=fid?`https://drive.google.com/file/d/${fid}/view`:fileUrl;
+    return`<div class="attach-label"><i class="fa-solid fa-paperclip"></i> ไฟล์แนบ</div>
 <div class="attach-strip">
   <a class="attach-file-icon ${iconClass}" href="${openUrl}" target="_blank" rel="noopener" title="เปิดไฟล์ ${ext.toUpperCase()}">
     <i class="fa-solid ${iconName}"></i>
     <span>${ext.toUpperCase()}</span>
   </a>
 </div>`;
-    }
   }
 
   function renderList(){
-    const filtered=currentCat?allAnn.filter(a=>a.category===currentCat):allAnn;
-    if(!filtered.length){
-      document.getElementById('annList').innerHTML=`<div class="empty"><i class="fa-solid fa-bullhorn"></i>ยังไม่มีประกาศ</div>`;return;
+    // กรองตามปี + ประเภท
+    let list=allAnn;
+    if(currentYear) list=list.filter(a=>String(extractYear(a.date))===currentYear);
+    if(currentCat)  list=list.filter(a=>a.category===currentCat);
+
+    if(!list.length){
+      const msg=currentYear?`ไม่มีประกาศในปี ${currentYear}`:'ยังไม่มีประกาศ';
+      document.getElementById('annList').innerHTML=`<div class="empty"><i class="fa-solid fa-bullhorn"></i>${msg}</div>`;
+      return;
     }
-    document.getElementById('annList').innerHTML=filtered.map((a,i)=>{
+    document.getElementById('annList').innerHTML=list.map((a,i)=>{
       const cat=a.category||'ทั่วไป';
       const fileHtml=buildAttachment(a.file_url||'',i);
       return`<div class="ann-card" style="animation-delay:${i*0.05}s">
