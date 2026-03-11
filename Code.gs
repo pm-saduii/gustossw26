@@ -14,7 +14,8 @@ const SHEETS = {
   HOUSES: 'Houses',
   COMMON_FEE: 'CommonFee',
   ANNOUNCEMENTS: 'Announcements',
-  NITI_REPORT: 'NitiReport'
+  NITI_REPORT: 'NitiReport',
+  CARS: 'Cars'
 };
 
 // ── Token Security ────────────────────────────────────────────
@@ -129,6 +130,12 @@ function handleRequest(e) {
       case 'addNitiReport':    result = requireAdmin(data, addNitiReport); break;
       case 'updateNitiReport': result = requireAdmin(data, updateNitiReport); break;
       case 'deleteNitiReport': result = requireAdmin(data, deleteNitiReport); break;
+
+      // Cars
+      case 'getCars':    result = getCars(data); break;
+      case 'addCar':     result = requireAdmin(data, addCar); break;
+      case 'updateCar':  result = requireAdmin(data, updateCar); break;
+      case 'deleteCar':  result = requireAdmin(data, deleteCar); break;
 
       // Admin — File Upload
       case 'uploadFile':       result = requireAdmin(data, (d) => handleUpload(d)); break;
@@ -797,6 +804,80 @@ function deleteNitiReport(data, user) {
     }
   }
   return { success: false, message: 'ไม่พบรายงาน' };
+}
+
+// ── Cars ─────────────────────────────────────────────────────────
+
+function getCars(data) {
+  const sheet = getSheet(SHEETS.CARS);
+  const rows  = sheet.getDataRange().getValues();
+  if (rows.length < 2) return { success: true, data: [] };
+  const headers = rows[0].map(String);
+  const cars = [];
+  for (let i = 1; i < rows.length; i++) {
+    const row = rows[i];
+    if (!row[0] && !row[1]) continue; // skip empty
+    const obj = {};
+    headers.forEach((h, j) => { obj[h] = row[j] === undefined || row[j] === null ? '' : String(row[j]); });
+    // filter by house_id ถ้าส่งมา (สำหรับ dashboard ลูกบ้าน)
+    if (data.house_id && obj.house_id !== String(data.house_id)) continue;
+    cars.push(obj);
+  }
+  return { success: true, data: cars };
+}
+
+function genCarId() {
+  return 'C' + Date.now().toString().slice(-8) + Math.floor(Math.random()*900+100);
+}
+
+function addCar(data, user) {
+  const sheet  = getSheet(SHEETS.CARS);
+  const car_id = genCarId();
+  sheet.appendRow([
+    data.house_id || '', car_id,
+    data.car_type  || 'car',
+    data.plate_no  || '',
+    data.car_brand || '',
+    data.car_model || '',
+    data.car_color || '',
+    data.car_park  || '',
+    parseFloat(data.car_fee) || 0
+  ]);
+  return { success: true, message: 'เพิ่มรถสำเร็จ', car_id };
+}
+
+function updateCar(data, user) {
+  const sheet = getSheet(SHEETS.CARS);
+  const rows  = sheet.getDataRange().getValues();
+  for (let i = 1; i < rows.length; i++) {
+    if (String(rows[i][1]) === String(data.car_id)) {
+      sheet.getRange(i + 1, 1, 1, 9).setValues([[
+        data.house_id || rows[i][0],
+        data.car_id,
+        data.car_type  || rows[i][2],
+        data.plate_no  || rows[i][3],
+        data.car_brand || rows[i][4],
+        data.car_model || rows[i][5],
+        data.car_color || rows[i][6],
+        data.car_park  || rows[i][7],
+        parseFloat(data.car_fee) || 0
+      ]]);
+      return { success: true, message: 'อัปเดตรถสำเร็จ' };
+    }
+  }
+  return { success: false, message: 'ไม่พบข้อมูลรถ' };
+}
+
+function deleteCar(data, user) {
+  const sheet = getSheet(SHEETS.CARS);
+  const rows  = sheet.getDataRange().getValues();
+  for (let i = 1; i < rows.length; i++) {
+    if (String(rows[i][1]) === String(data.car_id)) {
+      sheet.deleteRow(i + 1);
+      return { success: true, message: 'ลบรถสำเร็จ' };
+    }
+  }
+  return { success: false, message: 'ไม่พบข้อมูลรถ' };
 }
 
 // ══════════════════════════════════════════════════════════════

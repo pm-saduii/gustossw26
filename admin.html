@@ -149,6 +149,15 @@
     .modal-body{padding:1.4rem;overflow-y:auto;flex:1;}
     .modal-foot{padding:.9rem 1.4rem;background:var(--card2);border-top:1px solid var(--border);display:flex;gap:.6rem;justify-content:flex-end;flex-shrink:0;transition:background .3s;}
     /* Modal form styles */
+    /* ── Car badges ─────────────────────────────────── */
+    .car-type-badge{display:inline-flex;align-items:center;gap:.3rem;padding:.18rem .6rem;border-radius:20px;font-size:.7rem;font-weight:700;}
+    .car-type-badge.car{background:#dbeafe;color:#1d4ed8;}
+    .car-type-badge.motorcycle{background:#fef9c3;color:#854d0e;}
+    .car-type-badge.truck{background:#f3e8ff;color:#7e22ce;}
+    .car-type-badge.other{background:var(--bg2);color:var(--muted);}
+    [data-theme="dark"] .car-type-badge.car{background:#1e3a5f;color:#93c5fd;}
+    [data-theme="dark"] .car-type-badge.motorcycle{background:#2a2010;color:#fbbf24;}
+    .car-park-badge{font-size:.7rem;padding:.15rem .5rem;border-radius:10px;background:var(--bg2);color:var(--muted);font-weight:600;}
     .mf-section{margin-bottom:1.2rem;}
     .mf-section-title{font-size:.72rem;font-weight:800;color:var(--primary);text-transform:uppercase;letter-spacing:.08em;margin-bottom:.75rem;padding-bottom:.35rem;border-bottom:2px solid var(--primary-l);display:flex;align-items:center;gap:.4rem;}
     .mf-grid{display:grid;grid-template-columns:1fr 1fr;gap:.8rem;}
@@ -214,6 +223,7 @@
       <div class="nav-section">เนื้อหา</div>
       <button class="nav-item" onclick="showSection('announcements',this)"><i class="fa-solid fa-bullhorn"></i> ประกาศ</button>
       <button class="nav-item" onclick="showSection('niti',this)"><i class="fa-solid fa-clipboard-list"></i> ผลงานนิติ</button>
+      <button class="nav-item" onclick="showSection('cars',this)"><i class="fa-solid fa-car"></i> จัดการรถ</button>
       <div class="nav-section">ลิ้งก์</div>
       <a class="nav-item" href="summary.html" target="_blank"><i class="fa-solid fa-chart-pie"></i> สรุปค่าส่วนกลาง</a>
       <a class="nav-item" href="announcements.html" target="_blank"><i class="fa-solid fa-bullhorn"></i> หน้าประกาศ</a>
@@ -459,6 +469,68 @@
           </tr></thead><tbody id="nitiTbody"><tr><td colspan="5"><div class="skeleton"></div></td></tr></tbody></table></div></div>
         </div>
       </div>
+
+      <!-- ── SECTION: CARS ──────────────────────────────────── -->
+      <div class="section" id="sec-cars">
+        <div class="card">
+          <div class="card-header">
+            <h3><i class="fa-solid fa-car-side"></i> เพิ่มรถใหม่</h3>
+            <button class="btn btn-outline btn-sm" onclick="toggleForm('carForm')"><i class="fa-solid fa-plus"></i> เพิ่มรถ</button>
+          </div>
+          <div class="card-body" id="carForm" style="display:none">
+            <div class="form-grid">
+              <div class="mf-group"><div class="mf-label"><i class="fa-solid fa-house"></i> บ้าน (house_id)</div>
+                <select class="mf-input" id="c_house_id"><option value="">-- เลือกบ้าน --</option></select></div>
+              <div class="mf-group"><div class="mf-label"><i class="fa-solid fa-tag"></i> ประเภท</div>
+                <select class="mf-input" id="c_car_type">
+                  <option value="car">🚗 รถยนต์</option>
+                  <option value="motorcycle">🏍️ มอเตอร์ไซค์</option>
+                  <option value="truck">🚐 รถกระบะ/ตู้</option>
+                  <option value="other">อื่นๆ</option>
+                </select></div>
+              <div class="mf-group"><div class="mf-label"><i class="fa-solid fa-id-badge"></i> ทะเบียนรถ</div>
+                <input class="mf-input" id="c_plate_no" type="text" placeholder="เช่น กจ 5533 กรุงเทพ"/></div>
+              <div class="mf-group"><div class="mf-label"><i class="fa-solid fa-car"></i> ยี่ห้อ</div>
+                <input class="mf-input" id="c_car_brand" type="text" placeholder="เช่น TOYOTA, BYD"/></div>
+              <div class="mf-group"><div class="mf-label"><i class="fa-solid fa-car-rear"></i> รุ่น</div>
+                <input class="mf-input" id="c_car_model" type="text" placeholder="เช่น Sealion 6, Kicks"/></div>
+              <div class="mf-group"><div class="mf-label"><i class="fa-solid fa-palette"></i> สี</div>
+                <input class="mf-input" id="c_car_color" type="text" placeholder="เช่น ขาว, แดง"/></div>
+              <div class="mf-group"><div class="mf-label"><i class="fa-solid fa-square-parking"></i> ที่จอด</div>
+                <select class="mf-input" id="c_car_park">
+                  <option value="หน้าบ้าน">หน้าบ้าน</option>
+                  <option value="ในบ้าน">ในบ้าน</option>
+                  <option value="ส่วนกลาง">ส่วนกลาง</option>
+                  <option value="อื่นๆ">อื่นๆ</option>
+                </select></div>
+              <div class="mf-group"><div class="mf-label"><i class="fa-solid fa-coins"></i> ค่าจอด/เดือน (฿)</div>
+                <input class="mf-input" id="c_car_fee" type="number" min="0" step="50" value="0"/></div>
+            </div>
+            <div style="display:flex;gap:.75rem;margin-top:1rem">
+              <button class="btn btn-primary" onclick="saveCar()"><i class="fa-solid fa-floppy-disk"></i> บันทึก</button>
+              <button class="btn btn-outline" onclick="toggleForm('carForm')">ยกเลิก</button>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <h3><i class="fa-solid fa-table-list"></i> รายการรถทั้งหมด</h3>
+            <div style="display:flex;gap:.5rem;align-items:center">
+              <input type="text" id="carSearch" placeholder="ค้นหาทะเบียน/บ้าน/ยี่ห้อ..." style="width:190px;padding:.35rem .7rem;font-size:.8rem;border:1.5px solid var(--border);border-radius:8px;background:var(--card2);color:var(--text);font-family:'Sarabun',sans-serif" oninput="filterCars()"/>
+              <button class="btn btn-outline btn-sm" onclick="loadCars()"><i class="fa-solid fa-rotate"></i></button>
+            </div>
+          </div>
+          <div class="card-body" style="padding:0;overflow-x:auto">
+            <table class="tbl" id="carTable">
+              <thead><tr>
+                <th>บ้าน</th><th>ประเภท</th><th>ทะเบียน</th><th>ยี่ห้อ / รุ่น</th><th>สี</th><th>ที่จอด</th><th style="text-align:right">ค่าจอด/เดือน</th><th>จัดการ</th>
+              </tr></thead>
+              <tbody id="carTbody"><tr><td colspan="8" style="text-align:center;padding:2rem;color:var(--muted)"><i class="fa-solid fa-spinner fa-spin"></i> กำลังโหลด...</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
     </main>
   </div>
 </div>
@@ -788,9 +860,9 @@
   function toggleTheme(){applyTheme(document.documentElement.getAttribute('data-theme')==='dark'?'light':'dark');}
 
   const MONTHS_TH=['','ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
-  const sectionTitles={overview:'<i class="fa-solid fa-gauge"></i> Dashboard',houses:'<i class="fa-solid fa-house"></i> จัดการข้อมูลบ้าน',fees:'<i class="fa-solid fa-receipt"></i> จัดการค่าส่วนกลาง',users:'<i class="fa-solid fa-users"></i> จัดการผู้ใช้งาน',announcements:'<i class="fa-solid fa-bullhorn"></i> จัดการประกาศ',niti:'<i class="fa-solid fa-clipboard-list"></i> จัดการผลงานนิติ'};
+  const sectionTitles={overview:'<i class="fa-solid fa-gauge"></i> Dashboard',houses:'<i class="fa-solid fa-house"></i> จัดการข้อมูลบ้าน',fees:'<i class="fa-solid fa-receipt"></i> จัดการค่าส่วนกลาง',users:'<i class="fa-solid fa-users"></i> จัดการผู้ใช้งาน',announcements:'<i class="fa-solid fa-bullhorn"></i> จัดการประกาศ',niti:'<i class="fa-solid fa-clipboard-list"></i> จัดการผลงานนิติ',cars:'<i class="fa-solid fa-car"></i> จัดการรถ'};
   // ✅ FIX: ใช้ arrow function แทนการอ้างอิงตรงๆ กัน crash จาก hoisting
-  const sectionLoaders={houses:()=>loadHouses(),fees:()=>loadFees(),users:()=>loadUsers(),announcements:()=>loadAnn(),niti:()=>loadNiti()};
+  const sectionLoaders={houses:()=>loadHouses(),fees:()=>loadFees(),users:()=>loadUsers(),announcements:()=>loadAnn(),niti:()=>loadNiti(),cars:()=>loadCars()};
 
   function showSection(id,btn){
     document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
@@ -1694,7 +1766,167 @@
     .then(r=>{if(r.isConfirmed){localStorage.removeItem('vms_token');localStorage.removeItem('vms_role');localStorage.removeItem('vms_name');localStorage.removeItem('vms_house');window.location.href='index.html';}});
   }
 
+  // ════════════════════════════════════════════════════════
+  // CARS — Admin functions
+  // ════════════════════════════════════════════════════════
+  let carsData=[];
+  let _editCarId='';
+
+  const carTypeLabel={car:'🚗 รถยนต์',motorcycle:'🏍️ มอเตอร์ไซค์',truck:'🚐 รถกระบะ/ตู้',other:'🚙 อื่นๆ'};
+  const parkLabel={'หน้าบ้าน':'🏠 หน้าบ้าน','ในบ้าน':'🔒 ในบ้าน','ส่วนกลาง':'🅿️ ส่วนกลาง','อื่นๆ':'📍 อื่นๆ'};
+
+  function carTypeBadge(t){
+    const label=carTypeLabel[t]||t||'—';
+    const cls=t==='car'?'car':t==='motorcycle'?'motorcycle':t==='truck'?'truck':'other';
+    return`<span class="car-type-badge ${cls}">${label}</span>`;
+  }
+
+  async function loadCars(){
+    const r=await api({action:'getCars'});
+    if(!r.success){toast('error',r.message);return;}
+    carsData=r.data||[];
+    // populate house dropdown
+    populateCarHouseDropdown('c_house_id');
+    populateCarHouseDropdown('ec_house_id');
+    renderCars(carsData);
+  }
+
+  function populateCarHouseDropdown(selectId){
+    const sel=document.getElementById(selectId);if(!sel)return;
+    const cur=sel.value;
+    sel.innerHTML='<option value="">-- เลือกบ้าน --</option>';
+    (housesData||[]).forEach(h=>{
+      const opt=document.createElement('option');
+      opt.value=h.house_id;
+      opt.textContent=h.house_id+' — '+h.house_no+' ('+h.owner_name+')';
+      sel.appendChild(opt);
+    });
+    sel.value=cur;
+  }
+
+  function renderCars(data){
+    const tbody=document.getElementById('carTbody');
+    if(!data.length){tbody.innerHTML='<tr><td colspan="8" style="text-align:center;padding:2rem;color:var(--muted)"><i class="fa-solid fa-car-side" style="opacity:.3;font-size:2rem;display:block;margin-bottom:.5rem"></i>ยังไม่มีข้อมูลรถ</td></tr>';return;}
+    tbody.innerHTML=data.map(c=>{
+      const fee=parseFloat(c.car_fee)||0;
+      const houseInfo=housesData?housesData.find(h=>h.house_id===c.house_id):null;
+      const houseLabel=houseInfo?c.house_id+' ('+houseInfo.house_no+')':c.house_id;
+      return`<tr>
+        <td><strong>${houseLabel}</strong></td>
+        <td>${carTypeBadge(c.car_type)}</td>
+        <td><strong style="letter-spacing:.05em">${c.plate_no||'—'}</strong></td>
+        <td>${c.car_brand||''} <span style="color:var(--muted)">${c.car_model||''}</span></td>
+        <td>${c.car_color||'—'}</td>
+        <td><span class="car-park-badge">${parkLabel[c.car_park]||c.car_park||'—'}</span></td>
+        <td style="text-align:right;font-weight:700">${fee>0?fmtMoney(fee)+' ฿':'<span style="color:var(--accent)">ฟรี</span>'}</td>
+        <td>
+          <button class="btn btn-primary btn-sm" onclick="editCar('${c.car_id}')"><i class="fa-solid fa-pen"></i></button>
+          <button class="btn btn-danger btn-sm" onclick="delCar('${c.car_id}')"><i class="fa-solid fa-trash"></i></button>
+        </td>
+      </tr>`;
+    }).join('');
+  }
+
+  function filterCars(){
+    const q=document.getElementById('carSearch').value.toLowerCase();
+    if(!q){renderCars(carsData);return;}
+    renderCars(carsData.filter(c=>[c.house_id,c.plate_no,c.car_brand,c.car_model,c.car_color,c.car_park].join(' ').toLowerCase().includes(q)));
+  }
+
+  async function saveCar(){
+    const payload={action:'addCar',
+      house_id:document.getElementById('c_house_id').value,
+      car_type:document.getElementById('c_car_type').value,
+      plate_no:document.getElementById('c_plate_no').value,
+      car_brand:document.getElementById('c_car_brand').value,
+      car_model:document.getElementById('c_car_model').value,
+      car_color:document.getElementById('c_car_color').value,
+      car_park:document.getElementById('c_car_park').value,
+      car_fee:document.getElementById('c_car_fee').value,
+    };
+    if(!payload.house_id||!payload.plate_no){toast('warning','กรุณาเลือกบ้านและกรอกทะเบียนรถ');return;}
+    const r=await api(payload);
+    if(r.success){toast('success',r.message);toggleForm('carForm');loadCars();}
+    else toast('error',r.message);
+  }
+
+  function editCar(id){
+    const c=carsData.find(x=>x.car_id===id);if(!c)return;
+    _editCarId=id;
+    populateCarHouseDropdown('ec_house_id');
+    document.getElementById('ec_house_id').value=c.house_id||'';
+    document.getElementById('ec_car_type').value=c.car_type||'car';
+    document.getElementById('ec_plate_no').value=c.plate_no||'';
+    document.getElementById('ec_car_brand').value=c.car_brand||'';
+    document.getElementById('ec_car_model').value=c.car_model||'';
+    document.getElementById('ec_car_color').value=c.car_color||'';
+    document.getElementById('ec_car_park').value=c.car_park||'หน้าบ้าน';
+    document.getElementById('ec_car_fee').value=c.car_fee||0;
+    openModal('modalCarEdit');
+  }
+
+  async function submitCarEdit(){
+    const btn=document.querySelector('#modalCarEdit .btn-primary');
+    btn.disabled=true;btn.innerHTML='<i class="fa-solid fa-spinner fa-spin"></i> บันทึก...';
+    const r=await api({action:'updateCar',car_id:_editCarId,
+      house_id:document.getElementById('ec_house_id').value,
+      car_type:document.getElementById('ec_car_type').value,
+      plate_no:document.getElementById('ec_plate_no').value,
+      car_brand:document.getElementById('ec_car_brand').value,
+      car_model:document.getElementById('ec_car_model').value,
+      car_color:document.getElementById('ec_car_color').value,
+      car_park:document.getElementById('ec_car_park').value,
+      car_fee:document.getElementById('ec_car_fee').value,
+    });
+    btn.disabled=false;btn.innerHTML='<i class="fa-solid fa-floppy-disk"></i> บันทึก';
+    if(r.success){toast('success',r.message);closeModal('modalCarEdit');loadCars();}
+    else toast('error',r.message||'เกิดข้อผิดพลาด');
+  }
+
+  async function delCar(id){
+    const c=carsData.find(x=>x.car_id===id);
+    const label=c?c.plate_no+' ('+c.car_brand+' '+c.car_model+')':id;
+    const conf=await Swal.fire({icon:'warning',title:'ลบรถ?',text:label,showCancelButton:true,confirmButtonColor:'#dc2626',confirmButtonText:'ลบ',cancelButtonText:'ยกเลิก'});
+    if(!conf.isConfirmed)return;
+    const r=await api({action:'deleteCar',car_id:id});
+    if(r.success){toast('success',r.message);loadCars();}
+    else toast('error',r.message);
+  }
+
   loadOverview();
 </script>
+
+<!-- ═══════ MODAL: Edit Car ═══════ -->
+<div class="modal-backdrop" id="modalCarEdit" onclick="closeModalBg(event,'modalCarEdit')">
+  <div class="modal">
+    <div class="modal-header"><h3><i class="fa-solid fa-car"></i> แก้ไขข้อมูลรถ</h3><button class="modal-close" onclick="closeModal('modalCarEdit')"><i class="fa-solid fa-xmark"></i></button></div>
+    <div class="modal-body">
+      <div class="mf-group"><div class="mf-label">บ้าน (house_id)</div><select class="mf-input" id="ec_house_id"><option value="">-- เลือกบ้าน --</option></select></div>
+      <div class="mf-group"><div class="mf-label">ประเภท</div>
+        <select class="mf-input" id="ec_car_type">
+          <option value="car">🚗 รถยนต์</option>
+          <option value="motorcycle">🏍️ มอเตอร์ไซค์</option>
+          <option value="truck">🚐 รถกระบะ/ตู้</option>
+          <option value="other">อื่นๆ</option>
+        </select></div>
+      <div class="mf-group"><div class="mf-label">ทะเบียนรถ</div><input class="mf-input" id="ec_plate_no" type="text"/></div>
+      <div class="mf-group"><div class="mf-label">ยี่ห้อ</div><input class="mf-input" id="ec_car_brand" type="text"/></div>
+      <div class="mf-group"><div class="mf-label">รุ่น</div><input class="mf-input" id="ec_car_model" type="text"/></div>
+      <div class="mf-group"><div class="mf-label">สี</div><input class="mf-input" id="ec_car_color" type="text"/></div>
+      <div class="mf-group"><div class="mf-label">ที่จอด</div>
+        <select class="mf-input" id="ec_car_park">
+          <option value="หน้าบ้าน">หน้าบ้าน</option>
+          <option value="ในบ้าน">ในบ้าน</option>
+          <option value="ส่วนกลาง">ส่วนกลาง</option>
+          <option value="อื่นๆ">อื่นๆ</option>
+        </select></div>
+      <div class="mf-group"><div class="mf-label">ค่าจอด/เดือน (฿)</div><input class="mf-input" id="ec_car_fee" type="number" min="0" step="50"/></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-primary" onclick="submitCarEdit()"><i class="fa-solid fa-floppy-disk"></i> บันทึก</button>
+      <button class="btn btn-outline" onclick="closeModal('modalCarEdit')"><i class="fa-solid fa-xmark"></i> ยกเลิก</button>
+    </div>
+  </div>
+</div>
 </body>
 </html>
