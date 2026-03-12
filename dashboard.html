@@ -307,7 +307,7 @@
       <!-- Photo upload (required for add, optional for edit) -->
       <div id="req_photo_section">
         <div class="form-grp">
-          <label id="req_photo_label">📷 รูปรถ * (อย่างน้อย 1 รูป, สูงสุด 5 รูป)</label>
+          <label id="req_photo_label">📷 รูปรถ (ไม่บังคับ, สูงสุด 5 รูป)</label>
           <div class="photo-grid" id="req_photo_grid"></div>
           <input type="file" id="req_photo_input" accept="image/*" multiple style="display:none" onchange="onReqPhotos(this)"/>
         </div>
@@ -533,7 +533,7 @@
       }
     } else {
       document.getElementById('reqModalTitle').innerHTML = '<i class="fa-solid fa-car-side"></i> ขอเพิ่มรถใหม่';
-      document.getElementById('req_photo_label').textContent = '📷 รูปรถ * (อย่างน้อย 1 รูป, สูงสุด 5 รูป)';
+      document.getElementById('req_photo_label').textContent = '📷 รูปรถ (ไม่บังคับ, สูงสุด 5 รูป)';
     }
     document.getElementById('carReqModal').classList.add('open');
   }
@@ -731,10 +731,7 @@
       Swal.fire({icon:'info',title:'รอสักครู่',text:'รูปยังโหลดไม่เสร็จ กรุณารอสักครู่',confirmButtonColor:'#4f7ef7'});
       return;
     }
-    if (reqType === 'add' && _reqPhotos.length === 0) {
-      Swal.fire({icon:'warning',title:'กรุณาแนบรูปรถ',text:'กรณีขอเพิ่มรถใหม่ต้องแนบรูปอย่างน้อย 1 รูป',confirmButtonColor:'#4f7ef7'});
-      return;
-    }
+
 
     const btn = document.getElementById('reqSubmitBtn');
     btn.disabled = true;

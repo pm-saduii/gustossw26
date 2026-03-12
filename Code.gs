@@ -935,10 +935,6 @@ function submitCarRequest(data, user) {
   var photos = data.photos || [];
   if (!Array.isArray(photos)) photos = [];
 
-  if (reqType === 'add' && photos.length === 0) {
-    return { success: false, message: 'กรณีขอเพิ่มรถใหม่ต้องแนบรูปอย่างน้อย 1 รูป' };
-  }
-
   // สร้าง timestamp สำหรับชื่อไฟล์ — yyyyMMdd_HHmmss
   var now       = new Date();
   var ymd       = now.getFullYear()
@@ -961,9 +957,6 @@ function submitCarRequest(data, user) {
     if (res && res.fileUrl) photoUrls.push(res.fileUrl);
   }
 
-  if (reqType === 'add' && photoUrls.length === 0 && photos.length > 0) {
-    return { success: false, message: 'อัปโหลดรูปไม่สำเร็จ กรุณาลองใหม่' };
-  }
 
   var sh = _ensureCarReqSheet();
   var req_id = 'REQ' + Date.now().toString().slice(-8) + Math.floor(Math.random()*90+10);
