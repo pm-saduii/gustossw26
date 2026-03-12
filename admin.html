@@ -221,7 +221,7 @@
     .modal-backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:1000;align-items:center;justify-content:center;padding:1rem;backdrop-filter:blur(4px);}
     .modal-backdrop.open{display:flex;animation:fadeIn .18s ease both;}
     @keyframes fadeIn{from{opacity:0}to{opacity:1}}
-    .modal{background:var(--card);border-radius:20px;width:100%;max-width:680px;max-height:90vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 24px 60px rgba(0,0,0,.25);animation:modalIn .22s cubic-bezier(.34,1.4,.64,1) both;transition:background .3s;}
+    .modal{background:var(--card);border-radius:20px;width:100%;max-width:680px;max-height:85vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 24px 60px rgba(0,0,0,.25);animation:modalIn .22s cubic-bezier(.34,1.4,.64,1) both;transition:background .3s;}
     .modal-lg{max-width:820px;}
     @keyframes modalIn{from{opacity:0;transform:translateY(20px) scale(.97)}to{opacity:1;transform:none}}
     .modal-head{padding:1.2rem 1.4rem;background:linear-gradient(135deg,var(--primary),var(--primary-d));color:#fff;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
@@ -438,7 +438,7 @@
     .imp-preview-wrap th{font-size:.72rem;padding:.35rem .6rem;}
     .imp-preview-wrap td{padding:.32rem .6rem;}
     .template-hint{background:var(--primary-l);border:1.5px solid var(--primary);border-radius:10px;padding:.65rem 1rem;font-size:.8rem;color:var(--primary);margin-bottom:.9rem;display:flex;align-items:center;gap:.55rem;}
-    .mf-section{margin-bottom:1.2rem;}
+    .mf-section{margin-bottom:.7rem;}
     .mf-section-title{font-size:.72rem;font-weight:800;color:var(--primary);text-transform:uppercase;letter-spacing:.08em;margin-bottom:.75rem;padding-bottom:.35rem;border-bottom:2px solid var(--primary-l);display:flex;align-items:center;gap:.4rem;}
     .mf-grid{display:grid;grid-template-columns:1fr 1fr;gap:.8rem;}
     .mf-grid.cols3{grid-template-columns:1fr 1fr 1fr;}
@@ -2625,7 +2625,9 @@
     (housesData||[]).forEach(h => {
       const opt = document.createElement('option');
       opt.value = h.house_id;
-      opt.textContent = `${h.house_id} — บ้าน ${h.house_no} (${h.owner_name})`;
+      const soi  = (h.soi && h.soi !== '0') ? ` ซอย ${h.soi}` : '';
+      const name = h.owner_name ? ` (${h.owner_name})` : '';
+      opt.textContent = `บ้านเลขที่ ${h.house_no}${soi}${name}`;
       sel.appendChild(opt);
     });
     if (curVal) sel.value = curVal;
@@ -2736,7 +2738,14 @@
   }
 
   // ── Open Add modal ────────────────────────────────────────
-  function openAddCarModal() {
+  async function openAddCarModal() {
+    // โหลด houses ถ้ายังไม่มีข้อมูล (เช่น เปิดหน้า Cars โดยตรง)
+    if (!housesData || housesData.length === 0) {
+      const r = await api({action:'getHouses'});
+      if (r.success && r.data) {
+        housesData = r.data;
+      }
+    }
     populateCarHouse('ac_house_id');
     resetCarForm('ac');
     openModal('modalCarAdd');
@@ -3009,7 +3018,7 @@
 
 <!-- ═══════ MODAL: Add Car ═══════ -->
 <div class="modal-backdrop" id="modalCarAdd" onclick="closeModalBg(event,'modalCarAdd')">
-  <div class="modal" style="max-width:560px;width:96vw">
+  <div class="modal" style="max-width:500px;width:96vw">
     <div class="modal-head">
       <h3><i class="fa-solid fa-circle-plus"></i> เพิ่มรถใหม่</h3>
       <button class="modal-close" onclick="closeModal('modalCarAdd')"><i class="fa-solid fa-xmark"></i></button>
@@ -3017,12 +3026,12 @@
     <div class="modal-body">
 
       <!-- ── Hero badge ── -->
-      <div class="car-modal-preview" id="ac_preview_bar" style="margin-bottom:1rem">
-        <div class="cmp-emoji" id="ac_pv_emoji">🚗</div>
+      <div class="car-modal-preview" id="ac_preview_bar" style="margin-bottom:.65rem;padding:.7rem 1rem">
+        <div class="cmp-emoji" id="ac_pv_emoji" style="font-size:1.4rem;width:38px;height:38px">🚗</div>
         <div style="flex:1;min-width:0">
-          <div style="font-size:.68rem;opacity:.8;margin-bottom:.1rem">ข้อมูลรถ</div>
-          <div class="cmp-plate" id="ac_pv_plate">— ทะเบียน —</div>
-          <div class="cmp-sub" id="ac_pv_sub">เลือกบ้านและกรอกข้อมูลเพื่อดูตัวอย่าง</div>
+          <div style="font-size:.63rem;opacity:.8;margin-bottom:.05rem">ข้อมูลรถ</div>
+          <div class="cmp-plate" id="ac_pv_plate" style="font-size:1rem">— ทะเบียน —</div>
+          <div class="cmp-sub" id="ac_pv_sub" style="font-size:.72rem">เลือกบ้านและกรอกข้อมูลเพื่อดูตัวอย่าง</div>
         </div>
       </div>
 
@@ -3120,7 +3129,7 @@
 
 <!-- ═══════ MODAL: Edit Car ═══════ -->
 <div class="modal-backdrop" id="modalCarEdit" onclick="closeModalBg(event,'modalCarEdit')">
-  <div class="modal" style="max-width:560px;width:96vw">
+  <div class="modal" style="max-width:500px;width:96vw">
     <div class="modal-head">
       <h3><i class="fa-solid fa-pen-to-square"></i> แก้ไขข้อมูลรถ</h3>
       <button class="modal-close" onclick="closeModal('modalCarEdit')"><i class="fa-solid fa-xmark"></i></button>
@@ -3128,12 +3137,12 @@
     <div class="modal-body">
 
       <!-- ── Hero badge ── -->
-      <div class="car-modal-preview" id="ec_preview_bar" style="margin-bottom:1rem">
-        <div class="cmp-emoji" id="ec_pv_emoji">🚗</div>
+      <div class="car-modal-preview" id="ec_preview_bar" style="margin-bottom:.65rem;padding:.7rem 1rem">
+        <div class="cmp-emoji" id="ec_pv_emoji" style="font-size:1.4rem;width:38px;height:38px">🚗</div>
         <div style="flex:1;min-width:0">
-          <div style="font-size:.68rem;opacity:.8;margin-bottom:.1rem">แก้ไขข้อมูลรถ</div>
-          <div class="cmp-plate" id="ec_pv_plate">— ทะเบียน —</div>
-          <div class="cmp-sub" id="ec_pv_sub">—</div>
+          <div style="font-size:.63rem;opacity:.8;margin-bottom:.05rem">แก้ไขข้อมูลรถ</div>
+          <div class="cmp-plate" id="ec_pv_plate" style="font-size:1rem">— ทะเบียน —</div>
+          <div class="cmp-sub" id="ec_pv_sub" style="font-size:.72rem">—</div>
         </div>
       </div>
 
