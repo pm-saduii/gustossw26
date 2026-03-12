@@ -71,16 +71,45 @@
     .card-body{padding:1.2rem;}
 
     /* TABLE */
-    .table-wrap{overflow-x:auto;}
+    .table-wrap{
+      overflow-x:auto;
+      -webkit-overflow-scrolling:touch;
+    }
+    /* scroll hint บนมือถือ */
+    @media(max-width:768px){
+      .table-wrap::before{
+        content:'\2190  เลื่อนซ้าย-ขวาเพื่อดูข้อมูลเพิ่มเติม  \2192';
+        display:block;font-size:.67rem;color:var(--muted);
+        text-align:center;padding:.22rem .5rem;
+        background:var(--bg2);border-bottom:1px solid var(--border);
+      }
+    }
     table{width:100%;border-collapse:collapse;}
+    /* lock min-width แต่ละตาราง — ให้ desktop layout ยังอยู่บนมือถือ */
+    #houseTable{min-width:700px;}
+    .fee-table{min-width:880px;}
+    .user-table{min-width:540px;}
     th{text-align:left;padding:.55rem .9rem;font-size:.75rem;font-weight:700;color:var(--muted);border-bottom:1px solid var(--border);white-space:nowrap;background:var(--card2);cursor:pointer;user-select:none;transition:background .15s;}
     th:hover{color:var(--primary);}
     th .sort-i{margin-left:.25rem;opacity:.4;font-size:.65rem;}
     th.asc .sort-i,th.desc .sort-i{opacity:1;color:var(--primary);}
-    td{padding:.6rem .9rem;font-size:.83rem;border-bottom:1px solid var(--border);transition:background .1s;}
+    td{padding:.6rem .9rem;font-size:.83rem;border-bottom:1px solid var(--border);transition:background .1s;white-space:nowrap;}
     tr:last-child td{border-bottom:none;}
     tr:hover td{background:var(--bg2);}
     .actions{display:flex;gap:.35rem;flex-wrap:nowrap;}
+    /* sticky คอลัมน์แรก (บ้านเลขที่ / username) เพื่อ anchor เวลา scroll */
+    @media(max-width:768px){
+      #houseTable th:first-child,#houseTable td:first-child,
+      .fee-table th:first-child,.fee-table td:first-child,
+      .user-table th:first-child,.user-table td:first-child{
+        position:sticky;left:0;z-index:3;
+        background:var(--card);
+        box-shadow:2px 0 8px rgba(0,0,0,.07);
+      }
+      #houseTable th:first-child,.fee-table th:first-child,.user-table th:first-child{
+        background:var(--card2);z-index:4;
+      }
+    }
 
     /* FORM */
     .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:.9rem;}
@@ -134,7 +163,29 @@
     .skeleton{background:linear-gradient(90deg,var(--bg2) 25%,var(--card2) 50%,var(--bg2) 75%);background-size:200% 100%;animation:shimmer 1.2s infinite;border-radius:6px;height:16px;}
     @keyframes shimmer{to{background-position:-200% 0;}}
     .empty-row td{text-align:center;color:var(--muted);padding:2rem;}
-    @media(max-width:768px){.sidebar{transform:translateX(-100%)}.sidebar.open{transform:translateX(0)}.main-area{margin-left:0}.hamburger{display:block}.form-grid{grid-template-columns:1fr}main{padding:1rem}.chart-grid{grid-template-columns:1fr}}
+    @media(max-width:768px){
+      .sidebar{transform:translateX(-100%)}
+      .sidebar.open{transform:translateX(0)}
+      .main-area{margin-left:0}
+      .hamburger{display:block}
+      .form-grid{grid-template-columns:1fr}
+      main{padding:1rem}
+      .chart-grid{grid-template-columns:1fr}
+      /* ── ตาราง: font เล็กลงนิด, padding กระชับ ── */
+      th{font-size:.7rem;padding:.45rem .7rem;}
+      td{font-size:.79rem;padding:.5rem .7rem;}
+      /* truncate ชื่อ (คอลัมน์ชื่อเจ้าของ) ไม่ให้ยืดออก */
+      #houseTable td:nth-child(2),
+      .user-table td:nth-child(2){
+        max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+      }
+      /* ค่าส่วนกลาง: ชื่อเจ้าของ truncate */
+      .fee-table td:nth-child(4){
+        max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+      }
+      /* actions buttons กระชับ */
+      .btn-sm{padding:.28rem .55rem;font-size:.72rem;}
+    }
 
     /* ── CUSTOM MODAL ── */
     .modal-backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:1000;align-items:center;justify-content:center;padding:1rem;backdrop-filter:blur(4px);}
@@ -232,6 +283,24 @@
       .car-item-grid{grid-template-columns:1fr;}
     }
     @media(max-width:480px){.car-summary-grid{grid-template-columns:1fr 1fr;}}
+
+    /* ── Import / Export Fee ── */
+    .import-zone{border:2px dashed var(--border);border-radius:14px;padding:1.5rem 1rem;text-align:center;cursor:pointer;transition:border-color .2s,background .2s;background:var(--card2);}
+    .import-zone:hover,.import-zone.drag{border-color:var(--primary);background:var(--primary-l);}
+    .import-zone i{font-size:2rem;color:var(--primary);margin-bottom:.5rem;}
+    .import-zone p{font-size:.82rem;color:var(--muted);margin:.25rem 0 0;}
+    .import-zone strong{color:var(--text);font-size:.88rem;}
+    .imp-action-row{display:flex;gap:.6rem;flex-wrap:wrap;margin-top:1rem;justify-content:flex-end;}
+    .imp-result{margin-top:.9rem;border-radius:12px;padding:.8rem 1rem;font-size:.82rem;display:none;}
+    .imp-result.ok{background:#d1fae5;color:#065f46;border:1px solid #6ee7b7;}
+    .imp-result.err{background:#fee2e2;color:#991b1b;border:1px solid #fca5a5;}
+    [data-theme=dark] .imp-result.ok{background:#0a2a1a;color:#34d399;border-color:#065f46;}
+    [data-theme=dark] .imp-result.err{background:#2a0a0a;color:#f87171;border-color:#991b1b;}
+    .imp-preview-wrap{margin-top:.9rem;max-height:220px;overflow:auto;border-radius:10px;border:1px solid var(--border);}
+    .imp-preview-wrap table{min-width:600px;font-size:.75rem;}
+    .imp-preview-wrap th{font-size:.72rem;padding:.35rem .6rem;}
+    .imp-preview-wrap td{padding:.32rem .6rem;}
+    .template-hint{background:var(--primary-l);border:1.5px solid var(--primary);border-radius:10px;padding:.65rem 1rem;font-size:.8rem;color:var(--primary);margin-bottom:.9rem;display:flex;align-items:center;gap:.55rem;}
     .mf-section{margin-bottom:1.2rem;}
     .mf-section-title{font-size:.72rem;font-weight:800;color:var(--primary);text-transform:uppercase;letter-spacing:.08em;margin-bottom:.75rem;padding-bottom:.35rem;border-bottom:2px solid var(--primary-l);display:flex;align-items:center;gap:.4rem;}
     .mf-grid{display:grid;grid-template-columns:1fr 1fr;gap:.8rem;}
@@ -277,6 +346,8 @@
   .year-card:hover{border-color:var(--primary);color:var(--primary);}
   .year-card.active{background:var(--primary);color:#fff;border-color:var(--primary);}
   </style>
+  <!-- SheetJS for Excel import/export -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 <body>
 <div class="overlay" id="overlay" onclick="closeSidebar()"></div>
@@ -431,12 +502,75 @@
             <div class="form-actions"><button class="btn btn-outline" onclick="toggleForm('feeForm')">ยกเลิก</button><button class="btn btn-primary" onclick="saveFee()"><i class="fa-solid fa-floppy-disk"></i> บันทึก</button></div>
           </div>
         </div>
+        <!-- ═══ Import / Export Card ═══ -->
+        <div class="card" id="feeImportExportCard">
+          <div class="card-header" style="cursor:pointer" onclick="toggleForm('feeImportBody')">
+            <h3><i class="fa-solid fa-file-arrow-up"></i> นำเข้า / ส่งออกข้อมูลค่าส่วนกลาง</h3>
+            <div style="display:flex;gap:.5rem;align-items:center">
+              <!-- Export button (always visible) -->
+              <button class="btn btn-outline btn-sm" id="exportFeeBtn"
+                onclick="event.stopPropagation();exportFeesExcel()"
+                title="Export Excel">
+                <i class="fa-solid fa-file-excel" style="color:#217346"></i> Export Excel
+              </button>
+              <button class="btn btn-outline btn-sm" onclick="event.stopPropagation();toggleForm('feeImportBody')">
+                <i class="fa-solid fa-chevron-down" id="feeImportChevron"></i>
+              </button>
+            </div>
+          </div>
+          <div class="card-body" id="feeImportBody" style="display:none">
+            <!-- Template hint -->
+            <div class="template-hint">
+              <i class="fa-solid fa-circle-info"></i>
+              <div>
+                ดาวน์โหลดไฟล์ตัวอย่าง เพื่อดูรูปแบบข้อมูลที่ถูกต้องก่อนนำเข้า
+                <strong style="margin-left:.5rem">
+                  <a href="#" onclick="event.preventDefault();downloadFeeTemplate()" style="color:inherit;text-decoration:underline">
+                    <i class="fa-solid fa-download"></i> ดาวน์โหลดไฟล์ตัวอย่าง (.xlsx)
+                  </a>
+                </strong>
+              </div>
+            </div>
+
+            <!-- Drop zone -->
+            <label class="import-zone" id="feeDropZone" for="feeFileInput"
+              ondragover="event.preventDefault();this.classList.add('drag')"
+              ondragleave="this.classList.remove('drag')"
+              ondrop="event.preventDefault();this.classList.remove('drag');handleFeeFileDrop(event)">
+              <i class="fa-solid fa-file-excel"></i>
+              <div><strong>คลิกหรือลากไฟล์ Excel มาวางที่นี่</strong></div>
+              <p>รองรับ .xlsx / .xls · สูงสุด 500 แถว</p>
+              <p id="feeFileName" style="margin-top:.5rem;font-weight:700;color:var(--primary)"></p>
+            </label>
+            <input type="file" id="feeFileInput" accept=".xlsx,.xls" style="display:none"
+              onchange="handleFeeFileSelect(this)"/>
+
+            <!-- Preview table -->
+            <div id="feeImportPreviewWrap" class="imp-preview-wrap" style="display:none">
+              <table><thead id="feeImportPreviewHead"></thead><tbody id="feeImportPreviewBody"></tbody></table>
+            </div>
+
+            <!-- Result -->
+            <div id="feeImportResult" class="imp-result"></div>
+
+            <!-- Actions -->
+            <div class="imp-action-row">
+              <button class="btn btn-outline btn-sm" onclick="resetFeeImport()">
+                <i class="fa-solid fa-xmark"></i> ล้าง
+              </button>
+              <button class="btn btn-primary" id="feeImportBtn" onclick="submitFeeImport()" disabled>
+                <i class="fa-solid fa-file-import"></i> นำเข้าข้อมูล
+              </button>
+            </div>
+          </div>
+        </div>
+
         <div class="card">
           <div class="card-header"><h3><i class="fa-solid fa-table-list"></i> รายการค่าส่วนกลาง</h3><button class="btn btn-outline btn-sm" onclick="loadFees()"><i class="fa-solid fa-rotate"></i> รีโหลด</button></div>
           <div class="card-body">
             <div class="year-filter-bar" id="yearFilterBar"></div>
             <div class="search-box"><i class="fa-solid fa-search"></i><input type="text" id="feeSearch" placeholder="ค้นหาหมายเลขบ้าน หรือปี" oninput="filterFees()"/></div>
-            <div class="table-wrap"><table><thead>
+            <div class="table-wrap"><table class="fee-table"><thead>
               <tr>
                 <th rowspan="2" onclick="sortTable('fees','year',this)" style="vertical-align:middle">ปี<i class="fa-solid fa-sort sort-i"></i></th>
                 <th rowspan="2" onclick="sortTable('fees','house_no',this)" style="vertical-align:middle">บ้านเลขที่<i class="fa-solid fa-sort sort-i"></i></th>
@@ -476,7 +610,7 @@
         </div>
         <div class="card">
           <div class="card-header"><h3><i class="fa-solid fa-users"></i> รายการผู้ใช้งาน</h3><button class="btn btn-outline btn-sm" onclick="loadUsers()"><i class="fa-solid fa-rotate"></i> รีโหลด</button></div>
-          <div class="card-body"><div class="table-wrap"><table><thead><tr>
+          <div class="card-body"><div class="table-wrap"><table class="user-table"><thead><tr>
             <th onclick="sortTable('users','username',this)">username<i class="fa-solid fa-sort sort-i"></i></th>
             <th onclick="sortTable('users','full_name',this)">ชื่อ<i class="fa-solid fa-sort sort-i"></i></th>
             <th>สิทธิ์</th><th>หมายเลขบ้าน</th><th>สถานะ</th><th>จัดการ</th>
@@ -937,11 +1071,18 @@
   function closeSidebar(){document.getElementById('sidebar').classList.remove('open');document.getElementById('overlay').classList.remove('open');}
   function toggleForm(id){
     const el=document.getElementById(id);
-    const isOpening=el.style.display==='none';
-    el.style.display=isOpening?'':'none';
+    if(!el)return;
+    const isOpening=el.style.display==='none'||el.style.display==='';
+    el.style.display=isOpening?'block':'none';
     if(isOpening&&id==='nitiForm'){
       const yrEl=document.getElementById('n_year');
       if(yrEl&&!yrEl.value) yrEl.value=new Date().getFullYear()+543;
+    }
+    // หมุน chevron ของ feeImportBody
+    const chevron=document.getElementById('feeImportChevron');
+    if(id==='feeImportBody'&&chevron){
+      chevron.style.transition='transform .2s';
+      chevron.style.transform=isOpening?'rotate(180deg)':'';
     }
   }
   function g(id){return document.getElementById(id)?.value||'';}
@@ -1438,6 +1579,199 @@
     if(!sel||!badge)return;
     const map={paid:'✅ ชำระครบ',partial:'⚡ บางส่วน',unpaid:'❌ ค้างชำระ'};
     badge.textContent=map[sel.value]||sel.value;
+  }
+
+  // ══════════════════════════════════════════════════════
+  // ── FEE IMPORT / EXPORT ────────────────────────────────
+  // ══════════════════════════════════════════════════════
+  let _feeImportRows = []; // parsed rows รอ submit
+
+  // ── 1. ดาวน์โหลดไฟล์ตัวอย่าง ────────────────────────
+  function downloadFeeTemplate() {
+    const headers = [
+      'house_id','year',
+      'h1_amount','h1_paid','h1_date','h1_status',
+      'h2_amount','h2_paid','h2_date','h2_status','note'
+    ];
+    const sampleRows = [
+      ['H001','2568','3000','3000','15/01/2568','paid','3000','0','','unpaid',''],
+      ['H002','2568','3000','1500','10/01/2568','partial','3000','0','','unpaid','ผ่อนชำระ'],
+      ['H003','2568','3000','0','','unpaid','3000','0','','unpaid',''],
+    ];
+    const wsData = [headers, ...sampleRows];
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.aoa_to_sheet(wsData);
+    // column widths
+    ws['!cols'] = [
+      {wch:12},{wch:7},{wch:12},{wch:12},{wch:14},{wch:12},
+      {wch:12},{wch:12},{wch:14},{wch:12},{wch:18}
+    ];
+    // หมายเหตุ sheet
+    const wsNote = XLSX.utils.aoa_to_sheet([
+      ['คอลัมน์','คำอธิบาย','ค่าที่ยอมรับ'],
+      ['house_id','รหัสบ้าน หรือ บ้านเลขที่','เช่น H001 หรือ 1/1'],
+      ['year','ปี พ.ศ.','เช่น 2568'],
+      ['h1_amount','ยอดค่าส่วนกลางครึ่งปีแรก (บาท)','ตัวเลข เช่น 3000'],
+      ['h1_paid','ยอดที่ชำระแล้วครึ่งปีแรก','ตัวเลข เช่น 3000'],
+      ['h1_date','วันที่ชำระครึ่งปีแรก','dd/mm/yyyy เช่น 15/01/2568'],
+      ['h1_status','สถานะครึ่งปีแรก','paid / partial / unpaid'],
+      ['h2_amount','ยอดค่าส่วนกลางครึ่งปีหลัง (บาท)','ตัวเลข'],
+      ['h2_paid','ยอดที่ชำระแล้วครึ่งปีหลัง','ตัวเลข'],
+      ['h2_date','วันที่ชำระครึ่งปีหลัง','dd/mm/yyyy'],
+      ['h2_status','สถานะครึ่งปีหลัง','paid / partial / unpaid'],
+      ['note','หมายเหตุ','ข้อความ (ถ้ามี)'],
+    ]);
+    wsNote['!cols'] = [{wch:14},{wch:36},{wch:28}];
+    XLSX.utils.book_append_sheet(wb, ws, 'ข้อมูลค่าส่วนกลาง');
+    XLSX.utils.book_append_sheet(wb, wsNote, 'คำอธิบายคอลัมน์');
+    XLSX.writeFile(wb, 'template_fee_import.xlsx');
+    toast('success','ดาวน์โหลดไฟล์ตัวอย่างสำเร็จ');
+  }
+
+  // ── 2. รับไฟล์จาก input ────────────────────────────────
+  function handleFeeFileSelect(input) {
+    if (input.files && input.files[0]) parseFeeExcel(input.files[0]);
+  }
+  function handleFeeFileDrop(event) {
+    const file = event.dataTransfer.files[0];
+    if (file) parseFeeExcel(file);
+  }
+
+  // ── 3. Parse Excel → preview ──────────────────────────
+  function parseFeeExcel(file) {
+    document.getElementById('feeFileName').textContent = file.name;
+    const reader = new FileReader();
+    reader.onload = e => {
+      try {
+        const wb = XLSX.read(e.target.result, {type:'binary', cellDates:false});
+        const ws = wb.Sheets[wb.SheetNames[0]];
+        const rows = XLSX.utils.sheet_to_json(ws, {defval:''});
+        if (!rows.length) { showFeeImportResult(false,'ไม่พบข้อมูลในไฟล์'); return; }
+
+        // normalize keys (trim whitespace)
+        _feeImportRows = rows.map(r=>{
+          const o={};
+          Object.keys(r).forEach(k=>{ o[k.trim()]=String(r[k]).trim(); });
+          return o;
+        });
+
+        renderFeeImportPreview(_feeImportRows.slice(0,10));
+        document.getElementById('feeImportBtn').disabled = false;
+        showFeeImportResult(null, `พบข้อมูล ${_feeImportRows.length} แถว — กด "นำเข้าข้อมูล" เพื่อดำเนินการ`);
+      } catch(err) {
+        showFeeImportResult(false,'อ่านไฟล์ไม่ได้: ' + err.message);
+      }
+    };
+    reader.readAsBinaryString(file);
+  }
+
+  // ── 4. Render preview table ────────────────────────────
+  function renderFeeImportPreview(rows) {
+    if (!rows.length) return;
+    const cols = Object.keys(rows[0]);
+    const thead = document.getElementById('feeImportPreviewHead');
+    const tbody = document.getElementById('feeImportPreviewBody');
+    thead.innerHTML = '<tr>' + cols.map(c=>`<th>${c}</th>`).join('') + '</tr>';
+    tbody.innerHTML = rows.map(r=>'<tr>'+cols.map(c=>`<td>${r[c]??''}</td>`).join('')+'</tr>').join('');
+    document.getElementById('feeImportPreviewWrap').style.display='block';
+  }
+
+  // ── 5. Submit import → API ─────────────────────────────
+  async function submitFeeImport() {
+    if (!_feeImportRows.length) return;
+    const btn = document.getElementById('feeImportBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> กำลังนำเข้า...';
+    try {
+      const r = await api({ action:'batchImportFees', rows:_feeImportRows });
+      if (r.success) {
+        let msg = `✅ นำเข้าสำเร็จ <strong>${r.inserted}</strong> รายการ`;
+        if (r.skipped) msg += ` · ข้าม <strong>${r.skipped}</strong> รายการ`;
+        if (r.errors && r.errors.length) {
+          msg += '<br><details style="margin-top:.4rem"><summary style="cursor:pointer;font-size:.77rem">รายละเอียดที่ข้าม ('+r.errors.length+')</summary>'
+               + '<ul style="margin:.3rem 0 0 1rem;font-size:.76rem">'
+               + r.errors.map(e=>`<li>${e}</li>`).join('')
+               + '</ul></details>';
+        }
+        showFeeImportResult(true, msg);
+        resetFeeImport();
+        loadFees();
+      } else {
+        showFeeImportResult(false, r.message || 'เกิดข้อผิดพลาด');
+      }
+    } catch(err) {
+      showFeeImportResult(false, 'เกิดข้อผิดพลาด: ' + err.message);
+    }
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fa-solid fa-file-import"></i> นำเข้าข้อมูล';
+  }
+
+  // ── 6. Reset import UI ─────────────────────────────────
+  function resetFeeImport() {
+    _feeImportRows = [];
+    document.getElementById('feeFileInput').value = '';
+    document.getElementById('feeFileName').textContent = '';
+    document.getElementById('feeImportPreviewWrap').style.display = 'none';
+    document.getElementById('feeImportPreviewHead').innerHTML = '';
+    document.getElementById('feeImportPreviewBody').innerHTML = '';
+    document.getElementById('feeImportBtn').disabled = true;
+    document.getElementById('feeImportResult').style.display = 'none';
+  }
+
+  // ── 7. Show result message ─────────────────────────────
+  function showFeeImportResult(ok, html) {
+    const el = document.getElementById('feeImportResult');
+    el.innerHTML = html;
+    el.className = 'imp-result ' + (ok === true ? 'ok' : ok === false ? 'err' : 'ok');
+    el.style.display = 'block';
+  }
+
+  // ── 8. Export Excel ──────────────────────────────────────
+  function exportFeesExcel() {
+    if (!feesData || !feesData.length) {
+      toast('warning','ยังไม่มีข้อมูลค่าส่วนกลาง กรุณาโหลดข้อมูลก่อน'); return;
+    }
+    // enrich ด้วย house_no, soi, owner_name
+    const enriched = feesData.map(f => {
+      const h = (housesData||[]).find(x=>x.house_id===f.house_id)||{};
+      return {...f, house_no:h.house_no||f.house_id, soi:h.soi||'', owner_name:h.owner_name||''};
+    });
+
+    const stLabel = {paid:'ชำระครบ', partial:'ชำระบางส่วน', unpaid:'ยังไม่ชำระ'};
+    const headers = [
+      'ปี','บ้านเลขที่','ซอย','ชื่อเจ้าของ',
+      'ยอดครึ่งปีแรก','ชำระครึ่งปีแรก','วันที่ชำระ','สถานะครึ่งปีแรก',
+      'ยอดครึ่งปีหลัง','ชำระครึ่งปีหลัง','วันที่ชำระ','สถานะครึ่งปีหลัง',
+      'หมายเหตุ'
+    ];
+    const dataRows = enriched.map(f=>[
+      f.year, f.house_no, f.soi, f.owner_name,
+      parseFloat(f.h1_amount)||0, parseFloat(f.h1_paid)||0, f.h1_date||'', stLabel[f.h1_status]||f.h1_status||'',
+      parseFloat(f.h2_amount)||0, parseFloat(f.h2_paid)||0, f.h2_date||'', stLabel[f.h2_status]||f.h2_status||'',
+      f.note||''
+    ]);
+
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.aoa_to_sheet([headers, ...dataRows]);
+
+    // style column widths
+    ws['!cols'] = [
+      {wch:7},{wch:10},{wch:6},{wch:20},
+      {wch:13},{wch:13},{wch:13},{wch:14},
+      {wch:13},{wch:13},{wch:13},{wch:14},
+      {wch:20}
+    ];
+
+    // freeze header row
+    ws['!freeze'] = {xSplit:0, ySplit:1};
+
+    XLSX.utils.book_append_sheet(wb, ws, 'ค่าส่วนกลาง');
+
+    // สร้างชื่อไฟล์พร้อมปีที่กำลัง filter อยู่
+    const yearSuffix = _selectedYear ? `_${_selectedYear}` : '_ทั้งหมด';
+    const fileName = `common_fee${yearSuffix}.xlsx`;
+    XLSX.writeFile(wb, fileName);
+    toast('success', `Export สำเร็จ: ${fileName}`);
   }
 
   // ── USERS ─────────────────────────────────────────────────────

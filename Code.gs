@@ -137,6 +137,9 @@ function handleRequest(e) {
       case 'updateCar':  result = requireAdmin(data, updateCar); break;
       case 'deleteCar':  result = requireAdmin(data, deleteCar); break;
 
+      // Admin — Batch Import Fees
+      case 'batchImportFees':  result = requireAdmin(data, batchImportFees); break;
+
       // Admin — File Upload
       case 'uploadFile':       result = requireAdmin(data, (d) => handleUpload(d)); break;
 
@@ -666,6 +669,76 @@ function updateFee(data, user) {
     }
   }
   return { success: false, message: 'ไม่พบข้อมูล' };
+}
+
+// ── Admin: Batch Import Fees ─────────────────────────────────────
+/**
+ * batchImportFees — รับ array ของ fee rows แล้ว insert ทีละแถว
+ * rows: [{house_id, year, h1_amount, h1_paid, h1_date, h1_status,
+ *          h2_amount, h2_paid, h2_date, h2_status, note}]
+ * - ถ้า house_id ไม่มีใน Houses → skip (รายงานใน errors[])
+ * - ถ้า house_id+year ซ้ำ → skip (รายงานใน errors[])
+ */
+function batchImportFees(data, user) {
+  const rows = data.rows;
+  if (!Array.isArray(rows) || rows.length === 0)
+    return { success: false, message: 'ไม่มีข้อมูลที่จะนำเข้า' };
+
+  const feeSheet   = getSheet(SHEETS.COMMON_FEE);
+  const houseSheet = getSheet(SHEETS.HOUSES);
+  const existing   = sheetToObjects(feeSheet);
+  const houses     = sheetToObjects(houseSheet);
+
+  // สร้าง map house_no → house_id เพื่อรองรับการระบุบ้านด้วยเลขบ้านแทน house_id
+  const houseMap = {};
+  houses.forEach(h => {
+    houseMap[String(h.house_id).trim()]   = h.house_id;
+    houseMap[String(h.house_no).trim()]   = h.house_id;
+  });
+
+  let inserted = 0;
+  const errors = [];
+
+  rows.forEach((row, idx) => {
+    const lineNo = idx + 2; // row 1 = header
+    const rawHouse = String(row.house_id || '').trim();
+    const year     = String(row.year || '').trim();
+
+    if (!rawHouse || !year) {
+      errors.push(`แถว ${lineNo}: ขาด house_id หรือ year`); return;
+    }
+
+    const houseId = houseMap[rawHouse];
+    if (!houseId) {
+      errors.push(`แถว ${lineNo}: ไม่พบบ้าน "${rawHouse}"`); return;
+    }
+
+    const dup = existing.find(f =>
+      String(f.house_id) === String(houseId) && String(f.year) === year
+    );
+    if (dup) {
+      errors.push(`แถว ${lineNo}: บ้าน ${rawHouse} ปี ${year} มีข้อมูลอยู่แล้ว`); return;
+    }
+
+    const id = genId('F');
+    feeSheet.appendRow([
+      id, houseId, year,
+      row.h1_amount || 0, row.h1_paid || 0, row.h1_date || '', row.h1_status || 'unpaid',
+      row.h2_amount || 0, row.h2_paid || 0, row.h2_date || '', row.h2_status || 'unpaid',
+      row.note || ''
+    ]);
+    // เพิ่มเข้า existing เพื่อ prevent dup ภายใน batch เดียวกัน
+    existing.push({ house_id: houseId, year });
+    inserted++;
+  });
+
+  return {
+    success: true,
+    inserted,
+    skipped: rows.length - inserted,
+    errors,
+    message: `นำเข้าสำเร็จ ${inserted} รายการ${errors.length ? ` (ข้าม ${errors.length} รายการ)` : ''}`
+  };
 }
 
 // ── Admin: Announcements ──────────────────────────────────────
