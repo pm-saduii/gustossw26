@@ -2985,7 +2985,7 @@
   function openRejectModal(reqId) {
     document.getElementById('rejectReqId').value = reqId;
     document.getElementById('rejectReason').value = '';
-    document.getElementById('modalRejectReason').style.display = 'flex';
+    openModal('modalRejectReason');
   }
 
   async function confirmReject() {

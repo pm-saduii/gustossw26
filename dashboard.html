@@ -461,7 +461,9 @@
 
   function openReqModal(type, carId) {
     _reqPhotos = [];
+    _photoLoading = 0;
     renderPhotoGrid();
+    _updateSubmitBtn();
     // reset form
     ['req_plate','req_color','req_brand','req_model','req_note'].forEach(id=>{
       const el=document.getElementById(id); if(el) el.value='';
@@ -524,18 +526,44 @@
     grid.innerHTML = html;
   }
 
+  let _photoLoading = 0; // นับรูปที่กำลัง load
+
   function onReqPhotos(input) {
     const files = Array.from(input.files);
     const remaining = 5 - _reqPhotos.length;
-    files.slice(0, remaining).forEach(f=>{
+    const toLoad = files.slice(0, remaining);
+    if (!toLoad.length) { input.value=''; return; }
+
+    _photoLoading += toLoad.length;
+    _updateSubmitBtn();
+
+    toLoad.forEach(f=>{
       const reader = new FileReader();
       reader.onload = e => {
         _reqPhotos.push({dataUrl:e.target.result, file:f});
+        _photoLoading = Math.max(0, _photoLoading - 1);
         renderPhotoGrid();
+        _updateSubmitBtn();
+      };
+      reader.onerror = () => {
+        _photoLoading = Math.max(0, _photoLoading - 1);
+        _updateSubmitBtn();
       };
       reader.readAsDataURL(f);
     });
     input.value = '';
+  }
+
+  function _updateSubmitBtn() {
+    const btn = document.getElementById('reqSubmitBtn');
+    if (!btn) return;
+    if (_photoLoading > 0) {
+      btn.disabled = true;
+      btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> กำลังโหลดรูป (${_photoLoading})...`;
+    } else {
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> ส่งคำขอ';
+    }
   }
 
   function removeReqPhoto(i) {
