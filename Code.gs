@@ -15,7 +15,8 @@ const SHEETS = {
   COMMON_FEE: 'CommonFee',
   ANNOUNCEMENTS: 'Announcements',
   NITI_REPORT: 'NitiReport',
-  CARS: 'Cars'
+  CARS: 'Cars',
+  CAR_REQUESTS: 'CarRequests'
 };
 
 // ── Token Security ────────────────────────────────────────────
@@ -132,10 +133,18 @@ function handleRequest(e) {
       case 'deleteNitiReport': result = requireAdmin(data, deleteNitiReport); break;
 
       // Cars
-      case 'getCars':    result = getCars(data); break;
-      case 'addCar':     result = requireAdmin(data, addCar); break;
-      case 'updateCar':  result = requireAdmin(data, updateCar); break;
-      case 'deleteCar':  result = requireAdmin(data, deleteCar); break;
+      case 'getCars':           result = getCars(data); break;
+      case 'addCar':            result = requireAdmin(data, addCar); break;
+      case 'updateCar':         result = requireAdmin(data, updateCar); break;
+      case 'deleteCar':         result = requireAdmin(data, deleteCar); break;
+      // Car Requests (resident)
+      case 'submitCarRequest':  result = requireResident(data, submitCarRequest); break;
+      case 'getMyCarRequests':  result = requireResident(data, getMyCarRequests); break;
+      // Car Requests (admin)
+      case 'getCarRequests':    result = requireAdmin(data, getCarRequests); break;
+      case 'approveCarRequest': result = requireAdmin(data, approveCarRequest); break;
+      case 'rejectCarRequest':  result = requireAdmin(data, rejectCarRequest); break;
+      case 'getPendingCount':   result = requireAdmin(data, getPendingCount); break;
 
       // Admin — Batch Import Fees
       case 'batchImportFees':  result = requireAdmin(data, batchImportFees); break;
@@ -341,6 +350,11 @@ function requireAdmin(data, fn) {
   const user = verifyToken(data.token);
   if (!user) return { success: false, message: 'ไม่มีสิทธิ์เข้าถึง' };
   if (user.role !== 'admin') return { success: false, message: 'ต้องการสิทธิ์ Admin' };
+  return fn(data, user);
+}
+function requireResident(data, fn) {
+  const user = verifyToken(data.token);
+  if (!user) return { success: false, message: 'กรุณาเข้าสู่ระบบ' };
   return fn(data, user);
 }
 
@@ -880,6 +894,204 @@ function deleteNitiReport(data, user) {
 }
 
 // ── Cars ─────────────────────────────────────────────────────────
+
+
+// ══════════════════════════════════════════════════════════════
+// CAR REQUESTS — ลูกบ้าน submit, Admin approve/reject
+// Sheet CarRequests headers (17 cols):
+//   req_id | house_id | request_type | car_id |
+//   car_type | plate_no | car_brand | car_model | car_color | car_park | car_fee |
+//   photo_urls | status | note | submitted_at | reviewed_at | reviewed_by
+// ══════════════════════════════════════════════════════════════
+
+var CAR_REQ_HEADERS = [
+  'req_id','house_id','request_type','car_id',
+  'car_type','plate_no','car_brand','car_model','car_color','car_park','car_fee',
+  'photo_urls','status','note','submitted_at','reviewed_at','reviewed_by'
+];
+
+function _ensureCarReqSheet() {
+  var ss = SpreadsheetApp.openById(SHEET_ID);
+  var sh = ss.getSheetByName(SHEETS.CAR_REQUESTS);
+  if (!sh) {
+    sh = ss.insertSheet(SHEETS.CAR_REQUESTS);
+    sh.appendRow(CAR_REQ_HEADERS);
+    sh.setFrozenRows(1);
+  }
+  return sh;
+}
+
+// ── ลูกบ้าน ยื่น request ──────────────────────────────────────
+function submitCarRequest(data, user) {
+  var reqType = data.request_type; // 'add' | 'edit'
+
+  // ตรวจสิทธิ์บ้าน — ต้องเป็นบ้านของตัวเอง (admin ข้ามได้)
+  if (user.role !== 'admin' && String(user.house_id) !== String(data.house_id)) {
+    return { success: false, message: 'ไม่มีสิทธิ์ยื่นคำขอสำหรับบ้านนี้' };
+  }
+
+  // upload photos base64[] → Drive URLs
+  var photoUrls = [];
+  var photos = data.photos || [];
+  if (!Array.isArray(photos)) photos = [];
+
+  if (reqType === 'add' && photos.length === 0) {
+    return { success: false, message: 'กรณีขอเพิ่มรถใหม่ต้องแนบรูปอย่างน้อย 1 รูป' };
+  }
+
+  for (var i = 0; i < Math.min(photos.length, 5); i++) {
+    var p = photos[i];
+    if (!p || !p.base64) continue;
+    var ext = (p.ext || 'jpg').replace(/[^a-z0-9]/gi,'');
+    var fname = 'carreq_' + Date.now() + '_' + i + '.' + ext;
+    var res = uploadFileToDrive(p.base64, fname, p.mimeType || 'image/jpeg', DRIVE_FOLDER_ID);
+    if (res && res.fileUrl) photoUrls.push(res.fileUrl);
+  }
+
+  if (reqType === 'add' && photoUrls.length === 0 && photos.length > 0) {
+    return { success: false, message: 'อัปโหลดรูปไม่สำเร็จ กรุณาลองใหม่' };
+  }
+
+  var sh = _ensureCarReqSheet();
+  var req_id = 'REQ' + Date.now().toString().slice(-8) + Math.floor(Math.random()*90+10);
+  sh.appendRow([
+    req_id,
+    data.house_id || '',
+    reqType,
+    data.car_id   || '',
+    data.car_type  || 'car',
+    data.plate_no  || '',
+    data.car_brand || '',
+    data.car_model || '',
+    data.car_color || '',
+    data.car_park  || '',
+    parseFloat(data.car_fee) || 0,
+    photoUrls.join(','),
+    'pending',
+    data.note || '',
+    new Date().toLocaleString('th-TH'),
+    '', ''
+  ]);
+  return { success: true, message: 'ส่งคำขอสำเร็จ รอการอนุมัติจากผู้ดูแล', req_id: req_id };
+}
+
+// ── ลูกบ้าน ดู requests ของตัวเอง ────────────────────────────
+function getMyCarRequests(data, user) {
+  var sh = _ensureCarReqSheet();
+  var rows = sh.getDataRange().getValues();
+  if (rows.length < 2) return { success: true, data: [] };
+  var headers = rows[0].map(String);
+  var list = [];
+  for (var i = 1; i < rows.length; i++) {
+    if (!rows[i][0]) continue;
+    var obj = {};
+    headers.forEach(function(h,j){ obj[h] = rows[i][j] === null || rows[i][j] === undefined ? '' : String(rows[i][j]); });
+    if (String(obj.house_id) !== String(user.house_id)) continue;
+    list.push(obj);
+  }
+  list.sort(function(a,b){ return (b.submitted_at||'').localeCompare(a.submitted_at||''); });
+  return { success: true, data: list };
+}
+
+// ── Admin ดึง requests ทั้งหมด ──────────────────────────────
+function getCarRequests(data, user) {
+  var sh = _ensureCarReqSheet();
+  var rows = sh.getDataRange().getValues();
+  if (rows.length < 2) return { success: true, data: [] };
+  var headers = rows[0].map(String);
+  var houses = sheetToObjects(getSheet(SHEETS.HOUSES));
+  var hMap = {};
+  houses.forEach(function(h){ hMap[String(h.house_id)] = h; });
+  var list = [];
+  for (var i = 1; i < rows.length; i++) {
+    if (!rows[i][0]) continue;
+    var obj = {};
+    headers.forEach(function(h,j){ obj[h] = rows[i][j] === null || rows[i][j] === undefined ? '' : String(rows[i][j]); });
+    if (data.status && obj.status !== data.status) continue;
+    var hh = hMap[obj.house_id] || {};
+    obj.house_no   = hh.house_no   || obj.house_id;
+    obj.owner_name = hh.owner_name || '';
+    obj.soi        = hh.soi        || '';
+    list.push(obj);
+  }
+  list.sort(function(a,b){
+    if (a.status==='pending' && b.status!=='pending') return -1;
+    if (a.status!=='pending' && b.status==='pending') return 1;
+    return (b.submitted_at||'').localeCompare(a.submitted_at||'');
+  });
+  return { success: true, data: list };
+}
+
+// ── Admin นับ pending ─────────────────────────────────────────
+function getPendingCount(data, user) {
+  var sh = _ensureCarReqSheet();
+  var rows = sh.getDataRange().getValues();
+  var count = 0;
+  for (var i = 1; i < rows.length; i++) {
+    if (String(rows[i][12]) === 'pending') count++;
+  }
+  return { success: true, count: count };
+}
+
+// ── Admin อนุมัติ ──────────────────────────────────────────────
+function approveCarRequest(data, user) {
+  var sh = _ensureCarReqSheet();
+  var rows = sh.getDataRange().getValues();
+  var headers = rows[0].map(String);
+  var idxReqId = headers.indexOf('req_id');
+
+  for (var i = 1; i < rows.length; i++) {
+    if (String(rows[i][idxReqId]) !== String(data.req_id)) continue;
+    if (String(rows[i][12]) !== 'pending') {
+      return { success: false, message: 'คำขอนี้ถูกดำเนินการแล้ว' };
+    }
+    var reqType = String(rows[i][2]);
+    // ใช้ข้อมูลที่ Admin แก้ไขได้ก่อน approve
+    var carData = {
+      house_id:  data.house_id  || String(rows[i][1]),
+      car_type:  data.car_type  || String(rows[i][4]),
+      plate_no:  data.plate_no  || String(rows[i][5]),
+      car_brand: data.car_brand || String(rows[i][6]),
+      car_model: data.car_model || String(rows[i][7]),
+      car_color: data.car_color || String(rows[i][8]),
+      car_park:  data.car_park  || String(rows[i][9]),
+      car_fee:   data.car_fee   !== undefined ? data.car_fee : String(rows[i][10]),
+      car_id:    data.car_id    || String(rows[i][3])
+    };
+    var result;
+    if (reqType === 'add') {
+      result = addCar(carData, user);
+    } else if (reqType === 'edit' && carData.car_id) {
+      result = updateCar(carData, user);
+    } else {
+      return { success: false, message: 'ประเภทคำขอไม่ถูกต้อง' };
+    }
+    if (!result.success) return result;
+    // อัปเดต status
+    sh.getRange(i+1, 13).setValue('approved');
+    sh.getRange(i+1, 16).setValue(new Date().toLocaleString('th-TH'));
+    sh.getRange(i+1, 17).setValue(user.username);
+    return { success: true, message: 'อนุมัติสำเร็จ' };
+  }
+  return { success: false, message: 'ไม่พบคำขอ' };
+}
+
+// ── Admin ปฏิเสธ ───────────────────────────────────────────────
+function rejectCarRequest(data, user) {
+  var sh = _ensureCarReqSheet();
+  var rows = sh.getDataRange().getValues();
+  var headers = rows[0].map(String);
+  var idxReqId = headers.indexOf('req_id');
+  for (var i = 1; i < rows.length; i++) {
+    if (String(rows[i][idxReqId]) !== String(data.req_id)) continue;
+    sh.getRange(i+1, 13).setValue('rejected');
+    sh.getRange(i+1, 14).setValue(data.reason || '');
+    sh.getRange(i+1, 16).setValue(new Date().toLocaleString('th-TH'));
+    sh.getRange(i+1, 17).setValue(user.username);
+    return { success: true, message: 'ปฏิเสธคำขอแล้ว' };
+  }
+  return { success: false, message: 'ไม่พบคำขอ' };
+}
 
 function getCars(data) {
   const sheet = getSheet(SHEETS.CARS);

@@ -43,6 +43,36 @@
     .hamburger{display:none;background:none;border:none;font-size:1.2rem;color:var(--text);cursor:pointer;}
     .btn-theme-top{background:var(--bg2);border:1.5px solid var(--border);color:var(--text2);width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:.9rem;transition:all .15s;}
     .btn-theme-top:hover{border-color:var(--primary);color:var(--primary);}
+    /* ── Bell Notification ── */
+    .bell-btn{position:relative;background:var(--bg2);border:1.5px solid var(--border);color:var(--text2);width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:.9rem;transition:all .15s;}
+    .bell-btn:hover{border-color:var(--primary);color:var(--primary);}
+    .bell-btn.has-noti{border-color:#f59e0b;color:#f59e0b;animation:bellRing .6s ease 1;}
+    @keyframes bellRing{0%,100%{transform:rotate(0)}20%{transform:rotate(-15deg)}40%{transform:rotate(15deg)}60%{transform:rotate(-10deg)}80%{transform:rotate(10deg)}}
+    .bell-badge{position:absolute;top:-5px;right:-5px;background:#ef4444;color:#fff;border-radius:50%;width:17px;height:17px;font-size:.6rem;font-weight:900;display:flex;align-items:center;justify-content:center;border:2px solid var(--card);}
+    /* ── Car Request Admin Card ── */
+    .req-admin-card{background:var(--card);border:1.5px solid var(--border);border-radius:14px;margin-bottom:.8rem;overflow:hidden;transition:box-shadow .15s;}
+    .req-admin-card:hover{box-shadow:0 4px 20px var(--shadow);}
+    .req-admin-head{padding:.85rem 1rem;display:flex;align-items:flex-start;gap:.85rem;cursor:pointer;}
+    .req-admin-icon{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.15rem;flex-shrink:0;}
+    .req-admin-icon.add{background:var(--primary-l);}
+    .req-admin-icon.edit{background:#fef3c7;}
+    .req-admin-body{padding:0 1rem 1rem;display:none;}
+    .req-admin-body.open{display:block;}
+    .req-photos-strip{display:flex;gap:.4rem;flex-wrap:wrap;margin:.5rem 0;}
+    .req-photos-strip img{width:60px;height:60px;border-radius:8px;object-fit:cover;cursor:pointer;border:1.5px solid var(--border);}
+    .req-field-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:.5rem .8rem;margin:.6rem 0;}
+    .req-field{display:flex;flex-direction:column;gap:.12rem;}
+    .req-field label{font-size:.65rem;font-weight:700;color:var(--muted);text-transform:uppercase;}
+    .req-field input,.req-field select{padding:.42rem .65rem;border:1.5px solid var(--border);border-radius:8px;background:var(--card2);color:var(--text);font-size:.82rem;font-family:'Sarabun',sans-serif;}
+    .req-field input:focus,.req-field select:focus{outline:none;border-color:var(--primary);}
+    .req-act-row{display:flex;gap:.5rem;margin-top:.85rem;flex-wrap:wrap;}
+    .req-act-row .btn{flex:1;min-width:90px;justify-content:center;}
+    .badge-pending{background:#fef3c7;color:#d97706;font-size:.7rem;padding:.15rem .6rem;border-radius:20px;font-weight:700;}
+    .badge-approved{background:#d1fae5;color:#059669;font-size:.7rem;padding:.15rem .6rem;border-radius:20px;font-weight:700;}
+    .badge-rejected{background:#fee2e2;color:#dc2626;font-size:.7rem;padding:.15rem .6rem;border-radius:20px;font-weight:700;}
+    [data-theme=dark] .badge-pending{background:#2a2010;color:#fbbf24;}
+    [data-theme=dark] .badge-approved{background:#0a2a1a;color:#34d399;}
+    [data-theme=dark] .badge-rejected{background:#2a0a0a;color:#f87171;}
     main{padding:1.4rem;max-width:1400px;}
     @keyframes fadeSlideIn{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
 
@@ -476,6 +506,7 @@
       <button class="nav-item" onclick="showSection('announcements',this)"><i class="fa-solid fa-bullhorn"></i> ประกาศ</button>
       <button class="nav-item" onclick="showSection('niti',this)"><i class="fa-solid fa-clipboard-list"></i> ผลงานนิติ</button>
       <button class="nav-item" onclick="showSection('cars',this)"><i class="fa-solid fa-car"></i> จัดการรถ</button>
+      <button class="nav-item" id="navReqBtn" onclick="showSection('carreq',this)"><i class="fa-solid fa-bell"></i> คำขออนุมัติ <span id="navReqBadge" style="display:none;background:#ef4444;color:#fff;border-radius:20px;padding:.05rem .5rem;font-size:.65rem;font-weight:900;margin-left:.3rem">0</span></button>
       <div class="nav-section">ลิ้งก์</div>
       <a class="nav-item" href="summary.html" target="_blank"><i class="fa-solid fa-chart-pie"></i> สรุปค่าส่วนกลาง</a>
       <a class="nav-item" href="announcements.html" target="_blank"><i class="fa-solid fa-bullhorn"></i> หน้าประกาศ</a>
@@ -493,6 +524,10 @@
         <div class="topbar-title" id="topbarTitle"><i class="fa-solid fa-gauge"></i> Dashboard</div>
       </div>
       <div class="topbar-right">
+        <button class="bell-btn" id="bellBtn" onclick="gotoCarRequests()" title="คำขออนุมัติรถ">
+          <i class="fa-solid fa-bell"></i>
+          <span class="bell-badge" id="bellBadge" style="display:none">0</span>
+        </button>
         <button class="btn-theme-top" onclick="toggleTheme()"><i id="themeIcon" class="fa-solid fa-moon"></i></button>
         <span class="admin-badge"><i class="fa-solid fa-shield-halved"></i> Admin</span>
       </div>
@@ -839,6 +874,29 @@
 
       </div>
 
+      <!-- ===== CAR REQUESTS ===== -->
+      <div class="section" id="sec-carreq">
+        <div class="card">
+          <div class="card-header">
+            <h3><i class="fa-solid fa-car-on"></i> คำขออนุมัติยานพาหนะ</h3>
+            <div style="display:flex;gap:.5rem;align-items:center">
+              <select id="reqFilterStatus" onchange="filterReqList()" style="padding:.32rem .7rem;font-size:.8rem;border:1.5px solid var(--border);border-radius:8px;background:var(--card2);color:var(--text);font-family:'Sarabun',sans-serif">
+                <option value="pending">⏳ รอการอนุมัติ</option>
+                <option value="approved">✅ อนุมัติแล้ว</option>
+                <option value="rejected">❌ ไม่อนุมัติ</option>
+                <option value="">ทั้งหมด</option>
+              </select>
+              <button class="btn btn-outline btn-sm" onclick="loadCarRequests()"><i class="fa-solid fa-rotate"></i> รีโหลด</button>
+            </div>
+          </div>
+          <div class="card-body">
+            <div id="carReqList">
+              <div style="text-align:center;padding:2rem;color:var(--muted)"><i class="fa-solid fa-spinner fa-spin"></i> กำลังโหลด...</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
     </main>
   </div>
 </div>
@@ -1170,7 +1228,7 @@
   const MONTHS_TH=['','ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
   const sectionTitles={overview:'<i class="fa-solid fa-gauge"></i> Dashboard',houses:'<i class="fa-solid fa-house"></i> จัดการข้อมูลบ้าน',fees:'<i class="fa-solid fa-receipt"></i> จัดการค่าส่วนกลาง',users:'<i class="fa-solid fa-users"></i> จัดการผู้ใช้งาน',announcements:'<i class="fa-solid fa-bullhorn"></i> จัดการประกาศ',niti:'<i class="fa-solid fa-clipboard-list"></i> จัดการผลงานนิติ',cars:'<i class="fa-solid fa-car"></i> จัดการรถ'};
   // ✅ FIX: ใช้ arrow function แทนการอ้างอิงตรงๆ กัน crash จาก hoisting
-  const sectionLoaders={houses:()=>loadHouses(),fees:()=>loadFees(),users:()=>loadUsers(),announcements:()=>loadAnn(),niti:()=>loadNiti(),cars:()=>loadCars()};
+  const sectionLoaders={houses:()=>loadHouses(),fees:()=>loadFees(),users:()=>loadUsers(),announcements:()=>loadAnn(),niti:()=>loadNiti(),cars:()=>loadCars(),carreq:()=>loadCarRequests()};
 
   function showSection(id,btn){
     document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
@@ -2763,6 +2821,190 @@
   }
 
     loadOverview();
+
+  // ══════════════════════════════════════════════════════
+  // ── CAR REQUESTS — Admin ───────────────────────────────
+  // ══════════════════════════════════════════════════════
+  let _carReqs = [];
+
+  async function refreshBell() {
+    try {
+      const r = await api({action:'getPendingCount'});
+      const count = (r.success && r.count) ? parseInt(r.count) : 0;
+      const badge    = document.getElementById('bellBadge');
+      const navBadge = document.getElementById('navReqBadge');
+      const bell     = document.getElementById('bellBtn');
+      if (count > 0) {
+        badge.textContent    = count > 99 ? '99+' : count;
+        badge.style.display  = 'flex';
+        navBadge.textContent = count > 99 ? '99+' : count;
+        navBadge.style.display = 'inline';
+        bell.classList.add('has-noti');
+      } else {
+        badge.style.display    = 'none';
+        navBadge.style.display = 'none';
+        bell.classList.remove('has-noti');
+      }
+    } catch(e) { /* silently fail */ }
+  }
+
+  function gotoCarRequests() {
+    showSection('carreq', document.getElementById('navReqBtn'));
+    const sb = document.getElementById('sidebar');
+    if (sb) sb.classList.remove('open');
+    const ov = document.getElementById('sidebarOverlay');
+    if (ov) ov.style.display = 'none';
+  }
+
+  async function loadCarRequests() {
+    const status = document.getElementById('reqFilterStatus')?.value ?? 'pending';
+    document.getElementById('carReqList').innerHTML = '<div style="text-align:center;padding:2rem;color:var(--muted)"><i class="fa-solid fa-spinner fa-spin"></i> กำลังโหลด...</div>';
+    const r = await api({action:'getCarRequests', status});
+    _carReqs = r.data || [];
+    renderCarReqList(_carReqs);
+    refreshBell();
+  }
+
+  function filterReqList() { loadCarRequests(); }
+
+  function renderCarReqList(list) {
+    const el = document.getElementById('carReqList');
+    if (!list.length) {
+      el.innerHTML = '<div style="text-align:center;padding:3rem;color:var(--muted)"><i class="fa-solid fa-check-circle" style="font-size:2rem;display:block;margin-bottom:.7rem;opacity:.4"></i>ไม่มีคำขอในหมวดนี้</div>';
+      return;
+    }
+    const typeIcon   = {car:'🚗',motorcycle:'🏍️',truck:'🚐',other:'🚙'};
+    const typeLabel  = {car:'รถยนต์',motorcycle:'มอเตอร์ไซค์',truck:'รถกระบะ/ตู้',other:'อื่นๆ'};
+    const reqLabel   = {add:'ขอเพิ่มรถ',edit:'ขอแก้ไขรถ'};
+    const parkOpts   = ['หน้าบ้าน','ในบ้าน','ส่วนกลาง','อื่นๆ'];
+    const carTypeOpts = [{v:'car',l:'🚗 รถยนต์'},{v:'motorcycle',l:'🏍️ มอเตอร์ไซค์'},{v:'truck',l:'🚐 กระบะ/ตู้'},{v:'other',l:'🚙 อื่นๆ'}];
+
+    el.innerHTML = list.map(req => {
+      const photos = (req.photo_urls||'').split(',').filter(Boolean);
+      const statusBadge =
+        req.status==='pending'  ? '<span class="badge-pending">⏳ รอการอนุมัติ</span>' :
+        req.status==='approved' ? '<span class="badge-approved">✅ อนุมัติแล้ว</span>'  :
+                                  '<span class="badge-rejected">❌ ไม่อนุมัติ</span>';
+      const parkSel = parkOpts.map(p=>`<option value="${p}"${p===req.car_park?' selected':''}>${p}</option>`).join('');
+      const typeSel = carTypeOpts.map(o=>`<option value="${o.v}"${o.v===req.car_type?' selected':''}>${o.l}</option>`).join('');
+      const isPending = req.status === 'pending';
+
+      return `<div class="req-admin-card" id="reqcard_${req.req_id}">
+        <div class="req-admin-head" onclick="toggleReqCard('${req.req_id}')">
+          <div class="req-admin-icon ${req.request_type==='add'?'add':'edit'}">${typeIcon[req.car_type]||'🚗'}</div>
+          <div style="flex:1;min-width:0">
+            <div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap">
+              <span style="font-weight:800;font-size:.92rem">${req.plate_no||'ไม่ระบุทะเบียน'}</span>
+              ${statusBadge}
+              <span style="font-size:.72rem;background:${req.request_type==='add'?'var(--primary-l)':'#fef3c7'};color:${req.request_type==='add'?'var(--primary)':'#d97706'};padding:.1rem .5rem;border-radius:10px;font-weight:700">${reqLabel[req.request_type]||req.request_type}</span>
+            </div>
+            <div style="font-size:.75rem;color:var(--muted);margin-top:.15rem">🏠 ${req.house_no||req.house_id}${req.soi&&req.soi!=='0'?' ซอย '+req.soi:''} — ${req.owner_name||''}</div>
+            <div style="font-size:.72rem;color:var(--muted)">${req.car_brand||''} ${req.car_model||''} · สี${req.car_color||'—'} · ${typeLabel[req.car_type]||''}</div>
+            <div style="font-size:.68rem;color:var(--muted);margin-top:.12rem">📅 ${req.submitted_at||''}</div>
+          </div>
+          <i class="fa-solid fa-chevron-down" id="chv_${req.req_id}" style="color:var(--muted);transition:transform .2s;flex-shrink:0;margin-top:.3rem"></i>
+        </div>
+        <div class="req-admin-body" id="reqbody_${req.req_id}">
+          ${photos.length
+            ? `<div style="margin-bottom:.6rem">
+                <div style="font-size:.72rem;font-weight:700;color:var(--muted);margin-bottom:.3rem">📷 รูปรถที่แนบมา</div>
+                <div class="req-photos-strip">${photos.map(u=>`<img src="${u}" onclick="window.open('${u}','_blank')" title="คลิกดูขนาดเต็ม">`).join('')}</div>
+               </div>`
+            : '<p style="font-size:.78rem;color:var(--muted);margin-bottom:.5rem">ไม่มีรูปที่แนบมา</p>'}
+          ${isPending
+            ? `<div style="font-size:.72rem;font-weight:700;color:var(--primary);margin:.4rem 0 .3rem">✏️ ตรวจสอบ/แก้ไขก่อนอนุมัติ</div>
+               <div class="req-field-grid">
+                 <div class="req-field" style="grid-column:1/-1">
+                   <label>ประเภท</label>
+                   <select id="rf_type_${req.req_id}">${typeSel}</select>
+                 </div>
+                 <div class="req-field"><label>ป้ายทะเบียน</label><input id="rf_plate_${req.req_id}" value="${req.plate_no||''}"/></div>
+                 <div class="req-field"><label>สีรถ</label><input id="rf_color_${req.req_id}" value="${req.car_color||''}"/></div>
+                 <div class="req-field"><label>ยี่ห้อ</label><input id="rf_brand_${req.req_id}" value="${req.car_brand||''}"/></div>
+                 <div class="req-field"><label>รุ่น</label><input id="rf_model_${req.req_id}" value="${req.car_model||''}"/></div>
+                 <div class="req-field">
+                   <label>สถานที่จอด</label>
+                   <select id="rf_park_${req.req_id}">${parkSel}</select>
+                 </div>
+                 <div class="req-field"><label>ค่าจอด (฿/เดือน)</label><input type="number" id="rf_fee_${req.req_id}" value="${req.car_fee||0}"/></div>
+               </div>
+               <div class="req-act-row">
+                 <button class="btn btn-primary" onclick="approveReq('${req.req_id}','${req.house_id}','${req.car_id||''}')">
+                   <i class="fa-solid fa-check"></i> อนุมัติ
+                 </button>
+                 <button class="btn btn-danger" onclick="openRejectModal('${req.req_id}')">
+                   <i class="fa-solid fa-ban"></i> ไม่อนุมัติ
+                 </button>
+               </div>`
+            : `<div style="font-size:.78rem;color:var(--muted);padding:.4rem 0">
+                 ดำเนินการแล้วโดย: <strong>${req.reviewed_by||'—'}</strong> เมื่อ ${req.reviewed_at||'—'}
+                 ${req.status==='rejected'&&req.note?`<br>เหตุผล: <em>${req.note}</em>`:''}
+               </div>`}
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  function toggleReqCard(reqId) {
+    const body = document.getElementById('reqbody_'+reqId);
+    const chv  = document.getElementById('chv_'+reqId);
+    if (!body) return;
+    const open = body.classList.toggle('open');
+    if (chv) chv.style.transform = open ? 'rotate(180deg)' : '';
+  }
+
+  async function approveReq(reqId, houseId, carId) {
+    const c = await Swal.fire({
+      icon:'question', title:'อนุมัติคำขอ?',
+      text:'ข้อมูลรถจะถูกบันทึกเข้าระบบทันที',
+      showCancelButton:true, confirmButtonColor:'#059669',
+      confirmButtonText:'✅ อนุมัติ', cancelButtonText:'ยกเลิก'
+    });
+    if (!c.isConfirmed) return;
+    const payload = {
+      action: 'approveCarRequest', req_id: reqId,
+      house_id: houseId, car_id: carId,
+      car_type:  document.getElementById('rf_type_'+reqId)?.value,
+      plate_no:  document.getElementById('rf_plate_'+reqId)?.value,
+      car_color: document.getElementById('rf_color_'+reqId)?.value,
+      car_brand: document.getElementById('rf_brand_'+reqId)?.value,
+      car_model: document.getElementById('rf_model_'+reqId)?.value,
+      car_park:  document.getElementById('rf_park_'+reqId)?.value,
+      car_fee:   parseFloat(document.getElementById('rf_fee_'+reqId)?.value)||0
+    };
+    const r = await api(payload);
+    if (r.success) {
+      toast('success','✅ อนุมัติสำเร็จ');
+      loadCarRequests();
+      if (typeof loadCars === 'function') loadCars();
+    } else {
+      toast('error', r.message||'เกิดข้อผิดพลาด');
+    }
+  }
+
+  function openRejectModal(reqId) {
+    document.getElementById('rejectReqId').value = reqId;
+    document.getElementById('rejectReason').value = '';
+    document.getElementById('modalRejectReason').style.display = 'flex';
+  }
+
+  async function confirmReject() {
+    const reqId  = document.getElementById('rejectReqId').value;
+    const reason = document.getElementById('rejectReason').value.trim();
+    const r = await api({action:'rejectCarRequest', req_id:reqId, reason});
+    if (r.success) {
+      toast('success','ปฏิเสธคำขอแล้ว');
+      closeModal('modalRejectReason');
+      loadCarRequests();
+    } else {
+      toast('error', r.message||'เกิดข้อผิดพลาด');
+    }
+  }
+
+  // ── โหลด bell count ตอนเปิดหน้า + poll ทุก 5 นาที ────────
+  refreshBell();
+  setInterval(refreshBell, 5*60*1000);
+
 </script>
 
 <!-- ═══════ MODAL: Add Car ═══════ -->
@@ -2978,5 +3220,26 @@
     </div>
   </div>
 </div>
+<!-- ═══════ MODAL: Reject Reason ═══════ -->
+<div class="modal-backdrop" id="modalRejectReason" onclick="closeModalBg(event,'modalRejectReason')">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-head">
+      <h3><i class="fa-solid fa-ban"></i> ระบุเหตุผลการปฏิเสธ</h3>
+      <button class="modal-close" onclick="closeModal('modalRejectReason')"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="rejectReqId"/>
+      <div class="form-group full">
+        <label>เหตุผล (ส่งให้ลูกบ้านทราบ)</label>
+        <textarea id="rejectReason" rows="3" style="width:100%;padding:.6rem .8rem;border:1.5px solid var(--border);border-radius:10px;background:var(--card2);color:var(--text);font-family:'Sarabun',sans-serif;font-size:.85rem;resize:vertical" placeholder="เช่น ข้อมูลรถไม่ครบ, ทะเบียนซ้ำ..."></textarea>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-outline" onclick="closeModal('modalRejectReason')">ยกเลิก</button>
+      <button class="btn btn-danger" onclick="confirmReject()"><i class="fa-solid fa-ban"></i> ยืนยันปฏิเสธ</button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>

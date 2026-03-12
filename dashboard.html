@@ -131,6 +131,45 @@
     [data-theme="dark"] .car-fee-badge.paid{background:#2a1010;color:#f87171;}
 
     @media(max-width:600px){.half-grid{grid-template-columns:1fr;}.hero{flex-direction:column;text-align:center;}.info-grid{grid-template-columns:1fr 1fr;}.nav-name{display:none;}}
+
+    /* ── Car Request ── */
+    .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:400;display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity .25s;}
+    .modal-bg.open{opacity:1;pointer-events:all;}
+    .modal-sheet{background:var(--card);border-radius:24px 24px 0 0;width:100%;max-width:540px;max-height:90vh;overflow-y:auto;padding:1.4rem 1.2rem 2.2rem;transform:translateY(40px);transition:transform .28s cubic-bezier(.32,1,.36,1);}
+    .modal-bg.open .modal-sheet{transform:translateY(0);}
+    @media(min-width:600px){.modal-bg{align-items:center;}.modal-sheet{border-radius:20px;max-height:85vh;}}
+    .modal-drag{width:40px;height:4px;background:var(--border);border-radius:4px;margin:0 auto .9rem;}
+    .modal-title{font-size:1rem;font-weight:800;margin-bottom:1rem;display:flex;align-items:center;gap:.5rem;}
+    .form-row{display:grid;grid-template-columns:1fr 1fr;gap:.7rem;margin-bottom:.7rem;}
+    .form-row.full{grid-template-columns:1fr;}
+    .form-grp label{display:block;font-size:.72rem;font-weight:700;color:var(--muted);margin-bottom:.25rem;text-transform:uppercase;}
+    .form-grp input,.form-grp select,.form-grp textarea{width:100%;padding:.52rem .75rem;border:1.5px solid var(--border);border-radius:10px;background:var(--card2);color:var(--text);font-family:'Sarabun',sans-serif;font-size:.85rem;}
+    .form-grp input:focus,.form-grp select:focus{outline:none;border-color:var(--primary);}
+    .photo-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:.4rem;margin-top:.5rem;}
+    .photo-slot{aspect-ratio:1;border-radius:10px;overflow:hidden;border:2px dashed var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;background:var(--bg2);position:relative;transition:border-color .2s,background .2s;}
+    .photo-slot:hover{border-color:var(--primary);background:var(--primary-l);}
+    .photo-slot img{width:100%;height:100%;object-fit:cover;}
+    .photo-slot .rm{position:absolute;top:3px;right:3px;background:rgba(220,38,38,.9);color:#fff;border:none;border-radius:50%;width:20px;height:20px;font-size:.6rem;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;}
+    .photo-slot .add-icon{font-size:1.3rem;color:var(--muted);pointer-events:none;}
+    .req-list-item{background:var(--card2);border:1.5px solid var(--border);border-radius:12px;padding:.7rem .9rem;margin-bottom:.5rem;display:flex;align-items:center;gap:.7rem;}
+    .req-list-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:.95rem;flex-shrink:0;}
+    .req-badge{font-size:.68rem;font-weight:700;padding:.15rem .55rem;border-radius:20px;display:inline-block;}
+    .req-badge.pending{background:#fef3c7;color:#d97706;}
+    .req-badge.approved{background:#d1fae5;color:#059669;}
+    .req-badge.rejected{background:#fee2e2;color:#dc2626;}
+    [data-theme=dark] .req-badge.pending{background:#2a2010;color:#fbbf24;}
+    [data-theme=dark] .req-badge.approved{background:#0a2a1e;color:#34d399;}
+    [data-theme=dark] .req-badge.rejected{background:#2a0a0a;color:#f87171;}
+    .type-chips{display:flex;gap:.4rem;flex-wrap:wrap;margin-top:.3rem;}
+    .type-chip{padding:.3rem .75rem;border-radius:20px;border:1.5px solid var(--border);font-size:.78rem;cursor:pointer;transition:all .15s;background:var(--card2);}
+    .type-chip.sel{background:var(--primary);color:#fff;border-color:var(--primary);}
+    .btn-full{width:100%;padding:.65rem;border-radius:12px;font-size:.9rem;font-weight:700;border:none;cursor:pointer;font-family:'Sarabun',sans-serif;display:flex;align-items:center;justify-content:center;gap:.45rem;transition:background .15s;}
+    .btn-full.primary{background:var(--primary);color:#fff;}
+    .btn-full.primary:hover{background:var(--primary-d);}
+    .btn-full.outline{background:transparent;border:1.5px solid var(--border);color:var(--text);}
+    .btn-full.outline:hover{border-color:var(--primary);color:var(--primary);}
+    .req-photos-row{display:flex;gap:.4rem;flex-wrap:wrap;margin-top:.4rem;}
+    .req-photos-row img{width:52px;height:52px;border-radius:8px;object-fit:cover;cursor:pointer;}
   </style>
 </head>
 <body>
@@ -172,10 +211,89 @@
     </div>
   </div>
 
-  <div class="section-title"><i class="fa-solid fa-car"></i> ยานพาหนะของฉัน</div>
+  <!-- ── ยานพาหนะ header ── -->
+  <div class="section-title" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem">
+    <span><i class="fa-solid fa-car"></i> ยานพาหนะของฉัน</span>
+    <div style="display:flex;gap:.45rem">
+      <button onclick="openReqModal('add',null)" style="background:var(--primary);color:#fff;border:none;border-radius:10px;padding:.38rem .85rem;font-size:.78rem;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:.35rem;font-family:'Sarabun',sans-serif"><i class="fa-solid fa-plus"></i> ขอเพิ่มรถ</button>
+      <button onclick="openReqHistory()" style="background:var(--card);color:var(--text);border:1.5px solid var(--border);border-radius:10px;padding:.38rem .85rem;font-size:.78rem;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:.35rem;font-family:'Sarabun',sans-serif"><i class="fa-solid fa-clock-rotate-left"></i> ประวัติคำขอ</button>
+    </div>
+  </div>
   <div id="carContainer">
     <div class="car-list">
       <div class="car-card"><div class="skeleton" style="width:52px;height:52px;border-radius:14px;flex-shrink:0"></div><div style="flex:1"><div class="skeleton" style="height:20px;width:50%;margin-bottom:.4rem"></div><div class="skeleton" style="height:14px;width:70%"></div></div></div>
+    </div>
+  </div>
+
+  <!-- ═══════ MODAL: Car Request ═══════ -->
+  <div class="modal-bg" id="carReqModal" onclick="if(event.target===this)closeReqModal()">
+    <div class="modal-sheet">
+      <div class="modal-drag"></div>
+      <div class="modal-title" id="reqModalTitle"><i class="fa-solid fa-car-side"></i> ขอเพิ่มรถใหม่</div>
+      <input type="hidden" id="req_type"/>
+      <input type="hidden" id="req_car_id"/>
+
+      <!-- ประเภทรถ -->
+      <div class="form-grp" style="margin-bottom:.7rem">
+        <label>ประเภทยานพาหนะ</label>
+        <div class="type-chips" id="req_type_chips">
+          <div class="type-chip sel" data-val="car" onclick="selReqType('car',this)">🚗 รถยนต์</div>
+          <div class="type-chip" data-val="motorcycle" onclick="selReqType('motorcycle',this)">🏍️ มอเตอร์ไซค์</div>
+          <div class="type-chip" data-val="truck" onclick="selReqType('truck',this)">🚐 กระบะ/ตู้</div>
+          <div class="type-chip" data-val="other" onclick="selReqType('other',this)">🚙 อื่นๆ</div>
+        </div>
+        <input type="hidden" id="req_car_type" value="car"/>
+      </div>
+
+      <div class="form-row">
+        <div class="form-grp"><label>ป้ายทะเบียน *</label><input type="text" id="req_plate" placeholder="กข 1234"/></div>
+        <div class="form-grp"><label>สีรถ</label><input type="text" id="req_color" placeholder="ขาว, ดำ, ..."/></div>
+      </div>
+      <div class="form-row">
+        <div class="form-grp"><label>ยี่ห้อ</label><input type="text" id="req_brand" placeholder="TOYOTA"/></div>
+        <div class="form-grp"><label>รุ่น</label><input type="text" id="req_model" placeholder="YARIS"/></div>
+      </div>
+      <div class="form-row">
+        <div class="form-grp">
+          <label>สถานที่จอด</label>
+          <select id="req_park">
+            <option value="หน้าบ้าน">🏠 หน้าบ้าน</option>
+            <option value="ในบ้าน">🔒 ในบ้าน</option>
+            <option value="ส่วนกลาง">🅿️ ส่วนกลาง</option>
+            <option value="อื่นๆ">📍 อื่นๆ</option>
+          </select>
+        </div>
+        <div class="form-grp"><label>ค่าจอด (บาท/เดือน)</label><input type="number" id="req_fee" placeholder="0" value="0"/></div>
+      </div>
+      <div class="form-row full">
+        <div class="form-grp"><label>หมายเหตุ (ถ้ามี)</label><textarea id="req_note" rows="2" placeholder="ข้อมูลเพิ่มเติม..." style="resize:none"></textarea></div>
+      </div>
+
+      <!-- Photo upload (required for add, optional for edit) -->
+      <div id="req_photo_section">
+        <div class="form-grp">
+          <label id="req_photo_label">📷 รูปรถ * (อย่างน้อย 1 รูป, สูงสุด 5 รูป)</label>
+          <div class="photo-grid" id="req_photo_grid"></div>
+          <input type="file" id="req_photo_input" accept="image/*" multiple style="display:none" onchange="onReqPhotos(this)"/>
+        </div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:.55rem;margin-top:1.1rem">
+        <button class="btn-full primary" id="reqSubmitBtn" onclick="submitReq()"><i class="fa-solid fa-paper-plane"></i> ส่งคำขอ</button>
+        <button class="btn-full outline" onclick="closeReqModal()">ยกเลิก</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════ MODAL: Request History ═══════ -->
+  <div class="modal-bg" id="reqHistModal" onclick="if(event.target===this)closeReqHist()">
+    <div class="modal-sheet">
+      <div class="modal-drag"></div>
+      <div class="modal-title"><i class="fa-solid fa-clock-rotate-left"></i> ประวัติคำขอรถของฉัน</div>
+      <div id="reqHistList"><div style="text-align:center;padding:2rem;color:var(--muted)"><i class="fa-solid fa-spinner fa-spin"></i></div></div>
+      <div style="margin-top:1rem">
+        <button class="btn-full outline" onclick="closeReqHist()">ปิด</button>
+      </div>
     </div>
   </div>
 
@@ -304,21 +422,23 @@
     .then(r=>{if(r.isConfirmed){localStorage.removeItem('vms_token');localStorage.removeItem('vms_role');localStorage.removeItem('vms_name');localStorage.removeItem('vms_house');window.location.href='index.html';}});
   }
 
+  // ── loadCars ──────────────────────────────────────────────
+  let _myCars = [];
   async function loadCars(){
     const house_id=localStorage.getItem('vms_house');
     if(!house_id){document.getElementById('carContainer').innerHTML='<p style="color:var(--muted);font-size:.85rem;padding:.5rem 0">ไม่พบข้อมูลบ้าน</p>';return;}
     const d=await api({action:'getCars',house_id,token});
-    const cars=d.success?d.data:[];
-    if(!cars.length){
-      document.getElementById('carContainer').innerHTML='<p style="color:var(--muted);font-size:.85rem;padding:.5rem 0"><i class="fa-solid fa-car-side" style="opacity:.4"></i> ยังไม่มีข้อมูลยานพาหนะ</p>';return;
+    _myCars=d.success?d.data:[];
+    if(!_myCars.length){
+      document.getElementById('carContainer').innerHTML='<p style="color:var(--muted);font-size:.85rem;padding:.5rem 0"><i class="fa-solid fa-car-side" style="opacity:.4"></i> ยังไม่มียานพาหนะที่ได้รับอนุมัติ</p>';return;
     }
     const typeIcon={car:'🚗',motorcycle:'🏍️',truck:'🚐',other:'🚙'};
     const parkIcon={'หน้าบ้าน':'🏠','ในบ้าน':'🔒','ส่วนกลาง':'🅿️','อื่นๆ':'📍'};
     const typeLabel={car:'รถยนต์',motorcycle:'มอเตอร์ไซค์',truck:'รถกระบะ/ตู้',other:'อื่นๆ'};
-    document.getElementById('carContainer').innerHTML='<div class="car-list">'+cars.map(c=>{
+    document.getElementById('carContainer').innerHTML='<div class="car-list">'+_myCars.map(c=>{
       const fee=parseFloat(c.car_fee)||0;
       const typeKey=c.car_type||'car';
-      return`<div class="car-card" style="animation:fadeSlideIn .3s ease both">
+      return`<div class="car-card" style="animation:fadeSlideIn .3s ease both;cursor:pointer" onclick="openReqModal('edit','${c.car_id}')">
         <div class="car-icon-wrap ${typeKey}">${typeIcon[typeKey]||'🚗'}</div>
         <div class="car-info">
           <div class="car-plate">${c.plate_no||'ไม่ระบุทะเบียน'}</div>
@@ -328,9 +448,186 @@
             <span class="car-tag park">${parkIcon[c.car_park]||''} ${c.car_park||'—'}</span>
           </div>
         </div>
-        <div class="car-fee-badge ${fee>0?'paid':'free'}">${fee>0?fee.toLocaleString()+' ฿/เดือน':'ฟรี'}</div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:.3rem">
+          <div class="car-fee-badge ${fee>0?'paid':'free'}">${fee>0?fee.toLocaleString()+' ฿/เดือน':'ฟรี'}</div>
+          <span style="font-size:.65rem;color:var(--primary);font-weight:700"><i class="fa-solid fa-pen"></i> ขอแก้ไข</span>
+        </div>
       </div>`;
     }).join('')+'</div>';
+  }
+
+  // ── Car Request Modal ──────────────────────────────────────
+  let _reqPhotos = []; // [{dataUrl, file}]
+
+  function openReqModal(type, carId) {
+    _reqPhotos = [];
+    renderPhotoGrid();
+    // reset form
+    ['req_plate','req_color','req_brand','req_model','req_note'].forEach(id=>{
+      const el=document.getElementById(id); if(el) el.value='';
+    });
+    document.getElementById('req_fee').value='0';
+    document.getElementById('req_car_type').value='car';
+    document.getElementById('req_park').value='หน้าบ้าน';
+    document.querySelectorAll('#req_type_chips .type-chip').forEach(c=>{
+      c.classList.toggle('sel', c.dataset.val==='car');
+    });
+
+    document.getElementById('req_type').value = type;
+    document.getElementById('req_car_id').value = carId || '';
+
+    if (type === 'edit' && carId) {
+      const car = _myCars.find(c=>c.car_id===carId);
+      document.getElementById('reqModalTitle').innerHTML = '<i class="fa-solid fa-pen"></i> ขอแก้ไขข้อมูลรถ';
+      document.getElementById('req_photo_label').textContent = '📷 รูปรถ (ไม่บังคับสำหรับการแก้ไข)';
+      if (car) {
+        document.getElementById('req_plate').value  = car.plate_no  || '';
+        document.getElementById('req_color').value  = car.car_color || '';
+        document.getElementById('req_brand').value  = car.car_brand || '';
+        document.getElementById('req_model').value  = car.car_model || '';
+        document.getElementById('req_fee').value    = car.car_fee   || '0';
+        document.getElementById('req_park').value   = car.car_park  || 'หน้าบ้าน';
+        document.getElementById('req_car_type').value = car.car_type || 'car';
+        document.querySelectorAll('#req_type_chips .type-chip').forEach(c=>{
+          c.classList.toggle('sel', c.dataset.val===(car.car_type||'car'));
+        });
+      }
+    } else {
+      document.getElementById('reqModalTitle').innerHTML = '<i class="fa-solid fa-car-side"></i> ขอเพิ่มรถใหม่';
+      document.getElementById('req_photo_label').textContent = '📷 รูปรถ * (อย่างน้อย 1 รูป, สูงสุด 5 รูป)';
+    }
+    document.getElementById('carReqModal').classList.add('open');
+  }
+
+  function closeReqModal() {
+    document.getElementById('carReqModal').classList.remove('open');
+  }
+
+  function selReqType(val, el) {
+    document.querySelectorAll('#req_type_chips .type-chip').forEach(c=>c.classList.remove('sel'));
+    el.classList.add('sel');
+    document.getElementById('req_car_type').value = val;
+  }
+
+  function renderPhotoGrid() {
+    const grid = document.getElementById('req_photo_grid');
+    let html = _reqPhotos.map((p,i)=>`
+      <div class="photo-slot">
+        <img src="${p.dataUrl}"/>
+        <button class="rm" onclick="removeReqPhoto(${i})">✕</button>
+      </div>`).join('');
+    if (_reqPhotos.length < 5) {
+      html += `<div class="photo-slot" onclick="document.getElementById('req_photo_input').click()">
+        <span class="add-icon">＋</span>
+      </div>`;
+    }
+    grid.innerHTML = html;
+  }
+
+  function onReqPhotos(input) {
+    const files = Array.from(input.files);
+    const remaining = 5 - _reqPhotos.length;
+    files.slice(0, remaining).forEach(f=>{
+      const reader = new FileReader();
+      reader.onload = e => {
+        _reqPhotos.push({dataUrl:e.target.result, file:f});
+        renderPhotoGrid();
+      };
+      reader.readAsDataURL(f);
+    });
+    input.value = '';
+  }
+
+  function removeReqPhoto(i) {
+    _reqPhotos.splice(i,1);
+    renderPhotoGrid();
+  }
+
+  async function submitReq() {
+    const reqType = document.getElementById('req_type').value;
+    const plate   = document.getElementById('req_plate').value.trim();
+    const house_id = localStorage.getItem('vms_house');
+
+    if (!plate) { alert('กรุณากรอกป้ายทะเบียน'); return; }
+    if (reqType === 'add' && _reqPhotos.length === 0) {
+      alert('กรุณาแนบรูปรถอย่างน้อย 1 รูป'); return;
+    }
+
+    const btn = document.getElementById('reqSubmitBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> กำลังส่ง...';
+
+    try {
+      // แปลงรูปเป็น base64 object
+      const photos = await Promise.all(_reqPhotos.map(async p=>{
+        const ext = p.file.name.split('.').pop().toLowerCase() || 'jpg';
+        const base64 = p.dataUrl.split(',')[1];
+        return { base64, mimeType: p.file.type || 'image/jpeg', ext };
+      }));
+
+      const payload = {
+        action: 'submitCarRequest',
+        token,
+        house_id,
+        request_type: reqType,
+        car_id:    document.getElementById('req_car_id').value,
+        car_type:  document.getElementById('req_car_type').value,
+        plate_no:  plate,
+        car_brand: document.getElementById('req_brand').value.trim(),
+        car_model: document.getElementById('req_model').value.trim(),
+        car_color: document.getElementById('req_color').value.trim(),
+        car_park:  document.getElementById('req_park').value,
+        car_fee:   parseFloat(document.getElementById('req_fee').value)||0,
+        note:      document.getElementById('req_note').value.trim(),
+        photos
+      };
+
+      const r = await api(payload);
+      if (r.success) {
+        closeReqModal();
+        alert('✅ ' + r.message);
+      } else {
+        alert('❌ ' + (r.message||'เกิดข้อผิดพลาด'));
+      }
+    } catch(e) {
+      alert('เกิดข้อผิดพลาด: ' + e.message);
+    }
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> ส่งคำขอ';
+  }
+
+  // ── Request History Modal ──────────────────────────────────
+  async function openReqHistory() {
+    document.getElementById('reqHistModal').classList.add('open');
+    document.getElementById('reqHistList').innerHTML = '<div style="text-align:center;padding:2rem;color:var(--muted)"><i class="fa-solid fa-spinner fa-spin"></i> กำลังโหลด...</div>';
+    const house_id = localStorage.getItem('vms_house');
+    const r = await api({action:'getMyCarRequests', token, house_id});
+    const list = r.success ? r.data : [];
+    if (!list.length) {
+      document.getElementById('reqHistList').innerHTML = '<p style="text-align:center;color:var(--muted);padding:2rem">ยังไม่มีประวัติคำขอ</p>';
+      return;
+    }
+    const statusLabel = {pending:'⏳ รอการอนุมัติ', approved:'✅ อนุมัติแล้ว', rejected:'❌ ไม่อนุมัติ'};
+    const typeLabel   = {add:'ขอเพิ่มรถ', edit:'ขอแก้ไขรถ'};
+    const typeIcon    = {car:'🚗', motorcycle:'🏍️', truck:'🚐', other:'🚙'};
+    document.getElementById('reqHistList').innerHTML = list.map(r=>{
+      const photos = (r.photo_urls||'').split(',').filter(Boolean);
+      return `<div class="req-list-item">
+        <div class="req-list-icon" style="background:var(--primary-l)">${typeIcon[r.car_type]||'🚗'}</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-weight:700;font-size:.88rem">${r.plate_no||'ไม่ระบุทะเบียน'}</div>
+          <div style="font-size:.73rem;color:var(--muted)">${typeLabel[r.request_type]||r.request_type} · ${r.submitted_at||''}</div>
+          ${photos.length?`<div class="req-photos-row">${photos.slice(0,3).map(u=>`<img src="${u}" onclick="window.open('${u}','_blank')">`).join('')}</div>`:''}
+          ${r.note?`<div style="font-size:.72rem;color:var(--muted);margin-top:.2rem">📝 ${r.note}</div>`:''}
+          ${r.status==='rejected'&&r.note?`<div style="font-size:.72rem;color:#dc2626;margin-top:.2rem">เหตุผล: ${r.note}</div>`:''}
+        </div>
+        <span class="req-badge ${r.status}">${statusLabel[r.status]||r.status}</span>
+      </div>`;
+    }).join('');
+  }
+
+  function closeReqHist() {
+    document.getElementById('reqHistModal').classList.remove('open');
   }
 
   loadInfo();
