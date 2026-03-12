@@ -59,7 +59,22 @@
     .req-admin-body{padding:0 1rem 1rem;display:none;}
     .req-admin-body.open{display:block;}
     .req-photos-strip{display:flex;gap:.4rem;flex-wrap:wrap;margin:.5rem 0;}
-    .req-photos-strip img{width:60px;height:60px;border-radius:8px;object-fit:cover;cursor:pointer;border:1.5px solid var(--border);}
+    .req-photos-strip img{width:60px;height:60px;border-radius:8px;object-fit:cover;cursor:pointer;border:1.5px solid var(--border);transition:transform .15s,box-shadow .15s;}
+    .req-photos-strip img:hover{transform:scale(1.08);box-shadow:0 4px 14px rgba(0,0,0,.25);}
+    /* thumbnail strip in card header */
+    .req-thumb-row{display:flex;gap:.3rem;flex-wrap:wrap;margin-top:.35rem;}
+    .req-thumb-row img{width:44px;height:44px;border-radius:7px;object-fit:cover;cursor:pointer;border:2px solid rgba(255,255,255,.35);transition:transform .15s,box-shadow .15s;flex-shrink:0;}
+    .req-thumb-row img:hover{transform:scale(1.1);box-shadow:0 3px 10px rgba(0,0,0,.3);}
+    /* lightbox */
+    #photoLightbox{position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:9999;display:none;align-items:center;justify-content:center;flex-direction:column;gap:.8rem;padding:1rem;}
+    #photoLightbox.open{display:flex;}
+    #photoLightbox img{max-width:min(92vw,860px);max-height:80vh;border-radius:14px;object-fit:contain;box-shadow:0 8px 40px rgba(0,0,0,.6);}
+    #photoLightbox .lb-close{position:fixed;top:1rem;right:1.2rem;background:rgba(255,255,255,.15);border:none;color:#fff;font-size:1.4rem;border-radius:50%;width:2.4rem;height:2.4rem;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+    #photoLightbox .lb-close:hover{background:rgba(255,255,255,.3);}
+    #photoLightbox .lb-nav{display:flex;gap:1.2rem;}
+    #photoLightbox .lb-btn{background:rgba(255,255,255,.15);border:none;color:#fff;font-size:1rem;border-radius:50%;width:2.2rem;height:2.2rem;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+    #photoLightbox .lb-btn:hover{background:rgba(255,255,255,.3);}
+    #photoLightbox .lb-counter{color:rgba(255,255,255,.7);font-size:.82rem;font-family:'Sarabun',sans-serif;}
     .req-field-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:.5rem .8rem;margin:.6rem 0;}
     .req-field{display:flex;flex-direction:column;gap:.12rem;}
     .req-field label{font-size:.65rem;font-weight:700;color:var(--muted);text-transform:uppercase;}
@@ -2910,6 +2925,11 @@
             <div style="font-size:.75rem;color:var(--muted);margin-top:.15rem">🏠 ${req.house_no||req.house_id}${req.soi&&req.soi!=='0'?' ซอย '+req.soi:''} — ${req.owner_name||''}</div>
             <div style="font-size:.72rem;color:var(--muted)">${req.car_brand||''} ${req.car_model||''} · สี${req.car_color||'—'} · ${typeLabel[req.car_type]||''}</div>
             <div style="font-size:.68rem;color:var(--muted);margin-top:.12rem">📅 ${req.submitted_at||''}</div>
+            ${photos.length ? `<div class="req-thumb-row" onclick="event.stopPropagation()">
+              ${photos.map((u,i)=>`<img src="${u}" loading="lazy"
+                onclick="openLightbox(${JSON.stringify(photos)},${i})"
+                title="รูปที่ ${i+1} — คลิกขยาย">`).join('')}
+            </div>` : ''}
           </div>
           <i class="fa-solid fa-chevron-down" id="chv_${req.req_id}" style="color:var(--muted);transition:transform .2s;flex-shrink:0;margin-top:.3rem"></i>
         </div>
@@ -2917,7 +2937,7 @@
           ${photos.length
             ? `<div style="margin-bottom:.6rem">
                 <div style="font-size:.72rem;font-weight:700;color:var(--muted);margin-bottom:.3rem">📷 รูปรถที่แนบมา</div>
-                <div class="req-photos-strip">${photos.map(u=>`<img src="${u}" onclick="window.open('${u}','_blank')" title="คลิกดูขนาดเต็ม">`).join('')}</div>
+                <div class="req-photos-strip">${photos.map((u,i)=>`<img src="${u}" loading="lazy" onclick="openLightbox(${JSON.stringify(photos)},${i})" title="รูปที่ ${i+1} — คลิกขยาย">`).join('')}</div>
                </div>`
             : '<p style="font-size:.78rem;color:var(--muted);margin-bottom:.5rem">ไม่มีรูปที่แนบมา</p>'}
           ${isPending
@@ -3013,6 +3033,48 @@
   // ── โหลด bell count ตอนเปิดหน้า + poll ทุก 5 นาที ────────
   refreshBell();
   setInterval(refreshBell, 5*60*1000);
+
+  // ═══════ LIGHTBOX ══════════════════════════════════════════
+  let _lbPhotos = [];
+  let _lbIdx    = 0;
+
+  function openLightbox(urls, startIdx) {
+    _lbPhotos = Array.isArray(urls) ? urls : [urls];
+    _lbIdx    = startIdx || 0;
+    _lbRender();
+    document.getElementById('photoLightbox').classList.add('open');
+    document.addEventListener('keydown', _lbKeyHandler);
+  }
+
+  function closeLightbox() {
+    document.getElementById('photoLightbox').classList.remove('open');
+    document.removeEventListener('keydown', _lbKeyHandler);
+  }
+
+  function lbClose(e) {
+    if (e.target === document.getElementById('photoLightbox')) closeLightbox();
+  }
+
+  function lbStep(dir) {
+    _lbIdx = (_lbIdx + dir + _lbPhotos.length) % _lbPhotos.length;
+    _lbRender();
+  }
+
+  function _lbRender() {
+    const img = document.getElementById('lbImg');
+    img.style.opacity = '0';
+    img.src = _lbPhotos[_lbIdx];
+    img.onload = () => { img.style.opacity = '1'; };
+    document.getElementById('lbCounter').textContent = `${_lbIdx+1} / ${_lbPhotos.length}`;
+    const nav = document.querySelector('#photoLightbox .lb-nav');
+    if (nav) nav.style.display = _lbPhotos.length <= 1 ? 'none' : 'flex';
+  }
+
+  function _lbKeyHandler(e) {
+    if (e.key === 'Escape')     closeLightbox();
+    if (e.key === 'ArrowRight') lbStep(1);
+    if (e.key === 'ArrowLeft')  lbStep(-1);
+  }
 
 </script>
 
@@ -3263,5 +3325,15 @@
   </div>
 </div>
 
+<!-- ═══════ LIGHTBOX ═══════ -->
+<div id="photoLightbox" onclick="lbClose(event)">
+  <button class="lb-close" onclick="closeLightbox()"><i class="fa-solid fa-xmark"></i></button>
+  <img id="lbImg" src="" alt=""/>
+  <div class="lb-nav">
+    <button class="lb-btn" onclick="lbStep(-1)"><i class="fa-solid fa-chevron-left"></i></button>
+    <span class="lb-counter" id="lbCounter">1 / 1</span>
+    <button class="lb-btn" onclick="lbStep(1)"><i class="fa-solid fa-chevron-right"></i></button>
+  </div>
+</div>
 </body>
 </html>
