@@ -576,9 +576,9 @@
     const plate   = document.getElementById('req_plate').value.trim();
     const house_id = localStorage.getItem('vms_house');
 
-    if (!plate) { alert('กรุณากรอกป้ายทะเบียน'); return; }
+    if (!plate) { Swal.fire({icon:'warning',title:'กรุณากรอกข้อมูล',text:'กรุณากรอกป้ายทะเบียน',confirmButtonColor:'#4f7ef7'}); return; }
     if (reqType === 'add' && _reqPhotos.length === 0) {
-      alert('กรุณาแนบรูปรถอย่างน้อย 1 รูป'); return;
+      Swal.fire({icon:'warning',title:'กรุณาแนบรูปรถ',text:'กรณีขอเพิ่มรถใหม่ต้องแนบรูปอย่างน้อย 1 รูป',confirmButtonColor:'#4f7ef7'}); return;
     }
 
     const btn = document.getElementById('reqSubmitBtn');
@@ -613,12 +613,12 @@
       const r = await api(payload);
       if (r.success) {
         closeReqModal();
-        alert('✅ ' + r.message);
+        Swal.fire({icon:'success',title:'สำเร็จ',text:r.message,confirmButtonColor:'#4f7ef7',timer:2500,timerProgressBar:true});
       } else {
-        alert('❌ ' + (r.message||'เกิดข้อผิดพลาด'));
+        Swal.fire({icon:'error',title:'เกิดข้อผิดพลาด',text:r.message||'กรุณาลองใหม่อีกครั้ง',confirmButtonColor:'#4f7ef7'});
       }
     } catch(e) {
-      alert('เกิดข้อผิดพลาด: ' + e.message);
+      Swal.fire({icon:'error',title:'เกิดข้อผิดพลาด',text:e.message||'กรุณาลองใหม่อีกครั้ง',confirmButtonColor:'#4f7ef7'});
     }
     btn.disabled = false;
     btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> ส่งคำขอ';
