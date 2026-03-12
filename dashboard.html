@@ -170,6 +170,10 @@
     .btn-full.outline:hover{border-color:var(--primary);color:var(--primary);}
     .req-photos-row{display:flex;gap:.4rem;flex-wrap:wrap;margin-top:.4rem;}
     .req-photos-row img{width:52px;height:52px;border-radius:8px;object-fit:cover;cursor:pointer;}
+    /* brand/color combo dropdown */
+    .dd-combo select{border-radius:10px 10px 0 0;border-bottom:none;margin-bottom:0;}
+    .dd-combo input{border-radius:0 0 10px 10px;border-top:1px dashed var(--border);margin-top:0;}
+    .dd-combo.solo select{border-radius:10px;border-bottom:1.5px solid var(--border);}
   </style>
 </head>
 <body>
@@ -247,10 +251,41 @@
 
       <div class="form-row">
         <div class="form-grp"><label>ป้ายทะเบียน *</label><input type="text" id="req_plate" placeholder="กข 1234"/></div>
-        <div class="form-grp"><label>สีรถ</label><input type="text" id="req_color" placeholder="ขาว, ดำ, ..."/></div>
+        <div class="form-grp">
+          <label>สีรถ</label>
+          <div class="dd-combo" id="req_color_wrap">
+            <select id="req_color_dd" onchange="reqColorDdChange()" style="width:100%;padding:.52rem .75rem;border:1.5px solid var(--border);border-radius:10px 10px 0 0;border-bottom:none;background:var(--card2);color:var(--text);font-family:'Sarabun',sans-serif;font-size:.85rem">
+              <option value="">— เลือกสี —</option>
+              <option>ขาว</option><option>ดำ</option><option>เงิน</option><option>เทา</option>
+              <option>แดง</option><option>น้ำเงิน</option><option>เขียว</option>
+              <option>เหลือง</option><option>ทอง</option><option>ส้ม</option>
+              <option>ม่วง</option><option>ชมพู</option><option>น้ำตาล</option><option>ครีม</option>
+              <option value="__other__">✏️ อื่นๆ (กรอกเอง)</option>
+            </select>
+            <input type="text" id="req_color" placeholder="พิมพ์สีรถ..."
+              style="display:none;width:100%;padding:.52rem .75rem;border:1.5px solid var(--border);border-radius:0 0 10px 10px;border-top:1px dashed var(--border);background:var(--card2);color:var(--text);font-family:'Sarabun',sans-serif;font-size:.85rem"/>
+          </div>
+        </div>
       </div>
       <div class="form-row">
-        <div class="form-grp"><label>ยี่ห้อ</label><input type="text" id="req_brand" placeholder="TOYOTA"/></div>
+        <div class="form-grp">
+          <label>ยี่ห้อ</label>
+          <div class="dd-combo" id="req_brand_wrap">
+            <select id="req_brand_dd" onchange="reqBrandDdChange()" style="width:100%;padding:.52rem .75rem;border:1.5px solid var(--border);border-radius:10px 10px 0 0;border-bottom:none;background:var(--card2);color:var(--text);font-family:'Sarabun',sans-serif;font-size:.85rem">
+              <option value="">— เลือกยี่ห้อ —</option>
+              <option>BYD</option><option>TOYOTA</option><option>HONDA</option>
+              <option>NISSAN</option><option>MAZDA</option><option>ISUZU</option>
+              <option>MITSUBISHI</option><option>FORD</option><option>CHEVROLET</option>
+              <option>MERCEDES-BENZ</option><option>BMW</option><option>AUDI</option>
+              <option>MG</option><option>GWM</option><option>NETA</option><option>ORA</option>
+              <option>CHANGAN</option><option>VOLVO</option><option>KIA</option><option>HYUNDAI</option>
+              <option>YAMAHA</option><option>KAWASAKI</option><option>SUZUKI</option>
+              <option value="__other__">✏️ อื่นๆ (กรอกเอง)</option>
+            </select>
+            <input type="text" id="req_brand" placeholder="พิมพ์ยี่ห้อ..."
+              style="display:none;width:100%;padding:.52rem .75rem;border:1.5px solid var(--border);border-radius:0 0 10px 10px;border-top:1px dashed var(--border);background:var(--card2);color:var(--text);font-family:'Sarabun',sans-serif;font-size:.85rem"/>
+          </div>
+        </div>
         <div class="form-grp"><label>รุ่น</label><input type="text" id="req_model" placeholder="YARIS"/></div>
       </div>
       <div class="form-row">
@@ -466,9 +501,10 @@
     renderPhotoGrid();
     _updateSubmitBtn();
     // reset form
-    ['req_plate','req_color','req_brand','req_model','req_note'].forEach(id=>{
+    ['req_plate','req_model','req_note'].forEach(id=>{
       const el=document.getElementById(id); if(el) el.value='';
     });
+    resetReqBrandColor();
     document.getElementById('req_fee').value='0';
     document.getElementById('req_car_type').value='car';
     document.getElementById('req_park').value='หน้าบ้าน';
@@ -485,9 +521,9 @@
       document.getElementById('req_photo_label').textContent = '📷 รูปรถ (ไม่บังคับสำหรับการแก้ไข)';
       if (car) {
         document.getElementById('req_plate').value  = car.plate_no  || '';
-        document.getElementById('req_color').value  = car.car_color || '';
-        document.getElementById('req_brand').value  = car.car_brand || '';
         document.getElementById('req_model').value  = car.car_model || '';
+        setReqBrand(car.car_brand || '');
+        setReqColor(car.car_color || '');
         document.getElementById('req_fee').value    = car.car_fee   || '0';
         document.getElementById('req_park').value   = car.car_park  || 'หน้าบ้าน';
         document.getElementById('req_car_type').value = car.car_type || 'car';
@@ -510,6 +546,107 @@
     document.querySelectorAll('#req_type_chips .type-chip').forEach(c=>c.classList.remove('sel'));
     el.classList.add('sel');
     document.getElementById('req_car_type').value = val;
+  }
+
+  // ── Brand/Color dropdown helpers ──────────────────────────
+  function reqBrandDdChange() {
+    const dd  = document.getElementById('req_brand_dd');
+    const inp = document.getElementById('req_brand');
+    if (dd.value === '__other__') {
+      inp.style.display = 'block';
+      dd.style.borderRadius = '10px 10px 0 0';
+      inp.value = '';
+      inp.focus();
+    } else {
+      inp.style.display = 'none';
+      dd.style.borderRadius = '10px';
+      dd.style.borderBottom = '1.5px solid var(--border)';
+      inp.value = dd.value; // ซิงค์ค่าให้ input (ที่ submitReq อ่าน)
+    }
+  }
+
+  function reqColorDdChange() {
+    const dd  = document.getElementById('req_color_dd');
+    const inp = document.getElementById('req_color');
+    if (dd.value === '__other__') {
+      inp.style.display = 'block';
+      dd.style.borderRadius = '10px 10px 0 0';
+      inp.value = '';
+      inp.focus();
+    } else {
+      inp.style.display = 'none';
+      dd.style.borderRadius = '10px';
+      dd.style.borderBottom = '1.5px solid var(--border)';
+      inp.value = dd.value;
+    }
+  }
+
+  // ── Set brand/color dropdown (ใช้ตอน openReqModal edit) ──
+  function setReqBrand(val) {
+    const dd  = document.getElementById('req_brand_dd');
+    const inp = document.getElementById('req_brand');
+    if (!dd || !inp) return;
+    // ลองหาใน option list ก่อน
+    let found = false;
+    for (let i = 0; i < dd.options.length; i++) {
+      if (dd.options[i].value === val || dd.options[i].text === val) {
+        dd.value = dd.options[i].value;
+        inp.style.display = 'none';
+        dd.style.borderRadius = '10px';
+        dd.style.borderBottom = '1.5px solid var(--border)';
+        inp.value = val;
+        found = true; break;
+      }
+    }
+    if (!found && val) {
+      dd.value = '__other__';
+      inp.style.display = 'block';
+      dd.style.borderRadius = '10px 10px 0 0';
+      inp.value = val;
+    } else if (!val) {
+      dd.value = ''; inp.value = '';
+      inp.style.display = 'none';
+      dd.style.borderRadius = '10px';
+    }
+  }
+
+  function setReqColor(val) {
+    const dd  = document.getElementById('req_color_dd');
+    const inp = document.getElementById('req_color');
+    if (!dd || !inp) return;
+    let found = false;
+    for (let i = 0; i < dd.options.length; i++) {
+      if (dd.options[i].value === val || dd.options[i].text === val) {
+        dd.value = dd.options[i].value;
+        inp.style.display = 'none';
+        dd.style.borderRadius = '10px';
+        dd.style.borderBottom = '1.5px solid var(--border)';
+        inp.value = val;
+        found = true; break;
+      }
+    }
+    if (!found && val) {
+      dd.value = '__other__';
+      inp.style.display = 'block';
+      dd.style.borderRadius = '10px 10px 0 0';
+      inp.value = val;
+    } else if (!val) {
+      dd.value = ''; inp.value = '';
+      inp.style.display = 'none';
+      dd.style.borderRadius = '10px';
+    }
+  }
+
+  // ── Reset brand/color ──────────────────────────────────────
+  function resetReqBrandColor() {
+    const bdd = document.getElementById('req_brand_dd');
+    const binp = document.getElementById('req_brand');
+    const cdd = document.getElementById('req_color_dd');
+    const cinp = document.getElementById('req_color');
+    if (bdd) { bdd.value = ''; bdd.style.borderRadius='10px'; bdd.style.borderBottom='1.5px solid var(--border)'; }
+    if (binp) { binp.value = ''; binp.style.display = 'none'; }
+    if (cdd) { cdd.value = ''; cdd.style.borderRadius='10px'; cdd.style.borderBottom='1.5px solid var(--border)'; }
+    if (cinp) { cinp.value = ''; cinp.style.display = 'none'; }
   }
 
   function renderPhotoGrid() {
@@ -620,9 +757,17 @@
         car_id       : document.getElementById('req_car_id').value,
         car_type     : document.getElementById('req_car_type').value,
         plate_no     : plate,
-        car_brand    : document.getElementById('req_brand').value.trim(),
+        car_brand    : (()=>{
+          const dd=document.getElementById('req_brand_dd');
+          const inp=document.getElementById('req_brand');
+          return (dd && dd.value && dd.value!=='__other__') ? dd.value : (inp?inp.value.trim():'');
+        })(),
         car_model    : document.getElementById('req_model').value.trim(),
-        car_color    : document.getElementById('req_color').value.trim(),
+        car_color    : (()=>{
+          const dd=document.getElementById('req_color_dd');
+          const inp=document.getElementById('req_color');
+          return (dd && dd.value && dd.value!=='__other__') ? dd.value : (inp?inp.value.trim():'');
+        })(),
         car_park     : document.getElementById('req_park').value,
         car_fee      : parseFloat(document.getElementById('req_fee').value)||0,
         note         : document.getElementById('req_note').value.trim(),

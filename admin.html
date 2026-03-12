@@ -3009,15 +3009,15 @@
 
 <!-- ═══════ MODAL: Add Car ═══════ -->
 <div class="modal-backdrop" id="modalCarAdd" onclick="closeModalBg(event,'modalCarAdd')">
-  <div class="modal" style="max-width:540px;width:96vw">
-    <div class="modal-header">
-      <h3 style="font-family:'Sarabun',sans-serif"><i class="fa-solid fa-circle-plus"></i> เพิ่มรถใหม่</h3>
+  <div class="modal" style="max-width:560px;width:96vw">
+    <div class="modal-head">
+      <h3><i class="fa-solid fa-circle-plus"></i> เพิ่มรถใหม่</h3>
       <button class="modal-close" onclick="closeModal('modalCarAdd')"><i class="fa-solid fa-xmark"></i></button>
     </div>
     <div class="modal-body">
 
-      <!-- ── Hero preview (เหมือน fee modal) ── -->
-      <div class="car-modal-preview" id="ac_preview_bar">
+      <!-- ── Hero badge ── -->
+      <div class="car-modal-preview" id="ac_preview_bar" style="margin-bottom:1rem">
         <div class="cmp-emoji" id="ac_pv_emoji">🚗</div>
         <div style="flex:1;min-width:0">
           <div style="font-size:.68rem;opacity:.8;margin-bottom:.1rem">ข้อมูลรถ</div>
@@ -3026,19 +3026,19 @@
         </div>
       </div>
 
-      <!-- ── บ้าน ── -->
-      <div class="car-field" style="margin-bottom:.75rem">
-        <label><i class="fa-solid fa-house" style="color:var(--primary)"></i> บ้าน</label>
-        <select id="ac_house_id" onchange="carPvUpdate('ac')">
-          <option value="">— เลือกบ้าน —</option>
-        </select>
+      <!-- ── section: บ้าน ── -->
+      <div class="mf-section">
+        <div class="mf-section-title"><i class="fa-solid fa-house"></i> บ้าน</div>
+        <div class="form-group full">
+          <select id="ac_house_id" onchange="carPvUpdate('ac')" style="width:100%;padding:.55rem .8rem;border:1.5px solid var(--border);border-radius:10px;background:var(--card2);color:var(--text);font-family:'Sarabun',sans-serif;font-size:.85rem">
+            <option value="">— เลือกบ้าน —</option>
+          </select>
+        </div>
       </div>
 
-      <!-- ── ประเภท ── -->
-      <div style="margin-bottom:.75rem">
-        <div style="font-size:.72rem;font-weight:700;color:var(--muted);margin-bottom:.4rem;display:flex;align-items:center;gap:.3rem">
-          <i class="fa-solid fa-tag" style="color:var(--primary)"></i> ประเภทยานพาหนะ
-        </div>
+      <!-- ── section: ประเภท ── -->
+      <div class="mf-section">
+        <div class="mf-section-title"><i class="fa-solid fa-tag"></i> ประเภทยานพาหนะ</div>
         <div class="car-type-sel" id="ac_type_sel">
           <div class="cto sel" data-val="car" onclick="selCarType('ac','car',this)"><span class="cto-emoji">🚗</span>รถยนต์</div>
           <div class="cto" data-val="motorcycle" onclick="selCarType('ac','motorcycle',this)"><span class="cto-emoji">🏍️</span>มอเตอร์ไซค์</div>
@@ -3048,16 +3048,17 @@
         <input type="hidden" id="ac_car_type" value="car"/>
       </div>
 
-      <!-- ── 2-col fields ── -->
-      <div class="car-form-2col">
-        <div class="car-field cff">
-          <label><i class="fa-solid fa-id-badge" style="color:var(--primary)"></i> ทะเบียนรถ</label>
-          <input type="text" id="ac_plate_no" placeholder="เช่น กจ 5533 กรุงเทพ" oninput="carPvUpdate('ac')"/>
-        </div>
-        <!-- ยี่ห้อ: dropdown + custom -->
-        <div class="car-field">
-          <label><i class="fa-solid fa-car" style="color:var(--primary)"></i> ยี่ห้อ</label>
-          <select id="ac_brand_dd" onchange="carBrandDdChange('ac')" style="border-radius:9px 9px 0 0;border-bottom:none">
+      <!-- ── section: ข้อมูลรถ ── -->
+      <div class="mf-section">
+        <div class="mf-section-title"><i class="fa-solid fa-car"></i> ข้อมูลรถ</div>
+        <div class="mf-grid">
+          <div class="form-group full" style="grid-column:1/-1">
+            <label><i class="fa-solid fa-id-badge" style="color:var(--primary)"></i> ทะเบียนรถ</label>
+            <input type="text" id="ac_plate_no" placeholder="เช่น กจ 5533 กรุงเทพ" oninput="carPvUpdate('ac')"/>
+          </div>
+          <div class="form-group">
+            <label><i class="fa-solid fa-car" style="color:var(--primary)"></i> ยี่ห้อ</label>
+            <select id="ac_brand_dd" onchange="carBrandDdChange('ac')" style="border-radius:9px 9px 0 0;border-bottom:none">
             <option value="">— เลือกยี่ห้อ —</option>
             <option>BYD</option><option>TOYOTA</option><option>HONDA</option>
             <option>NISSAN</option><option>MAZDA</option><option>ISUZU</option>
@@ -3067,64 +3068,67 @@
             <option>CHANGAN</option><option>VOLVO</option><option>KIA</option><option>HYUNDAI</option>
             <option>YAMAHA</option><option>KAWASAKI</option><option>SUZUKI</option>
             <option value="__other__">✏️ อื่นๆ (กรอกเอง)</option>
-          </select>
-          <input type="text" id="ac_car_brand" placeholder="พิมพ์ยี่ห้อ..." oninput="carPvUpdate('ac')"
-            style="display:none;border-radius:0 0 9px 9px;border-top:none"/>
-        </div>
-        <!-- รุ่น -->
-        <div class="car-field">
-          <label><i class="fa-solid fa-car-rear" style="color:var(--primary)"></i> รุ่น</label>
-          <input type="text" id="ac_car_model" placeholder="เช่น Sealion 6, Kicks" oninput="carPvUpdate('ac')"/>
-        </div>
-        <!-- สี: dropdown + custom -->
-        <div class="car-field">
-          <label><i class="fa-solid fa-palette" style="color:var(--primary)"></i> สี</label>
-          <select id="ac_color_dd" onchange="carColorDdChange('ac')" style="border-radius:9px 9px 0 0;border-bottom:none">
+            </select>
+            <input type="text" id="ac_car_brand" placeholder="พิมพ์ยี่ห้อ..." oninput="carPvUpdate('ac')"
+              style="display:none;border-radius:0 0 9px 9px;border-top:none"/>
+          </div>
+          <div class="form-group">
+            <label><i class="fa-solid fa-car-rear" style="color:var(--primary)"></i> รุ่น</label>
+            <input type="text" id="ac_car_model" placeholder="เช่น Sealion 6, Kicks" oninput="carPvUpdate('ac')"/>
+          </div>
+          <div class="form-group">
+            <label><i class="fa-solid fa-palette" style="color:var(--primary)"></i> สี</label>
+            <select id="ac_color_dd" onchange="carColorDdChange('ac')" style="border-radius:9px 9px 0 0;border-bottom:none">
             <option value="">— เลือกสี —</option>
             <option>ขาว</option><option>ดำ</option><option>เงิน</option><option>เทา</option>
             <option>แดง</option><option>น้ำเงิน</option><option>เขียว</option>
             <option>เหลือง</option><option>ทอง</option><option>ส้ม</option>
             <option>ม่วง</option><option>ชมพู</option><option>น้ำตาล</option><option>ครีม</option>
             <option value="__other__">✏️ อื่นๆ (กรอกเอง)</option>
-          </select>
-          <input type="text" id="ac_car_color" placeholder="พิมพ์สี..." oninput="carPvUpdate('ac')"
-            style="display:none;border-radius:0 0 9px 9px;border-top:none"/>
+            </select>
+            <input type="text" id="ac_car_color" placeholder="พิมพ์สี..." oninput="carPvUpdate('ac')"
+              style="display:none;border-radius:0 0 9px 9px;border-top:none"/>
+          </div>
+          <div class="form-group">
+            <label><i class="fa-solid fa-square-parking" style="color:var(--primary)"></i> ที่จอด</label>
+            <select id="ac_car_park">
+              <option value="หน้าบ้าน">🏠 หน้าบ้าน</option>
+              <option value="ในบ้าน">🔒 ในบ้าน</option>
+              <option value="ส่วนกลาง">🅿️ ส่วนกลาง</option>
+              <option value="อื่นๆ">📍 อื่นๆ</option>
+            </select>
+          </div>
         </div>
-        <!-- ที่จอด -->
-        <div class="car-field">
-          <label><i class="fa-solid fa-square-parking" style="color:var(--primary)"></i> ที่จอด</label>
-          <select id="ac_car_park">
-            <option value="หน้าบ้าน">🏠 หน้าบ้าน</option>
-            <option value="ในบ้าน">🔒 ในบ้าน</option>
-            <option value="ส่วนกลาง">🅿️ ส่วนกลาง</option>
-            <option value="อื่นๆ">📍 อื่นๆ</option>
-          </select>
-        </div>
-        <!-- ค่าจอด -->
-        <div class="car-field">
+      </div>
+
+      <!-- ── section: ค่าจอด ── -->
+      <div class="mf-section">
+        <div class="mf-section-title"><i class="fa-solid fa-coins"></i> ค่าจอด</div>
+        <div class="form-group" style="max-width:200px">
           <label><i class="fa-solid fa-coins" style="color:var(--accent)"></i> ค่าจอด/เดือน (฿)</label>
           <input type="number" id="ac_car_fee" min="0" step="50" value="0" placeholder="0 = ฟรี"/>
         </div>
       </div>
+
     </div>
-    <div class="modal-footer">
-      <button class="btn btn-primary" onclick="saveCar()"><i class="fa-solid fa-floppy-disk"></i> บันทึก</button>
+    <div class="modal-foot">
       <button class="btn btn-outline" onclick="closeModal('modalCarAdd')">ยกเลิก</button>
+      <button class="btn btn-primary" onclick="saveCar()"><i class="fa-solid fa-floppy-disk"></i> บันทึก</button>
     </div>
   </div>
 </div>
 
 <!-- ═══════ MODAL: Edit Car ═══════ -->
 <div class="modal-backdrop" id="modalCarEdit" onclick="closeModalBg(event,'modalCarEdit')">
-  <div class="modal" style="max-width:540px;width:96vw">
-    <div class="modal-header">
-      <h3 style="font-family:'Sarabun',sans-serif"><i class="fa-solid fa-pen-to-square"></i> แก้ไขข้อมูลรถ</h3>
+  <div class="modal" style="max-width:560px;width:96vw">
+    <div class="modal-head">
+      <h3><i class="fa-solid fa-pen-to-square"></i> แก้ไขข้อมูลรถ</h3>
       <button class="modal-close" onclick="closeModal('modalCarEdit')"><i class="fa-solid fa-xmark"></i></button>
     </div>
     <div class="modal-body">
 
-      <!-- ── Hero preview ── -->
-      <div class="car-modal-preview" id="ec_preview_bar">
+      <!-- ── Hero badge ── -->
+      <div class="car-modal-preview" id="ec_preview_bar" style="margin-bottom:1rem">
         <div class="cmp-emoji" id="ec_pv_emoji">🚗</div>
         <div style="flex:1;min-width:0">
           <div style="font-size:.68rem;opacity:.8;margin-bottom:.1rem">แก้ไขข้อมูลรถ</div>
@@ -3133,19 +3137,19 @@
         </div>
       </div>
 
-      <!-- ── บ้าน ── -->
-      <div class="car-field" style="margin-bottom:.75rem">
-        <label><i class="fa-solid fa-house" style="color:var(--primary)"></i> บ้าน</label>
-        <select id="ec_house_id" onchange="carPvUpdate('ec')">
-          <option value="">— เลือกบ้าน —</option>
-        </select>
+      <!-- ── section: บ้าน ── -->
+      <div class="mf-section">
+        <div class="mf-section-title"><i class="fa-solid fa-house"></i> บ้าน</div>
+        <div class="form-group full">
+          <select id="ec_house_id" onchange="carPvUpdate('ec')" style="width:100%;padding:.55rem .8rem;border:1.5px solid var(--border);border-radius:10px;background:var(--card2);color:var(--text);font-family:'Sarabun',sans-serif;font-size:.85rem">
+            <option value="">— เลือกบ้าน —</option>
+          </select>
+        </div>
       </div>
 
-      <!-- ── ประเภท ── -->
-      <div style="margin-bottom:.75rem">
-        <div style="font-size:.72rem;font-weight:700;color:var(--muted);margin-bottom:.4rem;display:flex;align-items:center;gap:.3rem">
-          <i class="fa-solid fa-tag" style="color:var(--primary)"></i> ประเภทยานพาหนะ
-        </div>
+      <!-- ── section: ประเภท ── -->
+      <div class="mf-section">
+        <div class="mf-section-title"><i class="fa-solid fa-tag"></i> ประเภทยานพาหนะ</div>
         <div class="car-type-sel" id="ec_type_sel">
           <div class="cto sel" data-val="car" onclick="selCarType('ec','car',this)"><span class="cto-emoji">🚗</span>รถยนต์</div>
           <div class="cto" data-val="motorcycle" onclick="selCarType('ec','motorcycle',this)"><span class="cto-emoji">🏍️</span>มอเตอร์ไซค์</div>
@@ -3155,16 +3159,19 @@
         <input type="hidden" id="ec_car_type" value="car"/>
       </div>
 
-      <!-- ── 2-col fields ── -->
-      <div class="car-form-2col">
-        <div class="car-field cff">
-          <label><i class="fa-solid fa-id-badge" style="color:var(--primary)"></i> ทะเบียนรถ</label>
-          <input type="text" id="ec_plate_no" placeholder="เช่น กจ 5533 กรุงเทพ" oninput="carPvUpdate('ec')"/>
-        </div>
-        <!-- ยี่ห้อ -->
-        <div class="car-field">
-          <label><i class="fa-solid fa-car" style="color:var(--primary)"></i> ยี่ห้อ</label>
-          <select id="ec_brand_dd" onchange="carBrandDdChange('ec')" style="border-radius:9px 9px 0 0;border-bottom:none">
+      <!-- ── section: ข้อมูลรถ ── -->
+      <div class="mf-section">
+        <div class="mf-section-title"><i class="fa-solid fa-car"></i> ข้อมูลรถ</div>
+        <div class="mf-grid">
+          <!-- ทะเบียน (full row) -->
+          <div class="form-group full" style="grid-column:1/-1">
+            <label><i class="fa-solid fa-id-badge" style="color:var(--primary)"></i> ทะเบียนรถ</label>
+            <input type="text" id="ec_plate_no" placeholder="เช่น กจ 5533 กรุงเทพ" oninput="carPvUpdate('ec')"/>
+          </div>
+          <!-- ยี่ห้อ -->
+          <div class="form-group">
+            <label><i class="fa-solid fa-car" style="color:var(--primary)"></i> ยี่ห้อ</label>
+            <select id="ec_brand_dd" onchange="carBrandDdChange('ec')" style="border-radius:9px 9px 0 0;border-bottom:none">
             <option value="">— เลือกยี่ห้อ —</option>
             <option>BYD</option><option>TOYOTA</option><option>HONDA</option>
             <option>NISSAN</option><option>MAZDA</option><option>ISUZU</option>
@@ -3174,49 +3181,55 @@
             <option>CHANGAN</option><option>VOLVO</option><option>KIA</option><option>HYUNDAI</option>
             <option>YAMAHA</option><option>KAWASAKI</option><option>SUZUKI</option>
             <option value="__other__">✏️ อื่นๆ (กรอกเอง)</option>
-          </select>
-          <input type="text" id="ec_car_brand" placeholder="พิมพ์ยี่ห้อ..." oninput="carPvUpdate('ec')"
-            style="display:none;border-radius:0 0 9px 9px;border-top:none"/>
-        </div>
-        <!-- รุ่น -->
-        <div class="car-field">
-          <label><i class="fa-solid fa-car-rear" style="color:var(--primary)"></i> รุ่น</label>
-          <input type="text" id="ec_car_model" placeholder="เช่น Sealion 6, Kicks" oninput="carPvUpdate('ec')"/>
-        </div>
-        <!-- สี -->
-        <div class="car-field">
-          <label><i class="fa-solid fa-palette" style="color:var(--primary)"></i> สี</label>
-          <select id="ec_color_dd" onchange="carColorDdChange('ec')" style="border-radius:9px 9px 0 0;border-bottom:none">
+            </select>
+            <input type="text" id="ec_car_brand" placeholder="พิมพ์ยี่ห้อ..." oninput="carPvUpdate('ec')"
+              style="display:none;border-radius:0 0 9px 9px;border-top:none"/>
+          </div>
+          <!-- รุ่น -->
+          <div class="form-group">
+            <label><i class="fa-solid fa-car-rear" style="color:var(--primary)"></i> รุ่น</label>
+            <input type="text" id="ec_car_model" placeholder="เช่น Sealion 6, Kicks" oninput="carPvUpdate('ec')"/>
+          </div>
+          <!-- สี -->
+          <div class="form-group">
+            <label><i class="fa-solid fa-palette" style="color:var(--primary)"></i> สี</label>
+            <select id="ec_color_dd" onchange="carColorDdChange('ec')" style="border-radius:9px 9px 0 0;border-bottom:none">
             <option value="">— เลือกสี —</option>
             <option>ขาว</option><option>ดำ</option><option>เงิน</option><option>เทา</option>
             <option>แดง</option><option>น้ำเงิน</option><option>เขียว</option>
             <option>เหลือง</option><option>ทอง</option><option>ส้ม</option>
             <option>ม่วง</option><option>ชมพู</option><option>น้ำตาล</option><option>ครีม</option>
             <option value="__other__">✏️ อื่นๆ (กรอกเอง)</option>
-          </select>
-          <input type="text" id="ec_car_color" placeholder="พิมพ์สี..." oninput="carPvUpdate('ec')"
-            style="display:none;border-radius:0 0 9px 9px;border-top:none"/>
+            </select>
+            <input type="text" id="ec_car_color" placeholder="พิมพ์สี..." oninput="carPvUpdate('ec')"
+              style="display:none;border-radius:0 0 9px 9px;border-top:none"/>
+          </div>
+          <!-- ที่จอด -->
+          <div class="form-group">
+            <label><i class="fa-solid fa-square-parking" style="color:var(--primary)"></i> ที่จอด</label>
+            <select id="ec_car_park">
+              <option value="หน้าบ้าน">🏠 หน้าบ้าน</option>
+              <option value="ในบ้าน">🔒 ในบ้าน</option>
+              <option value="ส่วนกลาง">🅿️ ส่วนกลาง</option>
+              <option value="อื่นๆ">📍 อื่นๆ</option>
+            </select>
+          </div>
         </div>
-        <!-- ที่จอด -->
-        <div class="car-field">
-          <label><i class="fa-solid fa-square-parking" style="color:var(--primary)"></i> ที่จอด</label>
-          <select id="ec_car_park">
-            <option value="หน้าบ้าน">🏠 หน้าบ้าน</option>
-            <option value="ในบ้าน">🔒 ในบ้าน</option>
-            <option value="ส่วนกลาง">🅿️ ส่วนกลาง</option>
-            <option value="อื่นๆ">📍 อื่นๆ</option>
-          </select>
-        </div>
-        <!-- ค่าจอด -->
-        <div class="car-field">
+      </div>
+
+      <!-- ── section: ค่าจอด ── -->
+      <div class="mf-section">
+        <div class="mf-section-title"><i class="fa-solid fa-coins"></i> ค่าจอด</div>
+        <div class="form-group" style="max-width:200px">
           <label><i class="fa-solid fa-coins" style="color:var(--accent)"></i> ค่าจอด/เดือน (฿)</label>
           <input type="number" id="ec_car_fee" min="0" step="50" value="0" placeholder="0 = ฟรี"/>
         </div>
       </div>
+
     </div>
-    <div class="modal-footer">
-      <button class="btn btn-primary" id="ecSaveBtn" onclick="submitCarEdit()"><i class="fa-solid fa-floppy-disk"></i> บันทึก</button>
+    <div class="modal-foot">
       <button class="btn btn-outline" onclick="closeModal('modalCarEdit')">ยกเลิก</button>
+      <button class="btn btn-primary" id="ecSaveBtn" onclick="submitCarEdit()"><i class="fa-solid fa-floppy-disk"></i> บันทึก</button>
     </div>
   </div>
 </div>
