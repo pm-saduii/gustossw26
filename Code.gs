@@ -939,12 +939,25 @@ function submitCarRequest(data, user) {
     return { success: false, message: 'กรณีขอเพิ่มรถใหม่ต้องแนบรูปอย่างน้อย 1 รูป' };
   }
 
+  // สร้าง timestamp สำหรับชื่อไฟล์ — yyyyMMdd_HHmmss
+  var now       = new Date();
+  var ymd       = now.getFullYear()
+                + ('0'+(now.getMonth()+1)).slice(-2)
+                + ('0'+now.getDate()).slice(-2);
+  var hms       = ('0'+now.getHours()).slice(-2)
+                + ('0'+now.getMinutes()).slice(-2)
+                + ('0'+now.getSeconds()).slice(-2);
+  // ทำความสะอาดทะเบียน: เอาเฉพาะ a-z0-9ก-ฮ ออก space และอักขระพิเศษ
+  var rawPlate  = String(data.plate_no || 'car').replace(/[^a-zA-Z0-9ก-ฮ]/g,'');
+  if (!rawPlate) rawPlate = 'car';
+
   for (var i = 0; i < Math.min(photos.length, 5); i++) {
     var p = photos[i];
     if (!p || !p.base64) continue;
-    var ext = (p.ext || 'jpg').replace(/[^a-z0-9]/gi,'');
-    var fname = 'carreq_' + Date.now() + '_' + i + '.' + ext;
-    var res = uploadFileToDrive(p.base64, fname, p.mimeType || 'image/jpeg', DRIVE_FOLDER_ID);
+    var ext   = (p.ext || 'jpg').replace(/[^a-z0-9]/gi,'') || 'jpg';
+    // ชื่อไฟล์: car_{ทะเบียน}_{yyyyMMdd_HHmmss}_{ลำดับ}.ext
+    var fname = 'car_' + rawPlate + '_' + ymd + '_' + hms + '_' + (i+1) + '.' + ext;
+    var res   = uploadFileToDrive(p.base64, fname, p.mimeType || 'image/jpeg', DRIVE_FOLDER_ID);
     if (res && res.fileUrl) photoUrls.push(res.fileUrl);
   }
 

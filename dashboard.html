@@ -457,10 +457,11 @@
   }
 
   // ── Car Request Modal ──────────────────────────────────────
-  let _reqPhotos = []; // [{dataUrl, file}]
+  let _reqPhotos    = []; // [{dataUrl, file, ext, mimeType}]
+  let _photoLoading = 0;  // จำนวนรูปที่กำลัง read อยู่
 
   function openReqModal(type, carId) {
-    _reqPhotos = [];
+    _reqPhotos    = [];
     _photoLoading = 0;
     renderPhotoGrid();
     _updateSubmitBtn();
@@ -526,21 +527,29 @@
     grid.innerHTML = html;
   }
 
-  let _photoLoading = 0; // นับรูปที่กำลัง load
 
   function onReqPhotos(input) {
-    const files = Array.from(input.files);
-    const remaining = 5 - _reqPhotos.length;
-    const toLoad = files.slice(0, remaining);
-    if (!toLoad.length) { input.value=''; return; }
+    const files   = Array.from(input.files);
+    const toLoad  = files.slice(0, 5 - _reqPhotos.length);
+    input.value   = ''; // clear input ก่อน เพื่อให้เลือกไฟล์เดิมซ้ำได้
+    if (!toLoad.length) return;
 
     _photoLoading += toLoad.length;
     _updateSubmitBtn();
 
-    toLoad.forEach(f=>{
-      const reader = new FileReader();
+    toLoad.forEach(f => {
+      const ext      = (f.name.split('.').pop() || 'jpg').toLowerCase().replace(/[^a-z0-9]/g,'');
+      const mimeType = f.type || 'image/jpeg';
+      const reader   = new FileReader();
+
       reader.onload = e => {
-        _reqPhotos.push({dataUrl:e.target.result, file:f});
+        // เก็บทุกอย่างที่จำเป็นสำหรับ upload ทันที
+        _reqPhotos.push({
+          dataUrl : e.target.result,
+          base64  : e.target.result.split(',')[1],
+          ext,
+          mimeType
+        });
         _photoLoading = Math.max(0, _photoLoading - 1);
         renderPhotoGrid();
         _updateSubmitBtn();
@@ -548,10 +557,10 @@
       reader.onerror = () => {
         _photoLoading = Math.max(0, _photoLoading - 1);
         _updateSubmitBtn();
+        Swal.fire({icon:'error',title:'อ่านรูปไม่ได้',text:'ไฟล์ '+f.name+' โหลดไม่สำเร็จ กรุณาลองใหม่',confirmButtonColor:'#4f7ef7'});
       };
       reader.readAsDataURL(f);
     });
-    input.value = '';
   }
 
   function _updateSubmitBtn() {
@@ -572,13 +581,22 @@
   }
 
   async function submitReq() {
-    const reqType = document.getElementById('req_type').value;
-    const plate   = document.getElementById('req_plate').value.trim();
+    const reqType  = document.getElementById('req_type').value;
+    const plate    = document.getElementById('req_plate').value.trim();
     const house_id = localStorage.getItem('vms_house');
 
-    if (!plate) { Swal.fire({icon:'warning',title:'กรุณากรอกข้อมูล',text:'กรุณากรอกป้ายทะเบียน',confirmButtonColor:'#4f7ef7'}); return; }
+    // ── validation ─────────────────────────────────────
+    if (!plate) {
+      Swal.fire({icon:'warning',title:'กรุณากรอกข้อมูล',text:'กรุณากรอกป้ายทะเบียน',confirmButtonColor:'#4f7ef7'});
+      return;
+    }
+    if (_photoLoading > 0) {
+      Swal.fire({icon:'info',title:'รอสักครู่',text:'รูปยังโหลดไม่เสร็จ กรุณารอสักครู่',confirmButtonColor:'#4f7ef7'});
+      return;
+    }
     if (reqType === 'add' && _reqPhotos.length === 0) {
-      Swal.fire({icon:'warning',title:'กรุณาแนบรูปรถ',text:'กรณีขอเพิ่มรถใหม่ต้องแนบรูปอย่างน้อย 1 รูป',confirmButtonColor:'#4f7ef7'}); return;
+      Swal.fire({icon:'warning',title:'กรุณาแนบรูปรถ',text:'กรณีขอเพิ่มรถใหม่ต้องแนบรูปอย่างน้อย 1 รูป',confirmButtonColor:'#4f7ef7'});
+      return;
     }
 
     const btn = document.getElementById('reqSubmitBtn');
@@ -586,42 +604,45 @@
     btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> กำลังส่ง...';
 
     try {
-      // แปลงรูปเป็น base64 object
-      const photos = await Promise.all(_reqPhotos.map(async p=>{
-        const ext = p.file.name.split('.').pop().toLowerCase() || 'jpg';
-        const base64 = p.dataUrl.split(',')[1];
-        return { base64, mimeType: p.file.type || 'image/jpeg', ext };
+      // ใช้ base64 ที่ onReqPhotos เก็บไว้แล้ว — ไม่ต้องแปลงซ้ำ
+      const photos = _reqPhotos.map(p => ({
+        base64   : p.base64,
+        mimeType : p.mimeType,
+        ext      : p.ext,
+        plate_no : plate  // ส่งทะเบียนไปให้ server ตั้งชื่อไฟล์
       }));
 
       const payload = {
-        action: 'submitCarRequest',
+        action       : 'submitCarRequest',
         token,
         house_id,
-        request_type: reqType,
-        car_id:    document.getElementById('req_car_id').value,
-        car_type:  document.getElementById('req_car_type').value,
-        plate_no:  plate,
-        car_brand: document.getElementById('req_brand').value.trim(),
-        car_model: document.getElementById('req_model').value.trim(),
-        car_color: document.getElementById('req_color').value.trim(),
-        car_park:  document.getElementById('req_park').value,
-        car_fee:   parseFloat(document.getElementById('req_fee').value)||0,
-        note:      document.getElementById('req_note').value.trim(),
+        request_type : reqType,
+        car_id       : document.getElementById('req_car_id').value,
+        car_type     : document.getElementById('req_car_type').value,
+        plate_no     : plate,
+        car_brand    : document.getElementById('req_brand').value.trim(),
+        car_model    : document.getElementById('req_model').value.trim(),
+        car_color    : document.getElementById('req_color').value.trim(),
+        car_park     : document.getElementById('req_park').value,
+        car_fee      : parseFloat(document.getElementById('req_fee').value)||0,
+        note         : document.getElementById('req_note').value.trim(),
         photos
       };
 
       const r = await api(payload);
       if (r.success) {
         closeReqModal();
-        Swal.fire({icon:'success',title:'สำเร็จ',text:r.message,confirmButtonColor:'#4f7ef7',timer:2500,timerProgressBar:true});
+        Swal.fire({icon:'success',title:'ส่งคำขอสำเร็จ',text:r.message,confirmButtonColor:'#4f7ef7',timer:2500,timerProgressBar:true});
+        loadCars();
       } else {
         Swal.fire({icon:'error',title:'เกิดข้อผิดพลาด',text:r.message||'กรุณาลองใหม่อีกครั้ง',confirmButtonColor:'#4f7ef7'});
       }
     } catch(e) {
       Swal.fire({icon:'error',title:'เกิดข้อผิดพลาด',text:e.message||'กรุณาลองใหม่อีกครั้ง',confirmButtonColor:'#4f7ef7'});
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> ส่งคำขอ';
     }
-    btn.disabled = false;
-    btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> ส่งคำขอ';
   }
 
   // ── Request History Modal ──────────────────────────────────
