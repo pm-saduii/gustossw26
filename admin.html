@@ -284,6 +284,113 @@
     }
     @media(max-width:480px){.car-summary-grid{grid-template-columns:1fr 1fr;}}
 
+    /* ══ Mobile Card List (houses / fees / users) ══ */
+    /* wrapper ที่ซ่อน/แสดงสลับกัน */
+    .mobile-list{ display:none; }
+    @media(max-width:768px){
+      .mobile-list{ display:flex; flex-direction:column; gap:.6rem; }
+      .table-wrap-desktop{ display:none; }          /* ซ่อน table เดิม */
+
+      /* ─ card item ─ */
+      .mcard{
+        background:var(--card);
+        border:1px solid var(--border);
+        border-radius:14px;
+        padding:.85rem 1rem;
+        display:flex;
+        flex-direction:column;
+        gap:.35rem;
+        transition:box-shadow .15s;
+      }
+      .mcard:active{ box-shadow:0 2px 12px var(--shadow); }
+
+      /* header row: เลขบ้าน / username + badge สถานะ */
+      .mcard-head{
+        display:flex;
+        align-items:center;
+        justify-content:space-between;
+        gap:.5rem;
+        flex-wrap:wrap;
+      }
+      .mcard-title{
+        font-size:.98rem;
+        font-weight:800;
+        color:var(--primary);
+        line-height:1.2;
+      }
+      .mcard-sub{
+        font-size:.78rem;
+        color:var(--muted);
+        margin-top:.05rem;
+      }
+      /* info rows: label + value */
+      .mcard-rows{
+        display:grid;
+        grid-template-columns:1fr 1fr;
+        gap:.22rem .6rem;
+        margin:.15rem 0;
+      }
+      .mcard-row{
+        display:flex;
+        flex-direction:column;
+      }
+      .mcard-lbl{
+        font-size:.67rem;
+        color:var(--muted);
+        font-weight:700;
+        text-transform:uppercase;
+        letter-spacing:.03em;
+      }
+      .mcard-val{
+        font-size:.82rem;
+        color:var(--text);
+      }
+      /* fee two-half panels */
+      .mcard-halves{
+        display:grid;
+        grid-template-columns:1fr 1fr;
+        gap:.5rem;
+        margin-top:.3rem;
+      }
+      .mcard-half{
+        border-radius:10px;
+        overflow:hidden;
+      }
+      .mcard-half-head{
+        padding:.3rem .65rem;
+        font-size:.7rem;
+        font-weight:800;
+        color:#fff;
+        display:flex;
+        align-items:center;
+        justify-content:space-between;
+      }
+      .mcard-half-body{
+        background:var(--card2);
+        padding:.45rem .65rem;
+        display:flex;
+        flex-direction:column;
+        gap:.18rem;
+      }
+      .mcard-half-row{
+        display:flex;
+        justify-content:space-between;
+        font-size:.75rem;
+      }
+      .mcard-half-row span:first-child{ color:var(--muted); }
+      /* actions row */
+      .mcard-actions{
+        display:flex;
+        gap:.5rem;
+        margin-top:.4rem;
+        flex-wrap:wrap;
+      }
+      .mcard-actions .btn{ flex:1; justify-content:center; min-width:80px; }
+
+      /* ซ่อน scroll-hint ที่เพิ่มไว้ก่อนหน้า เพราะ table ถูกซ่อนแล้ว */
+      .table-wrap-desktop::before{ display:none; }
+    }
+
     /* ── Import / Export Fee ── */
     .import-zone{border:2px dashed var(--border);border-radius:14px;padding:1.5rem 1rem;text-align:center;cursor:pointer;transition:border-color .2s,background .2s;background:var(--card2);}
     .import-zone:hover,.import-zone.drag{border-color:var(--primary);background:var(--primary-l);}
@@ -447,7 +554,9 @@
           <div class="card-header"><h3><i class="fa-solid fa-list"></i> รายการบ้านทั้งหมด</h3><button class="btn btn-outline btn-sm" onclick="loadHouses()"><i class="fa-solid fa-rotate"></i> รีโหลด</button></div>
           <div class="card-body">
             <div class="search-box"><i class="fa-solid fa-search"></i><input type="text" id="houseSearch" placeholder="ค้นหาบ้านเลขที่ หรือชื่อเจ้าของ" oninput="filterHouses()"/></div>
-            <div class="table-wrap">
+            <!-- mobile card list -->
+            <div class="mobile-list" id="houseMobileList"></div>
+            <div class="table-wrap table-wrap-desktop">
               <table id="houseTable">
                 <!-- ✅ BUG FIX: columns ตรงกับ renderHouses() — บ้านเลขที่|ชื่อ|ซอย|ประเภท|สถานะบัญชี|ค่าส่วนกลาง|สถานะ|จัดการ -->
                 <thead><tr>
@@ -570,7 +679,9 @@
           <div class="card-body">
             <div class="year-filter-bar" id="yearFilterBar"></div>
             <div class="search-box"><i class="fa-solid fa-search"></i><input type="text" id="feeSearch" placeholder="ค้นหาหมายเลขบ้าน หรือปี" oninput="filterFees()"/></div>
-            <div class="table-wrap"><table class="fee-table"><thead>
+            <!-- mobile card list -->
+            <div class="mobile-list" id="feeMobileList"></div>
+            <div class="table-wrap table-wrap-desktop"><table class="fee-table"><thead>
               <tr>
                 <th rowspan="2" onclick="sortTable('fees','year',this)" style="vertical-align:middle">ปี<i class="fa-solid fa-sort sort-i"></i></th>
                 <th rowspan="2" onclick="sortTable('fees','house_no',this)" style="vertical-align:middle">บ้านเลขที่<i class="fa-solid fa-sort sort-i"></i></th>
@@ -610,7 +721,10 @@
         </div>
         <div class="card">
           <div class="card-header"><h3><i class="fa-solid fa-users"></i> รายการผู้ใช้งาน</h3><button class="btn btn-outline btn-sm" onclick="loadUsers()"><i class="fa-solid fa-rotate"></i> รีโหลด</button></div>
-          <div class="card-body"><div class="table-wrap"><table class="user-table"><thead><tr>
+          <div class="card-body">
+            <!-- mobile card list -->
+            <div class="mobile-list" id="userMobileList"></div>
+            <div class="table-wrap table-wrap-desktop"><table class="user-table"><thead><tr>
             <th onclick="sortTable('users','username',this)">username<i class="fa-solid fa-sort sort-i"></i></th>
             <th onclick="sortTable('users','full_name',this)">ชื่อ<i class="fa-solid fa-sort sort-i"></i></th>
             <th>สิทธิ์</th><th>หมายเลขบ้าน</th><th>สถานะ</th><th>จัดการ</th>
@@ -1238,7 +1352,6 @@
     if(s.col){
       sorted=sortArr(list,s.col,s.dir);
     } else {
-      // default: เรียงซอย 0→22 (numeric) แล้วตาม house_no
       sorted=[...list].sort((a,b)=>{
         const sd=_soiN(a.soi)-_soiN(b.soi);
         if(sd!==0)return sd;
@@ -1246,7 +1359,12 @@
         if(am!==bm)return am-bm; return as-bs;
       });
     }
-    if(!sorted.length){document.getElementById('houseTbody').innerHTML='<tr class="empty-row"><td colspan="8">ไม่มีข้อมูล</td></tr>';return;}
+    if(!sorted.length){
+      document.getElementById('houseTbody').innerHTML='<tr class="empty-row"><td colspan="8">ไม่มีข้อมูล</td></tr>';
+      document.getElementById('houseMobileList').innerHTML='<div style="text-align:center;color:var(--muted);padding:2rem">ไม่มีข้อมูล</div>';
+      return;
+    }
+    // ── desktop table ────────────────────────────────────────
     document.getElementById('houseTbody').innerHTML=sorted.map(h=>{
       const hst=h.account_status||'ปกติ';
       return`<tr>
@@ -1258,10 +1376,33 @@
         <td style="text-align:right">${fmtMoney(h.fee_per_half)}</td>
         <td><span class="badge ${h.status==='active'?'paid':'unpaid'}">${h.status}</span></td>
         <td><div class="actions">
-          <button class="btn btn-outline btn-sm" title="ดูรายละเอียด" onclick="showHouseDetail('${h.house_id}')"><i class="fa-solid fa-eye"></i> ดู</button>
-          <button class="btn btn-primary btn-sm" title="แก้ไข" onclick="editHouse('${h.house_id}')"><i class="fa-solid fa-pen"></i></button>
+          <button class="btn btn-outline btn-sm" onclick="showHouseDetail('${h.house_id}')"><i class="fa-solid fa-eye"></i> ดู</button>
+          <button class="btn btn-primary btn-sm" onclick="editHouse('${h.house_id}')"><i class="fa-solid fa-pen"></i></button>
         </div></td>
       </tr>`;
+    }).join('');
+    // ── mobile cards ─────────────────────────────────────────
+    document.getElementById('houseMobileList').innerHTML=sorted.map(h=>{
+      const hst=h.account_status||'ปกติ';
+      const soiTxt=h.soi&&String(h.soi)!=='0'?`ซอย ${h.soi}`:'ซอย -';
+      return`<div class="mcard">
+        <div class="mcard-head">
+          <div>
+            <div class="mcard-title">🏠 ${h.house_no}</div>
+            <div class="mcard-sub">${soiTxt} · ${h.house_type||'-'}</div>
+          </div>
+          <span class="hst-badge hst-${hst}">${hst}</span>
+        </div>
+        <div class="mcard-rows">
+          <div class="mcard-row"><span class="mcard-lbl">เจ้าของ</span><span class="mcard-val">${h.owner_name||'-'}</span></div>
+          <div class="mcard-row"><span class="mcard-lbl">ค่าส่วนกลาง/ครึ่งปี</span><span class="mcard-val">${fmtMoney(h.fee_per_half)} ฿</span></div>
+          <div class="mcard-row"><span class="mcard-lbl">สถานะ</span><span class="mcard-val"><span class="badge ${h.status==='active'?'paid':'unpaid'}">${h.status}</span></span></div>
+        </div>
+        <div class="mcard-actions">
+          <button class="btn btn-outline btn-sm" onclick="showHouseDetail('${h.house_id}')"><i class="fa-solid fa-eye"></i> ดูรายละเอียด</button>
+          <button class="btn btn-primary btn-sm" onclick="editHouse('${h.house_id}')"><i class="fa-solid fa-pen"></i> แก้ไข</button>
+        </div>
+      </div>`;
     }).join('');
   }
   function filterHouses(){
@@ -1412,18 +1553,15 @@
     filterFees();
   }
   function renderFees(list){
-    // join กับ housesData เพื่อดึง house_no, soi, owner_name
     const enriched=list.map(f=>{
       const h=housesData.find(x=>x.house_id===f.house_id)||{};
       return {...f,house_no:h.house_no||f.house_id,soi:h.soi||'',owner_name:h.owner_name||''};
     });
-    // เรียงตาม ซอย แล้ว บ้านเลขที่
     const s=sortState.fees;
     let sorted;
     if(s.col){
       sorted=sortArr(enriched,s.col,s.dir);
     } else {
-      // ใช้ _soiN() เพื่อให้ soi=0 เรียงก่อนเสมอ (ไม่ใช่ localeCompare ที่เรียง "" ก่อน "0")
       sorted=[...enriched].sort((a,b)=>{
         const sd=_soiN(a.soi)-_soiN(b.soi);
         if(sd!==0)return sd;
@@ -1431,8 +1569,14 @@
         if(am!==bm)return am-bm; return as2-bs2;
       });
     }
-    if(!sorted.length){document.getElementById('feeTbody').innerHTML='<tr class="empty-row"><td colspan="11">ไม่มีข้อมูล</td></tr>';return;}
+    if(!sorted.length){
+      document.getElementById('feeTbody').innerHTML='<tr class="empty-row"><td colspan="11">ไม่มีข้อมูล</td></tr>';
+      document.getElementById('feeMobileList').innerHTML='<div style="text-align:center;color:var(--muted);padding:2rem">ไม่มีข้อมูล</div>';
+      return;
+    }
     const stLabel={paid:'ครบ',partial:'บางส่วน',unpaid:'ยังไม่ชำระ'};
+    const stClass={paid:'paid',partial:'partial',unpaid:'unpaid'};
+    // ── desktop table ────────────────────────────────────────
     document.getElementById('feeTbody').innerHTML=sorted.map(f=>`<tr>
       <td>${f.year}</td>
       <td>${f.house_no}</td>
@@ -1440,12 +1584,53 @@
       <td>${f.owner_name}</td>
       <td style="text-align:right">${fmtMoney(f.h1_amount)}</td>
       <td style="text-align:right">${fmtMoney(f.h1_paid)}</td>
-      <td><span class="badge ${f.h1_status}">${stLabel[f.h1_status]||f.h1_status}</span></td>
+      <td><span class="badge ${stClass[f.h1_status]||f.h1_status}">${stLabel[f.h1_status]||f.h1_status}</span></td>
       <td style="text-align:right">${fmtMoney(f.h2_amount)}</td>
       <td style="text-align:right">${fmtMoney(f.h2_paid)}</td>
-      <td><span class="badge ${f.h2_status}">${stLabel[f.h2_status]||f.h2_status}</span></td>
+      <td><span class="badge ${stClass[f.h2_status]||f.h2_status}">${stLabel[f.h2_status]||f.h2_status}</span></td>
       <td><button class="btn btn-primary btn-sm" onclick="editFee('${f.fee_id}')"><i class="fa-solid fa-pen"></i> แก้ไข</button></td>
     </tr>`).join('');
+    // ── mobile cards ─────────────────────────────────────────
+    document.getElementById('feeMobileList').innerHTML=sorted.map(f=>{
+      const soiTxt=f.soi&&String(f.soi)!=='0'?`ซอย ${f.soi}`:'';
+      const h1cls=stClass[f.h1_status]||'unpaid';
+      const h2cls=stClass[f.h2_status]||'unpaid';
+      return`<div class="mcard">
+        <div class="mcard-head">
+          <div>
+            <div class="mcard-title">🏠 ${f.house_no}${soiTxt?' · '+soiTxt:''}</div>
+            <div class="mcard-sub">${f.owner_name||'-'} · ปีพ.ศ. ${f.year}</div>
+          </div>
+        </div>
+        <div class="mcard-halves">
+          <div class="mcard-half">
+            <div class="mcard-half-head" style="background:linear-gradient(135deg,#4f7ef7,#2f5be8)">
+              <span>🌸 ครึ่งปีแรก</span>
+              <span class="badge ${h1cls}" style="font-size:.62rem">${stLabel[f.h1_status]||f.h1_status}</span>
+            </div>
+            <div class="mcard-half-body">
+              <div class="mcard-half-row"><span>ยอด</span><span>${fmtMoney(f.h1_amount)} ฿</span></div>
+              <div class="mcard-half-row"><span>ชำระ</span><span>${fmtMoney(f.h1_paid)} ฿</span></div>
+              ${f.h1_date?`<div class="mcard-half-row"><span>วันที่</span><span>${f.h1_date}</span></div>`:''}
+            </div>
+          </div>
+          <div class="mcard-half">
+            <div class="mcard-half-head" style="background:linear-gradient(135deg,#34c88a,#1ea870)">
+              <span>🍂 ครึ่งปีหลัง</span>
+              <span class="badge ${h2cls}" style="font-size:.62rem">${stLabel[f.h2_status]||f.h2_status}</span>
+            </div>
+            <div class="mcard-half-body">
+              <div class="mcard-half-row"><span>ยอด</span><span>${fmtMoney(f.h2_amount)} ฿</span></div>
+              <div class="mcard-half-row"><span>ชำระ</span><span>${fmtMoney(f.h2_paid)} ฿</span></div>
+              ${f.h2_date?`<div class="mcard-half-row"><span>วันที่</span><span>${f.h2_date}</span></div>`:''}
+            </div>
+          </div>
+        </div>
+        <div class="mcard-actions">
+          <button class="btn btn-primary btn-sm" onclick="editFee('${f.fee_id}')"><i class="fa-solid fa-pen"></i> แก้ไขค่าส่วนกลาง</button>
+        </div>
+      </div>`;
+    }).join('');
   }
   function filterFees(){
     const q=document.getElementById('feeSearch').value.toLowerCase().trim();
@@ -1782,6 +1967,7 @@
   }
   function renderUsers(list){
     const s=sortState.users;const sorted=sortArr(list,s.col,s.dir);
+    // ── desktop table ────────────────────────────────────────
     document.getElementById('userTbody').innerHTML=sorted.map(u=>`<tr>
       <td><strong>${u.username}</strong></td><td>${u.full_name}</td>
       <td><span class="badge ${u.role}">${u.role}</span></td>
@@ -1794,6 +1980,38 @@
         </button>
       </div></td>
     </tr>`).join('')||'<tr class="empty-row"><td colspan="6">ไม่มีข้อมูล</td></tr>';
+    // ── mobile cards ─────────────────────────────────────────
+    const mobileEl=document.getElementById('userMobileList');
+    if(!mobileEl)return;
+    if(!sorted.length){mobileEl.innerHTML='<div style="text-align:center;color:var(--muted);padding:2rem">ไม่มีข้อมูล</div>';return;}
+    const roleLabel={admin:'ผู้ดูแลระบบ',resident:'ลูกบ้าน'};
+    const roleIcon ={admin:'🛡️',resident:'🏠'};
+    mobileEl.innerHTML=sorted.map(u=>{
+      const isActive=u.active==='TRUE';
+      const houseLabel=(housesData||[]).find(h=>h.house_id===u.house_id);
+      const houseDisp=houseLabel?`${houseLabel.house_no} — ${houseLabel.owner_name}`:(u.house_id||'—');
+      return`<div class="mcard">
+        <div class="mcard-head">
+          <div>
+            <div class="mcard-title">${roleIcon[u.role]||'👤'} ${u.username}</div>
+            <div class="mcard-sub">${u.full_name||'-'}</div>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:.25rem">
+            <span class="badge ${u.role}">${roleLabel[u.role]||u.role}</span>
+            <span class="badge ${isActive?'paid':'unpaid'}" style="font-size:.65rem">${isActive?'เปิดใช้งาน':'ปิดใช้งาน'}</span>
+          </div>
+        </div>
+        <div class="mcard-rows">
+          <div class="mcard-row" style="grid-column:1/-1"><span class="mcard-lbl">บ้าน</span><span class="mcard-val">${houseDisp}</span></div>
+        </div>
+        <div class="mcard-actions">
+          <button class="btn btn-primary btn-sm" onclick="editUser('${u.user_id}')"><i class="fa-solid fa-pen"></i> แก้ไข</button>
+          <button class="btn btn-danger btn-sm" onclick="deactivateUser('${u.user_id}')" ${!isActive?'disabled style="opacity:.4"':''}>
+            <i class="fa-solid fa-ban"></i> ปิดใช้งาน
+          </button>
+        </div>
+      </div>`;
+    }).join('');
   }
   async function saveUser(){
     const data={action:'addUser',username:g('u_user'),password:g('u_pass'),role:g('u_role'),house_id:g('u_house'),full_name:g('u_name')};
