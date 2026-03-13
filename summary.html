@@ -409,24 +409,52 @@ function renderCharts(d){
 
 function redrawCharts(){if(lastData)renderCharts(lastData);}
 
+function soiNum(s){
+  // "ไม่ระบุ", "0", "", null → 0; ตัวเลขอื่น → parseInt
+  if(!s||s==='ไม่ระบุ'||s==='0'||s===0) return 0;
+  const n=parseInt(s,10);
+  return isNaN(n)?0:n;
+}
+
 function renderSoiTable(d,col,dir){
   const{year,bySoi}=d;
-  let entries=Object.entries(bySoi||{});
+  // รวม "ไม่ระบุ" และ "0" เข้าด้วยกันก่อน
+  const merged={};
+  Object.entries(bySoi||{}).forEach(([soi,s])=>{
+    const key = (soi===''||soi==='ไม่ระบุ'||soi==='0'||soi===0) ? '0' : String(soi);
+    if(!merged[key]){
+      merged[key]={...s};
+    } else {
+      merged[key].total    =(merged[key].total||0)    +(s.total||0);
+      merged[key].fullPaid =(merged[key].fullPaid||0) +(s.fullPaid||0);
+      merged[key].h1Paid   =(merged[key].h1Paid||0)   +(s.h1Paid||0);
+      merged[key].h1Unpaid =(merged[key].h1Unpaid||0) +(s.h1Unpaid||0);
+      merged[key].h2Paid   =(merged[key].h2Paid||0)   +(s.h2Paid||0);
+      merged[key].h2Unpaid =(merged[key].h2Unpaid||0) +(s.h2Unpaid||0);
+      merged[key].unpaid   =(merged[key].unpaid||0)   +(s.unpaid||0);
+      merged[key].partial  =(merged[key].partial||0)  +(s.partial||0);
+    }
+  });
+  let entries=Object.entries(merged);
   if(col){
     entries.sort((a,b)=>{
-      const va=col==='soi'?a[0]:col==='total'?a[1].total:col==='fullPaid'?a[1].fullPaid:col==='unpaid'?a[1].unpaid:0;
-      const vb=col==='soi'?b[0]:col==='total'?b[1].total:col==='fullPaid'?b[1].fullPaid:col==='unpaid'?b[1].unpaid:0;
-      return typeof va==='string'?va.localeCompare(vb,'th')*dir:(va-vb)*dir;
+      const va=col==='soi'?soiNum(a[0]):col==='total'?a[1].total:col==='fullPaid'?a[1].fullPaid:col==='unpaid'?a[1].unpaid:0;
+      const vb=col==='soi'?soiNum(b[0]):col==='total'?b[1].total:col==='fullPaid'?b[1].fullPaid:col==='unpaid'?b[1].unpaid:0;
+      return (va-vb)*dir;
     });
-  }else{entries.sort((a,b)=>a[0].localeCompare(b[0],'th'));}
+  }else{
+    // default: เรียงตามเลขซอย น้อย→มาก, 0 ขึ้นก่อน
+    entries.sort((a,b)=>soiNum(a[0])-soiNum(b[0]));
+  }
 
   const sortIcon='<i class="fa-solid sort-icon" style="font-family:\'Font Awesome 6 Free\'"></i>';
   function sth(label,colKey){const cls=sortCol===colKey?(sortDir===1?'asc':'desc'):'';return`<th class="sortable ${cls}" onclick="doSort('${colKey}')">${label}${sortIcon}</th>`;}
 
   const rows=entries.map(([soi,s])=>{
     const h1Pct=pct(s.h1Paid,s.total),h2Pct=pct(s.h2Paid,s.total),fullPct=pct(s.fullPaid,s.total);
+    const soiLabel = soi==='0'||soi===0 ? '0' : String(soiNum(soi));
     return`<tr>
-      <td><strong>${soi}</strong></td>
+      <td><strong>${soiLabel}</strong></td>
       <td style="text-align:center;font-weight:700">${s.total} หลัง</td>
       <td style="text-align:center"><span class="badge paid">${s.fullPaid} หลัง</span><div style="font-size:.7rem;color:var(--paid-c);margin-top:.15rem">${fullPct}%</div></td>
       <td style="text-align:center"><div style="font-size:.82rem;font-weight:700;color:var(--paid-c)">${s.h1Paid}</div><div style="font-size:.7rem;color:var(--muted)">ชำระแล้ว</div></td>
