@@ -820,12 +820,15 @@
         </div>
         <div class="card card-has-table">
           <div class="card-header"><h3><i class="fa-solid fa-list"></i> ประกาศทั้งหมด</h3><button class="btn btn-outline btn-sm" onclick="loadAnn()"><i class="fa-solid fa-rotate"></i> รีโหลด</button></div>
-          <div class="card-body"><div class="table-wrap"><table class="ann-table"><thead><tr>
-            <th onclick="sortTable('ann','title',this)">หัวข้อ<i class="fa-solid fa-sort sort-i"></i></th>
-            <th>หมวด</th>
-            <th onclick="sortTable('ann','date',this)">วันที่<i class="fa-solid fa-sort sort-i"></i></th>
-            <th>แสดง</th><th>จัดการ</th>
-          </tr></thead><tbody id="annTbody"><tr><td colspan="5"><div class="skeleton"></div></td></tr></tbody></table></div></div>
+          <div class="card-body">
+            <div class="mobile-list" id="annMobileList"></div>
+            <div class="table-wrap table-wrap-desktop"><table class="ann-table"><thead><tr>
+              <th onclick="sortTable('ann','title',this)">หัวข้อ<i class="fa-solid fa-sort sort-i"></i></th>
+              <th>หมวด</th>
+              <th onclick="sortTable('ann','date',this)">วันที่<i class="fa-solid fa-sort sort-i"></i></th>
+              <th>แสดง</th><th>จัดการ</th>
+            </tr></thead><tbody id="annTbody"><tr><td colspan="5"><div class="skeleton"></div></td></tr></tbody></table></div>
+          </div>
         </div>
       </div>
 
@@ -859,13 +862,16 @@
         </div>
         <div class="card card-has-table">
           <div class="card-header"><h3><i class="fa-solid fa-table-list"></i> รายงานทั้งหมด</h3><button class="btn btn-outline btn-sm" onclick="loadNiti()"><i class="fa-solid fa-rotate"></i> รีโหลด</button></div>
-          <div class="card-body"><div class="table-wrap"><table class="niti-table"><thead><tr>
-            <th onclick="sortTable('niti','month',this)">เดือน/ปี<i class="fa-solid fa-sort sort-i"></i></th>
-            <th onclick="sortTable('niti','title',this)">หัวข้อ<i class="fa-solid fa-sort sort-i"></i></th>
-            <th onclick="sortTable('niti','income',this)">รายรับ<i class="fa-solid fa-sort sort-i"></i></th>
-            <th onclick="sortTable('niti','expense',this)">รายจ่าย<i class="fa-solid fa-sort sort-i"></i></th>
-            <th>จัดการ</th>
-          </tr></thead><tbody id="nitiTbody"><tr><td colspan="5"><div class="skeleton"></div></td></tr></tbody></table></div></div>
+          <div class="card-body">
+            <div class="mobile-list" id="nitiMobileList"></div>
+            <div class="table-wrap table-wrap-desktop"><table class="niti-table"><thead><tr>
+              <th onclick="sortTable('niti','month',this)">เดือน/ปี<i class="fa-solid fa-sort sort-i"></i></th>
+              <th onclick="sortTable('niti','title',this)">หัวข้อ<i class="fa-solid fa-sort sort-i"></i></th>
+              <th onclick="sortTable('niti','income',this)">รายรับ<i class="fa-solid fa-sort sort-i"></i></th>
+              <th onclick="sortTable('niti','expense',this)">รายจ่าย<i class="fa-solid fa-sort sort-i"></i></th>
+              <th>จัดการ</th>
+            </tr></thead><tbody id="nitiTbody"><tr><td colspan="5"><div class="skeleton"></div></td></tr></tbody></table></div>
+          </div>
         </div>
       </div>
 
@@ -2172,6 +2178,7 @@
   }
   function renderAnn(list){
     const s=sortState.ann;const sorted=sortArr(list,s.col,s.dir);
+    // ── desktop table ─────────────────────────────────────────
     document.getElementById('annTbody').innerHTML=sorted.map(a=>`<tr>
       <td><strong>${a.title}</strong></td><td>${a.category}</td><td>${fmtDate(a.date)}</td>
       <td><span class="badge ${a.active==='TRUE'?'paid':'unpaid'}">${a.active==='TRUE'?'แสดง':'ซ่อน'}</span></td>
@@ -2180,6 +2187,21 @@
         <button class="btn btn-danger btn-sm" onclick="delAnn('${a.ann_id}')"><i class="fa-solid fa-trash"></i></button>
       </div></td>
     </tr>`).join('')||'<tr class="empty-row"><td colspan="5">ไม่มีข้อมูล</td></tr>';
+    // ── mobile card list ──────────────────────────────────────
+    document.getElementById('annMobileList').innerHTML=sorted.length?sorted.map(a=>`
+      <div class="mcard">
+        <div class="mcard-head">
+          <div>
+            <div class="mcard-title">📢 ${a.title}</div>
+            <div class="mcard-sub">${a.category} · ${fmtDate(a.date)}</div>
+          </div>
+          <span class="badge ${a.active==='TRUE'?'paid':'unpaid'}" style="flex-shrink:0">${a.active==='TRUE'?'แสดง':'ซ่อน'}</span>
+        </div>
+        <div class="mcard-actions">
+          <button class="btn btn-primary btn-sm" onclick="editAnn('${a.ann_id}')"><i class="fa-solid fa-pen"></i> แก้ไข</button>
+          <button class="btn btn-danger btn-sm" onclick="delAnn('${a.ann_id}')"><i class="fa-solid fa-trash"></i> ลบ</button>
+        </div>
+      </div>`).join(''):'<div style="text-align:center;color:var(--muted);padding:2rem">ไม่มีข้อมูล</div>';
   }
 
   // ✅ BUG FIX: ฟังก์ชัน preview/clear ไฟล์ประกาศ (มี HTML รองรับแล้ว)
@@ -2339,6 +2361,7 @@
   }
   function renderNiti(list){
     const s=sortState.niti;const sorted=sortArr(list,s.col,s.dir);
+    // ── desktop table ─────────────────────────────────────────
     document.getElementById('nitiTbody').innerHTML=sorted.map(r=>`<tr>
       <td>${MONTHS_TH[r.month]} ${r.year}</td>
       <td>${r.title}</td>
@@ -2349,6 +2372,31 @@
         <button class="btn btn-danger btn-sm" onclick="delNiti('${r.report_id}')"><i class="fa-solid fa-trash"></i></button>
       </div></td>
     </tr>`).join('')||'<tr class="empty-row"><td colspan="5">ไม่มีข้อมูล</td></tr>';
+    // ── mobile card list ──────────────────────────────────────
+    document.getElementById('nitiMobileList').innerHTML=sorted.length?sorted.map(r=>`
+      <div class="mcard">
+        <div class="mcard-head">
+          <div>
+            <div class="mcard-title">📋 ${r.title}</div>
+            <div class="mcard-sub">${MONTHS_TH[r.month]||r.month} ${r.year}</div>
+          </div>
+        </div>
+        <div class="mcard-rows">
+          <div class="mcard-row">
+            <span class="mcard-lbl">รายรับ</span>
+            <span class="mcard-val" style="color:#059669;font-weight:700">${Number(r.income||0).toLocaleString()} ฿</span>
+          </div>
+          <div class="mcard-row">
+            <span class="mcard-lbl">รายจ่าย</span>
+            <span class="mcard-val" style="color:#dc2626;font-weight:700">${Number(r.expense||0).toLocaleString()} ฿</span>
+          </div>
+          ${r.content?`<div class="mcard-row"><span class="mcard-lbl">รายละเอียด</span><span class="mcard-val" style="white-space:pre-wrap;font-size:.78rem">${r.content.length>80?r.content.slice(0,80)+'…':r.content}</span></div>`:''}
+        </div>
+        <div class="mcard-actions">
+          <button class="btn btn-primary btn-sm" onclick="editNiti('${r.report_id}')"><i class="fa-solid fa-pen"></i> แก้ไข</button>
+          <button class="btn btn-danger btn-sm" onclick="delNiti('${r.report_id}')"><i class="fa-solid fa-trash"></i> ลบ</button>
+        </div>
+      </div>`).join(''):'<div style="text-align:center;color:var(--muted);padding:2rem">ไม่มีข้อมูล</div>';
   }
 
   async function previewNitiPhotos(input){
