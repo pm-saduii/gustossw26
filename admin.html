@@ -158,7 +158,7 @@
 
     /* FORM */
     .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:.9rem;}
-    .form-group{margin-bottom:.85rem;}
+    .form-group{margin-bottom:.5rem;}
     .form-group.full{grid-column:1/-1;}
     label{display:block;font-size:.8rem;font-weight:700;margin-bottom:.3rem;color:var(--text2);}
     input[type=text],input[type=number],input[type=date],input[type=file],select,textarea{width:100%;padding:.52rem .8rem;border:1.5px solid var(--border);border-radius:9px;font-family:'Sarabun',sans-serif;font-size:.86rem;color:var(--text);background:var(--card2);outline:none;transition:border-color .2s,background .3s;}
@@ -243,7 +243,7 @@
     .modal-head h3{font-size:1rem;font-weight:700;display:flex;align-items:center;gap:.5rem;}
     .modal-close{background:rgba(255,255,255,.2);border:none;color:#fff;width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:1rem;display:flex;align-items:center;justify-content:center;transition:background .15s;}
     .modal-close:hover{background:rgba(255,255,255,.35);}
-    .modal-body{padding:1.4rem;overflow-y:auto;flex:1;}
+    .modal-body{padding:.85rem 1.1rem;overflow-y:auto;flex:1;}
     .modal-foot{padding:.9rem 1.4rem;background:var(--card2);border-top:1px solid var(--border);display:flex;gap:.6rem;justify-content:flex-end;flex-shrink:0;transition:background .3s;}
     /* Modal form styles */
     /* ══ Cars — full redesign ══════════════════════════════ */
@@ -315,7 +315,7 @@
     .car-field input:focus,.car-field select:focus{border-color:var(--primary);background:var(--card);box-shadow:0 0 0 3px rgba(79,126,247,.12);}
     /* Type chip selector */
     .car-type-sel{display:grid;grid-template-columns:repeat(4,1fr);gap:.4rem;}
-    .cto{border:2px solid var(--border);border-radius:10px;padding:.55rem .2rem;text-align:center;cursor:pointer;font-size:.7rem;font-weight:700;color:var(--muted);transition:all .15s;background:var(--card2);font-family:'Sarabun',sans-serif;line-height:1.3;}
+    .cto{border:2px solid var(--border);border-radius:10px;padding:.35rem .2rem;text-align:center;cursor:pointer;font-size:.7rem;font-weight:700;color:var(--muted);transition:all .15s;background:var(--card2);font-family:'Sarabun',sans-serif;line-height:1.2;}
     .cto:hover{border-color:var(--primary);color:var(--primary);}
     .cto.sel{border-color:var(--primary);background:var(--primary-l);color:var(--primary);}
     .cto-emoji{font-size:1.45rem;display:block;margin-bottom:.18rem;}
@@ -453,9 +453,9 @@
     .imp-preview-wrap th{font-size:.72rem;padding:.35rem .6rem;}
     .imp-preview-wrap td{padding:.32rem .6rem;}
     .template-hint{background:var(--primary-l);border:1.5px solid var(--primary);border-radius:10px;padding:.65rem 1rem;font-size:.8rem;color:var(--primary);margin-bottom:.9rem;display:flex;align-items:center;gap:.55rem;}
-    .mf-section{margin-bottom:.7rem;}
-    .mf-section-title{font-size:.72rem;font-weight:800;color:var(--primary);text-transform:uppercase;letter-spacing:.08em;margin-bottom:.75rem;padding-bottom:.35rem;border-bottom:2px solid var(--primary-l);display:flex;align-items:center;gap:.4rem;}
-    .mf-grid{display:grid;grid-template-columns:1fr 1fr;gap:.8rem;}
+    .mf-section{margin-bottom:.45rem;}
+    .mf-section-title{font-size:.7rem;font-weight:800;color:var(--primary);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.4rem;padding-bottom:.25rem;border-bottom:2px solid var(--primary-l);display:flex;align-items:center;gap:.35rem;}
+    .mf-grid{display:grid;grid-template-columns:1fr 1fr;gap:.5rem;}
     .mf-grid.cols3{grid-template-columns:1fr 1fr 1fr;}
     .mf-full{grid-column:1/-1;}
     .mf-group{display:flex;flex-direction:column;gap:.3rem;}
@@ -1253,6 +1253,10 @@
     document.getElementById('topbarTitle').innerHTML=sectionTitles[id]||'';
     if(sectionLoaders[id])sectionLoaders[id]();
     closeSidebar();
+    // scroll กลับด้านบน (สำคัญสำหรับ mobile)
+    window.scrollTo({top:0,behavior:'smooth'});
+    const mainEl = document.querySelector('main');
+    if(mainEl) mainEl.scrollTop = 0;
   }
   function openSidebar(){document.getElementById('sidebar').classList.add('open');document.getElementById('overlay').classList.add('open');}
   function closeSidebar(){document.getElementById('sidebar').classList.remove('open');document.getElementById('overlay').classList.remove('open');}
@@ -3088,12 +3092,12 @@
     <div class="modal-body">
 
       <!-- ── Hero badge ── -->
-      <div class="car-modal-preview" id="ac_preview_bar" style="margin-bottom:.65rem;padding:.7rem 1rem">
-        <div class="cmp-emoji" id="ac_pv_emoji" style="font-size:1.4rem;width:38px;height:38px">🚗</div>
+      <div class="car-modal-preview" id="ac_preview_bar" style="margin-bottom:.4rem;padding:.5rem .85rem">
+        <div class="cmp-emoji" id="ac_pv_emoji" style="font-size:1.2rem;width:32px;height:32px">🚗</div>
         <div style="flex:1;min-width:0">
-          <div style="font-size:.63rem;opacity:.8;margin-bottom:.05rem">ข้อมูลรถ</div>
-          <div class="cmp-plate" id="ac_pv_plate" style="font-size:1rem">— ทะเบียน —</div>
-          <div class="cmp-sub" id="ac_pv_sub" style="font-size:.72rem">เลือกบ้านและกรอกข้อมูลเพื่อดูตัวอย่าง</div>
+          <div style="font-size:.6rem;opacity:.75;margin-bottom:.03rem">ข้อมูลรถ</div>
+          <div class="cmp-plate" id="ac_pv_plate" style="font-size:.9rem">— ทะเบียน —</div>
+          <div class="cmp-sub" id="ac_pv_sub" style="font-size:.68rem">เลือกบ้านและกรอกข้อมูลเพื่อดูตัวอย่าง</div>
         </div>
       </div>
 
@@ -3169,15 +3173,10 @@
               <option value="อื่นๆ">📍 อื่นๆ</option>
             </select>
           </div>
-        </div>
-      </div>
-
-      <!-- ── section: ค่าจอด ── -->
-      <div class="mf-section">
-        <div class="mf-section-title"><i class="fa-solid fa-coins"></i> ค่าจอด</div>
-        <div class="form-group" style="max-width:200px">
-          <label><i class="fa-solid fa-coins" style="color:var(--accent)"></i> ค่าจอด/เดือน (฿)</label>
-          <input type="number" id="ac_car_fee" min="0" step="50" value="0" placeholder="0 = ฟรี"/>
+          <div class="form-group">
+            <label><i class="fa-solid fa-coins" style="color:var(--accent)"></i> ค่าจอด/เดือน (฿)</label>
+            <input type="number" id="ac_car_fee" min="0" step="50" value="0" placeholder="0 = ฟรี"/>
+          </div>
         </div>
       </div>
 
@@ -3199,12 +3198,12 @@
     <div class="modal-body">
 
       <!-- ── Hero badge ── -->
-      <div class="car-modal-preview" id="ec_preview_bar" style="margin-bottom:.65rem;padding:.7rem 1rem">
-        <div class="cmp-emoji" id="ec_pv_emoji" style="font-size:1.4rem;width:38px;height:38px">🚗</div>
+      <div class="car-modal-preview" id="ec_preview_bar" style="margin-bottom:.4rem;padding:.5rem .85rem">
+        <div class="cmp-emoji" id="ec_pv_emoji" style="font-size:1.2rem;width:32px;height:32px">🚗</div>
         <div style="flex:1;min-width:0">
-          <div style="font-size:.63rem;opacity:.8;margin-bottom:.05rem">แก้ไขข้อมูลรถ</div>
-          <div class="cmp-plate" id="ec_pv_plate" style="font-size:1rem">— ทะเบียน —</div>
-          <div class="cmp-sub" id="ec_pv_sub" style="font-size:.72rem">—</div>
+          <div style="font-size:.6rem;opacity:.75;margin-bottom:.03rem">แก้ไขข้อมูลรถ</div>
+          <div class="cmp-plate" id="ec_pv_plate" style="font-size:.9rem">— ทะเบียน —</div>
+          <div class="cmp-sub" id="ec_pv_sub" style="font-size:.68rem">—</div>
         </div>
       </div>
 
@@ -3285,15 +3284,10 @@
               <option value="อื่นๆ">📍 อื่นๆ</option>
             </select>
           </div>
-        </div>
-      </div>
-
-      <!-- ── section: ค่าจอด ── -->
-      <div class="mf-section">
-        <div class="mf-section-title"><i class="fa-solid fa-coins"></i> ค่าจอด</div>
-        <div class="form-group" style="max-width:200px">
-          <label><i class="fa-solid fa-coins" style="color:var(--accent)"></i> ค่าจอด/เดือน (฿)</label>
-          <input type="number" id="ec_car_fee" min="0" step="50" value="0" placeholder="0 = ฟรี"/>
+          <div class="form-group">
+            <label><i class="fa-solid fa-coins" style="color:var(--accent)"></i> ค่าจอด/เดือน (฿)</label>
+            <input type="number" id="ec_car_fee" min="0" step="50" value="0" placeholder="0 = ฟรี"/>
+          </div>
         </div>
       </div>
 
