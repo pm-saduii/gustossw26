@@ -143,6 +143,7 @@
     .ann-table{min-width:560px;}
     .niti-table{min-width:600px;}
     .cars-table{min-width:640px;}
+    .inv-admin-table{min-width:820px;}
     th{text-align:left;padding:.55rem .9rem;font-size:.75rem;font-weight:700;color:var(--muted);border-bottom:1px solid var(--border);white-space:nowrap;background:var(--card2);cursor:pointer;user-select:none;transition:background .15s;}
     th:hover{color:var(--primary);}
     th .sort-i{margin-left:.25rem;opacity:.4;font-size:.65rem;}
@@ -534,6 +535,7 @@
       <button class="nav-item" onclick="showSection('niti',this)"><i class="fa-solid fa-clipboard-list"></i> ผลงานนิติ</button>
       <button class="nav-item" onclick="showSection('cars',this)"><i class="fa-solid fa-car"></i> จัดการรถ</button>
       <button class="nav-item" id="navReqBtn" onclick="showSection('carreq',this)"><i class="fa-solid fa-bell"></i> คำขออนุมัติ <span id="navReqBadge" style="display:none;background:#ef4444;color:#fff;border-radius:20px;padding:.05rem .5rem;font-size:.65rem;font-weight:900;margin-left:.3rem">0</span></button>
+      <button class="nav-item" onclick="showSection('invoice',this)"><i class="fa-solid fa-file-invoice"></i> ใบแจ้งหนี้</button>
       <div class="nav-section">ลิ้งก์</div>
       <a class="nav-item" href="summary.html" target="_blank"><i class="fa-solid fa-chart-pie"></i> สรุปค่าส่วนกลาง</a>
       <a class="nav-item" href="announcements.html" target="_blank"><i class="fa-solid fa-bullhorn"></i> หน้าประกาศ</a>
@@ -930,11 +932,119 @@
         </div>
       </div>
 
+      <!-- ===== INVOICE ===== -->
+      <div class="section" id="sec-invoice">
+        <!-- ค้นหา + filter -->
+        <div class="card" style="margin-bottom:1rem">
+          <div class="card-header">
+            <h3><i class="fa-solid fa-file-invoice"></i> จัดการใบแจ้งหนี้</h3>
+            <button class="btn btn-primary btn-sm" onclick="openInvForm(null)"><i class="fa-solid fa-plus"></i> สร้างใบแจ้งหนี้</button>
+          </div>
+          <div class="card-body">
+            <div style="display:flex;gap:.6rem;flex-wrap:wrap;align-items:center">
+              <div class="search-box" style="flex:1;min-width:180px"><i class="fa-solid fa-search"></i><input type="text" id="invSearch" placeholder="ค้นหา บ้านเลขที่ / ซอย / ปี" oninput="filterInvList()"/></div>
+              <select id="invFilterYear" onchange="filterInvList()" style="padding:.38rem .75rem;font-size:.82rem;border:1.5px solid var(--border);border-radius:10px;background:var(--card);color:var(--text);font-family:'Sarabun',sans-serif">
+                <option value="">ทุกปี</option>
+              </select>
+              <select id="invFilterHalf" onchange="filterInvList()" style="padding:.38rem .75rem;font-size:.82rem;border:1.5px solid var(--border);border-radius:10px;background:var(--card);color:var(--text);font-family:'Sarabun',sans-serif">
+                <option value="">ทั้ง 2 ครึ่งปี</option>
+                <option value="1">🌸 ครึ่งปีแรก</option>
+                <option value="2">🍂 ครึ่งปีหลัง</option>
+              </select>
+              <button class="btn btn-outline btn-sm" onclick="loadInvList()"><i class="fa-solid fa-rotate"></i> รีโหลด</button>
+            </div>
+          </div>
+        </div>
+        <div class="card card-has-table">
+          <div class="card-body">
+            <div class="mobile-list" id="invMobileList"></div>
+            <div class="table-wrap table-wrap-desktop">
+              <table class="inv-admin-table"><thead><tr>
+                <th>บ้านเลขที่</th><th>ซอย</th><th>ปี</th><th>ครึ่งปี</th>
+                <th>ค่าส่วนกลาง</th><th>ค่ารถ</th><th>ค่าขยะ</th><th>ค้างชำระ</th><th>รวมทั้งสิ้น</th>
+                <th>กำหนดชำระ</th><th>จัดการ</th>
+              </tr></thead><tbody id="invTbody">
+                <tr><td colspan="11"><div class="skeleton"></div></td></tr>
+              </tbody></table>
+            </div>
+          </div>
+        </div>
+      </div>
+
     </main>
   </div>
 </div>
 
-<!-- ═══════ MODAL: House Detail ═══════ -->
+<!-- ═══════ MODAL: Invoice Form ═══════ -->
+<div class="modal-backdrop" id="modalInvForm" onclick="closeModalBg(event,'modalInvForm')">
+  <div class="modal" style="max-width:620px">
+    <div class="modal-head">
+      <h3 id="invFormTitle"><i class="fa-solid fa-file-invoice"></i> สร้างใบแจ้งหนี้</h3>
+      <button class="modal-close" onclick="closeModal('modalInvForm')"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="inv_id"/>
+      <div class="mf-section">
+        <div class="mf-section-title">📋 ข้อมูลทั่วไป</div>
+        <div class="mf-grid" style="grid-template-columns:1fr 1fr 1fr">
+          <div class="form-group">
+            <label>บ้านเลขที่ (house_id)</label>
+            <select id="inv_house_id" onchange="onInvHouseChange()">
+              <option value="">— เลือกบ้าน —</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>ปี พ.ศ.</label>
+            <input type="number" id="inv_year" placeholder="2569" min="2560" max="2600"/>
+          </div>
+          <div class="form-group">
+            <label>ครึ่งปี</label>
+            <select id="inv_half">
+              <option value="1">🌸 ครึ่งปีแรก (01/01–30/06)</option>
+              <option value="2">🍂 ครึ่งปีหลัง (01/07–31/12)</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="mf-section">
+        <div class="mf-section-title">💰 รายการค่าใช้จ่าย</div>
+        <div class="mf-grid" style="grid-template-columns:1fr 1fr">
+          <div class="form-group"><label>ค่าส่วนกลาง (฿)</label><input type="number" id="inv_fee_common" placeholder="0.00" step="0.01" oninput="calcInvTotal()"/></div>
+          <div class="form-group"><label>ค่ารถ / ที่จอดรถ (฿)</label><input type="number" id="inv_fee_car" placeholder="0.00" step="0.01" oninput="calcInvTotal()"/></div>
+          <div class="form-group"><label>ค่าขยะ (฿)</label><input type="number" id="inv_fee_waste" placeholder="0.00" step="0.01" oninput="calcInvTotal()"/></div>
+          <div class="form-group"><label>ค่าส่วนกลางค้างชำระ (฿)</label><input type="number" id="inv_fee_overdue" placeholder="0.00" step="0.01" oninput="calcInvTotal()"/></div>
+          <div class="form-group"><label>ค่าปรับค้างชำระ (฿)</label><input type="number" id="inv_fee_fine" placeholder="0.00" step="0.01" oninput="calcInvTotal()"/></div>
+          <div class="form-group"><label>ค่าดำเนินการ (฿)</label><input type="number" id="inv_fee_process" placeholder="0.00" step="0.01" oninput="calcInvTotal()"/></div>
+          <div class="form-group full"><label>ค่าปรับอื่นๆ (฿)</label><input type="number" id="inv_fee_other" placeholder="0.00" step="0.01" oninput="calcInvTotal()"/></div>
+        </div>
+      </div>
+      <div class="mf-section">
+        <div class="mf-section-title">📊 ยอดรวม</div>
+        <div class="mf-grid" style="grid-template-columns:1fr 1fr">
+          <div class="form-group">
+            <label>รวมยอดที่ต้องชำระ (฿) <span style="color:var(--primary);font-size:.72rem">(คำนวณอัตโนมัติ)</span></label>
+            <input type="number" id="inv_total" placeholder="0.00" step="0.01" style="background:var(--primary-l);font-weight:700"/>
+          </div>
+          <div class="form-group">
+            <label>กำหนดชำระ</label>
+            <input type="text" id="inv_due_date" placeholder="31/07/2569" readonly style="background:var(--card2)"/>
+          </div>
+          <div class="form-group full">
+            <label>ยอดรวมเป็นตัวหนังสือ</label>
+            <input type="text" id="inv_total_text" placeholder="กรอกหรือระบบจะสร้างอัตโนมัติ"/>
+          </div>
+        </div>
+      </div>
+      <div class="mf-section">
+        <div class="form-group"><label>หมายเหตุ</label><input type="text" id="inv_note" placeholder="หมายเหตุ (ถ้ามี)"/></div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-outline" onclick="closeModal('modalInvForm')">ยกเลิก</button>
+      <button class="btn btn-primary" onclick="saveInvoiceAdmin()"><i class="fa-solid fa-floppy-disk"></i> บันทึก</button>
+    </div>
+  </div>
+</div>
 <div class="modal-backdrop" id="modalHouseDetail" onclick="closeModalBg(event,'modalHouseDetail')">
   <div class="modal">
     <div class="modal-head">
@@ -1261,7 +1371,7 @@
   const MONTHS_TH=['','ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
   const sectionTitles={overview:'<i class="fa-solid fa-gauge"></i> Dashboard',houses:'<i class="fa-solid fa-house"></i> จัดการข้อมูลบ้าน',fees:'<i class="fa-solid fa-receipt"></i> จัดการค่าส่วนกลาง',users:'<i class="fa-solid fa-users"></i> จัดการผู้ใช้งาน',announcements:'<i class="fa-solid fa-bullhorn"></i> จัดการประกาศ',niti:'<i class="fa-solid fa-clipboard-list"></i> จัดการผลงานนิติ',cars:'<i class="fa-solid fa-car"></i> จัดการรถ'};
   // ✅ FIX: ใช้ arrow function แทนการอ้างอิงตรงๆ กัน crash จาก hoisting
-  const sectionLoaders={houses:()=>loadHouses(),fees:()=>loadFees(),users:()=>loadUsers(),announcements:()=>loadAnn(),niti:()=>loadNiti(),cars:()=>loadCars(),carreq:()=>loadCarRequests()};
+  const sectionLoaders={houses:()=>loadHouses(),fees:()=>loadFees(),users:()=>loadUsers(),announcements:()=>loadAnn(),niti:()=>loadNiti(),cars:()=>loadCars(),carreq:()=>loadCarRequests(),invoice:()=>loadInvList()};
 
   function showSection(id,btn){
     // ── ปิด sidebar ก่อนทุกครั้ง ──────────────────────────────
@@ -1553,6 +1663,9 @@
   function closeModal(id){document.getElementById(id).classList.remove('open');document.body.style.overflow='';}
   function closeModalBg(e,id){if(e.target===document.getElementById(id))closeModal(id);}
   document.addEventListener('keydown',e=>{if(e.key==='Escape'){document.querySelectorAll('.modal-backdrop.open').forEach(m=>m.classList.remove('open'));document.body.style.overflow='';}});
+  // Invoice form: auto-update due_date when half/year changes
+  document.getElementById('inv_half') && document.getElementById('inv_half').addEventListener('change', updateInvDueDate);
+  document.getElementById('inv_year') && document.getElementById('inv_year').addEventListener('input',  updateInvDueDate);
 
   // ── House Detail ───────────────────────────────────────────────
   function showHouseDetail(id){
@@ -3150,6 +3263,169 @@
     if (e.key === 'Escape')     closeLightbox();
     if (e.key === 'ArrowRight') lbStep(1);
     if (e.key === 'ArrowLeft')  lbStep(-1);
+  }
+
+  // ══════════════════════════════════════════════════════════
+  // ── Admin: Invoice Management ──────────────────────────
+  // ══════════════════════════════════════════════════════════
+  let invData = [];
+  let invFiltered = [];
+
+  async function loadInvList(){
+    document.getElementById('invTbody').innerHTML='<tr><td colspan="11" style="text-align:center;color:var(--muted)">กำลังโหลด...</td></tr>';
+    const d = await api({action:'getInvoices',token});
+    invData = d.success ? d.data : [];
+    const years = [...new Set(invData.map(r=>r.year).filter(Boolean))].sort((a,b)=>b-a);
+    const yearSel = document.getElementById('invFilterYear');
+    const cur = yearSel.value;
+    yearSel.innerHTML = '<option value="">ทุกปี</option>' + years.map(y=>`<option value="${y}" ${cur===String(y)?'selected':''}>${y}</option>`).join('');
+    filterInvList();
+  }
+
+  function filterInvList(){
+    const q   = (document.getElementById('invSearch').value||'').toLowerCase().trim();
+    const yr  = document.getElementById('invFilterYear').value;
+    const hlf = document.getElementById('invFilterHalf').value;
+    invFiltered = invData.filter(r=>{
+      const h = housesData.find(x=>x.house_id===r.house_id)||{};
+      const matchQ  = !q || [r.house_id,h.house_no,h.soi,r.year].some(v=>String(v||'').toLowerCase().includes(q));
+      const matchYr = !yr  || String(r.year)===yr;
+      const matchHl = !hlf || String(r.half)===hlf;
+      return matchQ && matchYr && matchHl;
+    });
+    renderInvTable();
+  }
+
+  function fmtNum(v){ return v&&!isNaN(v)?Number(v).toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2}):'—'; }
+
+  function renderInvTable(){
+    const halfIcon = {'1':'🌸','2':'🍂'};
+    document.getElementById('invTbody').innerHTML = invFiltered.length ? invFiltered.map(r=>{
+      const h = housesData.find(x=>x.house_id===r.house_id)||{};
+      return `<tr>
+        <td><strong>${h.house_no||r.house_id}</strong></td>
+        <td>${h.soi||'—'}</td>
+        <td>${r.year}</td>
+        <td>${halfIcon[String(r.half)]||''} ${r.half==1?'แรก':'หลัง'}</td>
+        <td>${fmtNum(r.fee_common)}</td>
+        <td>${fmtNum(r.fee_car)}</td>
+        <td>${fmtNum(r.fee_waste)}</td>
+        <td>${fmtNum(r.fee_overdue)}</td>
+        <td style="font-weight:800;color:var(--primary)">${fmtNum(r.total_amount)}</td>
+        <td>${r.due_date||'—'}</td>
+        <td><div class="actions">
+          <button class="btn btn-primary btn-sm" onclick="openInvForm('${r.invoice_id}')"><i class="fa-solid fa-pen"></i></button>
+          <button class="btn btn-danger btn-sm" onclick="delInv('${r.invoice_id}')"><i class="fa-solid fa-trash"></i></button>
+        </div></td>
+      </tr>`;
+    }).join('') : '<tr><td colspan="11" style="text-align:center;color:var(--muted);padding:2rem">ไม่มีข้อมูล</td></tr>';
+
+    document.getElementById('invMobileList').innerHTML = invFiltered.length ? invFiltered.map(r=>{
+      const h = housesData.find(x=>x.house_id===r.house_id)||{};
+      const halfLabel = r.half==1?'🌸 ครึ่งปีแรก':'🍂 ครึ่งปีหลัง';
+      return `<div class="mcard">
+        <div class="mcard-head">
+          <div>
+            <div class="mcard-title">🏠 บ้าน ${h.house_no||r.house_id} ซอย ${h.soi||'—'}</div>
+            <div class="mcard-sub">${halfLabel} ปี ${r.year} · ครบกำหนด ${r.due_date||'—'}</div>
+          </div>
+          <span style="font-weight:800;color:var(--primary);font-size:.9rem">${fmtNum(r.total_amount)} ฿</span>
+        </div>
+        <div class="mcard-rows">
+          <div class="mcard-row"><span class="mcard-lbl">ค่าส่วนกลาง</span><span class="mcard-val">${fmtNum(r.fee_common)} ฿</span></div>
+          <div class="mcard-row"><span class="mcard-lbl">ค่ารถ</span><span class="mcard-val">${fmtNum(r.fee_car)} ฿</span></div>
+          <div class="mcard-row"><span class="mcard-lbl">ค้างชำระ</span><span class="mcard-val" style="color:var(--unpaid-c)">${fmtNum(r.fee_overdue)} ฿</span></div>
+        </div>
+        <div class="mcard-actions">
+          <button class="btn btn-primary btn-sm" onclick="openInvForm('${r.invoice_id}')"><i class="fa-solid fa-pen"></i> แก้ไข</button>
+          <button class="btn btn-danger btn-sm" onclick="delInv('${r.invoice_id}')"><i class="fa-solid fa-trash"></i> ลบ</button>
+        </div>
+      </div>`;
+    }).join('') : '<div style="text-align:center;color:var(--muted);padding:2rem">ไม่มีข้อมูล</div>';
+  }
+
+  function openInvForm(invoice_id){
+    if(!housesData||!housesData.length){ toast('warning','กรุณารอโหลดข้อมูลบ้าน'); return; }
+    const sel = document.getElementById('inv_house_id');
+    sel.innerHTML = '<option value="">— เลือกบ้าน —</option>' +
+      housesData.map(h=>`<option value="${h.house_id}">บ้าน ${h.house_no||h.house_id} ซอย ${h.soi||'0'} · ${h.owner_name||''}</option>`).join('');
+    document.getElementById('inv_year').value = new Date().getFullYear()+543;
+    document.getElementById('inv_half').value = '1';
+    ['inv_id','inv_fee_common','inv_fee_car','inv_fee_waste','inv_fee_overdue','inv_fee_fine','inv_fee_process','inv_fee_other','inv_total','inv_total_text','inv_note'].forEach(id=>{
+      const el=document.getElementById(id); if(el) el.value='';
+    });
+    updateInvDueDate();
+    if(invoice_id){
+      const inv = invData.find(r=>r.invoice_id===invoice_id);
+      if(!inv) return;
+      document.getElementById('invFormTitle').innerHTML='<i class="fa-solid fa-pen"></i> แก้ไขใบแจ้งหนี้';
+      document.getElementById('inv_id').value          = inv.invoice_id;
+      document.getElementById('inv_house_id').value    = inv.house_id;
+      document.getElementById('inv_year').value        = inv.year;
+      document.getElementById('inv_half').value        = String(inv.half);
+      document.getElementById('inv_fee_common').value  = inv.fee_common||'';
+      document.getElementById('inv_fee_car').value     = inv.fee_car||'';
+      document.getElementById('inv_fee_waste').value   = inv.fee_waste||'';
+      document.getElementById('inv_fee_overdue').value = inv.fee_overdue||'';
+      document.getElementById('inv_fee_fine').value    = inv.fee_fine||'';
+      document.getElementById('inv_fee_process').value = inv.fee_process||'';
+      document.getElementById('inv_fee_other').value   = inv.fee_other||'';
+      document.getElementById('inv_total').value       = inv.total_amount||'';
+      document.getElementById('inv_total_text').value  = inv.total_text||'';
+      document.getElementById('inv_due_date').value    = inv.due_date||'';
+      document.getElementById('inv_note').value        = inv.note||'';
+    } else {
+      document.getElementById('invFormTitle').innerHTML='<i class="fa-solid fa-plus"></i> สร้างใบแจ้งหนี้';
+      document.getElementById('inv_id').value='';
+    }
+    openModal('modalInvForm');
+  }
+
+  function updateInvDueDate(){
+    const half = document.getElementById('inv_half').value;
+    const year = document.getElementById('inv_year').value;
+    if(!year) return;
+    document.getElementById('inv_due_date').value = half==='1' ? `31/07/${year}` : `31/01/${parseInt(year)+1}`;
+  }
+
+  function calcInvTotal(){
+    const ids=['inv_fee_common','inv_fee_car','inv_fee_waste','inv_fee_overdue','inv_fee_fine','inv_fee_process','inv_fee_other'];
+    const total = ids.reduce((s,id)=>s+(parseFloat(document.getElementById(id).value)||0),0);
+    document.getElementById('inv_total').value = total ? total.toFixed(2) : '';
+  }
+
+  async function saveInvoiceAdmin(){
+    const house_id = document.getElementById('inv_house_id').value;
+    const year     = document.getElementById('inv_year').value;
+    const half     = document.getElementById('inv_half').value;
+    if(!house_id||!year||!half){ toast('warning','กรุณากรอกข้อมูลให้ครบ'); return; }
+    const payload = {
+      action:'saveInvoice', token,
+      invoice_id:  document.getElementById('inv_id').value||'',
+      house_id, year, half,
+      fee_common:  document.getElementById('inv_fee_common').value||0,
+      fee_car:     document.getElementById('inv_fee_car').value||0,
+      fee_waste:   document.getElementById('inv_fee_waste').value||0,
+      fee_overdue: document.getElementById('inv_fee_overdue').value||0,
+      fee_fine:    document.getElementById('inv_fee_fine').value||0,
+      fee_process: document.getElementById('inv_fee_process').value||0,
+      fee_other:   document.getElementById('inv_fee_other').value||0,
+      total_amount:document.getElementById('inv_total').value||0,
+      total_text:  document.getElementById('inv_total_text').value||'',
+      due_date:    document.getElementById('inv_due_date').value||'',
+      note:        document.getElementById('inv_note').value||'',
+    };
+    const r = await apiPost(payload);
+    if(r.success){ toast('success',r.message); closeModal('modalInvForm'); loadInvList(); }
+    else toast('error',r.message);
+  }
+
+  async function delInv(invoice_id){
+    const ok = await Swal.fire({icon:'warning',title:'ลบใบแจ้งหนี้?',text:'ไม่สามารถกู้คืนได้',showCancelButton:true,confirmButtonText:'ลบ',confirmButtonColor:'#dc2626',cancelButtonText:'ยกเลิก'});
+    if(!ok.isConfirmed) return;
+    const r = await apiPost({action:'deleteInvoice',token,invoice_id});
+    if(r.success){ toast('success','ลบสำเร็จ'); loadInvList(); }
+    else toast('error',r.message);
   }
 
 </script>

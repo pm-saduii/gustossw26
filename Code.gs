@@ -16,7 +16,8 @@ const SHEETS = {
   ANNOUNCEMENTS: 'Announcements',
   NITI_REPORT: 'NitiReport',
   CARS: 'Cars',
-  CAR_REQUESTS: 'CarRequests'
+  CAR_REQUESTS: 'CarRequests',
+  INVOICE_DETAILS: 'InvoiceDetails'
 };
 
 // ── Token Security ────────────────────────────────────────────
@@ -101,6 +102,7 @@ function handleRequest(e) {
       // Resident
       case 'getMyInfo':        result = getMyInfo(data); break;
       case 'getMyFees':        result = getMyFees(data); break;
+      case 'getMyInvoice':     result = getMyInvoice(data); break;
 
       // Public
       case 'getFeeSummary':    result = getFeeSummary(data); break;
@@ -149,6 +151,11 @@ function handleRequest(e) {
 
       // Admin — Batch Import Fees
       case 'batchImportFees':  result = requireAdmin(data, batchImportFees); break;
+
+      // Admin — Invoice Details
+      case 'getInvoices':      result = requireAdmin(data, getInvoices); break;
+      case 'saveInvoice':      result = requireAdmin(data, saveInvoice); break;
+      case 'deleteInvoice':    result = requireAdmin(data, deleteInvoice); break;
 
       // Admin — File Upload
       case 'uploadFile':       result = requireAdmin(data, (d) => handleUpload(d)); break;
@@ -1380,4 +1387,132 @@ function testGetAnn() {
   };
   var result = handleRequest(fakeEvent);
   Logger.log(result.getContent());
+}
+
+// ══════════════════════════════════════════════════════════════
+// ── Invoice Details ──────────────────────────────────────────
+// ══════════════════════════════════════════════════════════════
+
+function ensureInvoiceSheet() {
+  var ss = SpreadsheetApp.openById(SHEET_ID);
+  var sh = ss.getSheetByName(SHEETS.INVOICE_DETAILS);
+  if (!sh) {
+    sh = ss.insertSheet(SHEETS.INVOICE_DETAILS);
+    // Headers
+    var headers = [
+      'invoice_id','house_id','year','half',
+      'fee_common','fee_car','fee_waste',
+      'fee_overdue','fee_fine','fee_process','fee_other',
+      'total_amount','total_text','due_date','issued_date','note'
+    ];
+    sh.getRange(1, 1, 1, headers.length).setValues([headers]);
+    // Style header row
+    var hRange = sh.getRange(1, 1, 1, headers.length);
+    hRange.setBackground('#1a3a5c').setFontColor('#ffffff').setFontWeight('bold').setHorizontalAlignment('center');
+    // Column widths
+    sh.setColumnWidth(1, 130); sh.setColumnWidth(2, 100); sh.setColumnWidth(3, 60); sh.setColumnWidth(4, 60);
+    sh.setColumnWidth(5, 110); sh.setColumnWidth(6, 110); sh.setColumnWidth(7, 110);
+    sh.setColumnWidth(8, 130); sh.setColumnWidth(9, 100); sh.setColumnWidth(10, 120); sh.setColumnWidth(11, 120);
+    sh.setColumnWidth(12, 120); sh.setColumnWidth(13, 200); sh.setColumnWidth(14, 110); sh.setColumnWidth(15, 110); sh.setColumnWidth(16, 200);
+    sh.setFrozenRows(1);
+    // Alternate row coloring (applied to data rows)
+    sh.getRange(2, 1, 200, headers.length).applyRowBanding(SpreadsheetApp.BandingTheme.LIGHT_GREY);
+  }
+  return sh;
+}
+
+function getMyInvoice(data) {
+  const user = verifyToken(data.token);
+  if (!user) return { success: false, message: 'กรุณาเข้าสู่ระบบ' };
+  const { year, half } = data;
+  const sh = ensureInvoiceSheet();
+  const rows = sheetToObjects(sh);
+  // filter by house_id; optionally year/half
+  let list = rows.filter(r => String(r.house_id) === String(user.house_id));
+  if (year) list = list.filter(r => String(r.year) === String(year));
+  if (half) list = list.filter(r => String(r.half) === String(half));
+  return { success: true, data: list };
+}
+
+function getInvoices(data, user) {
+  const { house_id, year, half } = data;
+  const sh = ensureInvoiceSheet();
+  let rows = sheetToObjects(sh);
+  if (house_id) rows = rows.filter(r => String(r.house_id) === String(house_id));
+  if (year)     rows = rows.filter(r => String(r.year) === String(year));
+  if (half)     rows = rows.filter(r => String(r.half) === String(half));
+  return { success: true, data: rows };
+}
+
+function saveInvoice(data, user) {
+  const sh = ensureInvoiceSheet();
+  const rows = sh.getDataRange().getValues();
+  const headers = rows[0];
+  const idCol = headers.indexOf('invoice_id');
+  const houseCol = headers.indexOf('house_id');
+  const yearCol = headers.indexOf('year');
+  const halfCol = headers.indexOf('half');
+
+  const fields = [
+    'invoice_id','house_id','year','half',
+    'fee_common','fee_car','fee_waste',
+    'fee_overdue','fee_fine','fee_process','fee_other',
+    'total_amount','total_text','due_date','issued_date','note'
+  ];
+
+  // Auto generate invoice_id if empty
+  if (!data.invoice_id) {
+    const y = data.year || new Date().getFullYear() + 543;
+    const h = data.half || '1';
+    const hid = String(data.house_id || '').replace(/[^a-zA-Z0-9]/g,'');
+    data.invoice_id = `INV-${y}-H${h}-${hid}-${Date.now().toString(36).toUpperCase()}`;
+  }
+
+  // Auto due_date
+  if (!data.due_date) {
+    if (String(data.half) === '1') {
+      data.due_date = `31/07/${data.year}`;
+    } else {
+      data.due_date = `31/01/${parseInt(data.year) + 1}`;
+    }
+  }
+  if (!data.issued_date) {
+    var now = new Date();
+    data.issued_date = `${now.getDate().toString().padStart(2,'0')}/${(now.getMonth()+1).toString().padStart(2,'0')}/${now.getFullYear()+543}`;
+  }
+
+  // Check if exists (same house_id + year + half)
+  let existRow = -1;
+  for (let i = 1; i < rows.length; i++) {
+    if (String(rows[i][houseCol]) === String(data.house_id) &&
+        String(rows[i][yearCol])  === String(data.year) &&
+        String(rows[i][halfCol])  === String(data.half)) {
+      existRow = i + 1; break;
+    }
+  }
+
+  const rowData = fields.map(f => data[f] !== undefined ? data[f] : '');
+  if (existRow > 0) {
+    sh.getRange(existRow, 1, 1, fields.length).setValues([rowData]);
+    return { success: true, message: 'อัปเดตใบแจ้งหนี้สำเร็จ', invoice_id: data.invoice_id };
+  } else {
+    sh.appendRow(rowData);
+    return { success: true, message: 'บันทึกใบแจ้งหนี้สำเร็จ', invoice_id: data.invoice_id };
+  }
+}
+
+function deleteInvoice(data, user) {
+  const { invoice_id } = data;
+  if (!invoice_id) return { success: false, message: 'ไม่พบ invoice_id' };
+  const sh = ensureInvoiceSheet();
+  const rows = sh.getDataRange().getValues();
+  const headers = rows[0];
+  const idCol = headers.indexOf('invoice_id');
+  for (let i = rows.length - 1; i >= 1; i--) {
+    if (String(rows[i][idCol]) === String(invoice_id)) {
+      sh.deleteRow(i + 1);
+      return { success: true, message: 'ลบใบแจ้งหนี้สำเร็จ' };
+    }
+  }
+  return { success: false, message: 'ไม่พบใบแจ้งหนี้' };
 }
