@@ -134,6 +134,9 @@
     #houseTable{min-width:700px;}
     .fee-table{min-width:880px;}
     .user-table{min-width:540px;}
+    .ann-table{min-width:560px;}
+    .niti-table{min-width:600px;}
+    .cars-table{min-width:640px;}
     th{text-align:left;padding:.55rem .9rem;font-size:.75rem;font-weight:700;color:var(--muted);border-bottom:1px solid var(--border);white-space:nowrap;background:var(--card2);cursor:pointer;user-select:none;transition:background .15s;}
     th:hover{color:var(--primary);}
     th .sort-i{margin-left:.25rem;opacity:.4;font-size:.65rem;}
@@ -146,12 +149,15 @@
     @media(max-width:768px){
       #houseTable th:first-child,#houseTable td:first-child,
       .fee-table th:first-child,.fee-table td:first-child,
-      .user-table th:first-child,.user-table td:first-child{
+      .user-table th:first-child,.user-table td:first-child,
+      .ann-table th:first-child,.ann-table td:first-child,
+      .niti-table th:first-child,.niti-table td:first-child{
         position:sticky;left:0;z-index:3;
         background:var(--card);
         box-shadow:2px 0 8px rgba(0,0,0,.07);
       }
-      #houseTable th:first-child,.fee-table th:first-child,.user-table th:first-child{
+      #houseTable th:first-child,.fee-table th:first-child,.user-table th:first-child,
+      .ann-table th:first-child,.niti-table th:first-child{
         background:var(--card2);z-index:4;
       }
     }
@@ -808,7 +814,7 @@
         </div>
         <div class="card">
           <div class="card-header"><h3><i class="fa-solid fa-list"></i> ประกาศทั้งหมด</h3><button class="btn btn-outline btn-sm" onclick="loadAnn()"><i class="fa-solid fa-rotate"></i> รีโหลด</button></div>
-          <div class="card-body"><div class="table-wrap"><table><thead><tr>
+          <div class="card-body"><div class="table-wrap"><table class="ann-table"><thead><tr>
             <th onclick="sortTable('ann','title',this)">หัวข้อ<i class="fa-solid fa-sort sort-i"></i></th>
             <th>หมวด</th>
             <th onclick="sortTable('ann','date',this)">วันที่<i class="fa-solid fa-sort sort-i"></i></th>
@@ -847,7 +853,7 @@
         </div>
         <div class="card">
           <div class="card-header"><h3><i class="fa-solid fa-table-list"></i> รายงานทั้งหมด</h3><button class="btn btn-outline btn-sm" onclick="loadNiti()"><i class="fa-solid fa-rotate"></i> รีโหลด</button></div>
-          <div class="card-body"><div class="table-wrap"><table><thead><tr>
+          <div class="card-body"><div class="table-wrap"><table class="niti-table"><thead><tr>
             <th onclick="sortTable('niti','month',this)">เดือน/ปี<i class="fa-solid fa-sort sort-i"></i></th>
             <th onclick="sortTable('niti','title',this)">หัวข้อ<i class="fa-solid fa-sort sort-i"></i></th>
             <th onclick="sortTable('niti','income',this)">รายรับ<i class="fa-solid fa-sort sort-i"></i></th>
@@ -1246,20 +1252,32 @@
   const sectionLoaders={houses:()=>loadHouses(),fees:()=>loadFees(),users:()=>loadUsers(),announcements:()=>loadAnn(),niti:()=>loadNiti(),cars:()=>loadCars(),carreq:()=>loadCarRequests()};
 
   function showSection(id,btn){
-    document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
-    document.getElementById('sec-'+id).classList.add('active');
-    document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'));
-    if(btn)btn.classList.add('active');
-    document.getElementById('topbarTitle').innerHTML=sectionTitles[id]||'';
-    if(sectionLoaders[id])sectionLoaders[id]();
+    // ── ปิด sidebar ก่อนทุกครั้ง ──────────────────────────────
     closeSidebar();
-    // scroll กลับด้านบน (สำคัญสำหรับ mobile)
-    window.scrollTo({top:0,behavior:'smooth'});
-    const mainEl = document.querySelector('main');
-    if(mainEl) mainEl.scrollTop = 0;
+    // ── switch section ─────────────────────────────────────────
+    document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+    const sec = document.getElementById('sec-'+id);
+    if(sec) sec.classList.add('active');
+    document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'));
+    if(btn) btn.classList.add('active');
+    const title = document.getElementById('topbarTitle');
+    if(title) title.innerHTML = sectionTitles[id]||'';
+    if(sectionLoaders[id]) sectionLoaders[id]();
+    // ── scroll to top (mobile) ─────────────────────────────────
+    window.scrollTo(0, 0);
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
   }
-  function openSidebar(){document.getElementById('sidebar').classList.add('open');document.getElementById('overlay').classList.add('open');}
-  function closeSidebar(){document.getElementById('sidebar').classList.remove('open');document.getElementById('overlay').classList.remove('open');}
+  function openSidebar(){
+    document.getElementById('sidebar').classList.add('open');
+    document.getElementById('overlay').classList.add('open');
+    document.body.style.overflow = 'hidden'; // ป้องกัน body scroll ขณะ sidebar เปิด
+  }
+  function closeSidebar(){
+    document.getElementById('sidebar').classList.remove('open');
+    document.getElementById('overlay').classList.remove('open');
+    document.body.style.overflow = ''; // คืน scroll ให้ body
+  }
   function toggleForm(id){
     const el=document.getElementById(id);
     if(!el)return;
