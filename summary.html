@@ -148,30 +148,28 @@
     .soi-header-left{display:flex;align-items:center;gap:.5rem;font-size:.92rem;}
     .soi-header-left i{color:var(--primary);}
     .soi-header-right{display:flex;align-items:center;gap:.6rem;flex-wrap:wrap;}
-    /* Soi filter dropdown */
     .soi-filter{padding:.32rem .75rem;border:1.5px solid var(--border);border-radius:10px;background:var(--card);color:var(--text);font-family:'Sarabun',sans-serif;font-size:.82rem;cursor:pointer;transition:border-color .15s;}
     .soi-filter:focus{outline:none;border-color:var(--primary);}
-    /* ── 2-row thead — no scrollbar ── */
-    .table-wrap{overflow-x:hidden;}
-    table{width:100%;border-collapse:collapse;table-layout:fixed;}
-    th{text-align:center;padding:.5rem .35rem;font-size:.71rem;font-weight:700;color:var(--muted);border-bottom:1px solid var(--border);background:var(--card2);white-space:nowrap;}
+
+    /* ── Desktop: table ── */
+    .soi-table-wrap{overflow-x:auto;}
+    table{width:100%;border-collapse:collapse;}
+    th{text-align:center;padding:.55rem .6rem;font-size:.76rem;font-weight:700;color:var(--muted);border-bottom:1px solid var(--border);background:var(--card2);white-space:nowrap;}
     th.th-left{text-align:left;}
-    th.th-group{background:var(--primary-l);color:var(--primary);font-size:.73rem;border-left:2px solid var(--primary);border-bottom:2px solid var(--primary);}
-    th.th-group-r{background:#fdf4ff;color:#7c3aed;font-size:.73rem;border-left:2px solid #c4b5fd;border-bottom:2px solid #c4b5fd;}
+    th.th-group{background:var(--primary-l);color:var(--primary);font-size:.75rem;border-left:2px solid var(--primary);border-bottom:2px solid var(--primary);}
+    th.th-group-r{background:#fdf4ff;color:#7c3aed;font-size:.75rem;border-left:2px solid #c4b5fd;border-bottom:2px solid #c4b5fd;}
     [data-theme="dark"] th.th-group-r{background:#1e1230;color:#a78bfa;border-left-color:#4c1d95;border-bottom-color:#4c1d95;}
-    /* column widths — พอดีกับ 9 col */
-    col.c-soi{width:5%;}col.c-total{width:8%;}col.c-full{width:10%;}
-    col.c-h{width:9%;}col.c-hp{width:12%;}
-    td{padding:.6rem .35rem;font-size:.82rem;border-bottom:1px solid var(--border);transition:background .15s;text-align:center;vertical-align:middle;}
-    td.td-left{text-align:left;}
+    td{padding:.65rem .7rem;font-size:.85rem;border-bottom:1px solid var(--border);transition:background .15s;text-align:center;vertical-align:middle;}
+    td.td-left{text-align:left;font-weight:700;}
     tr:last-child td{border-bottom:none;}
     tr:hover td{background:var(--bg2);}
-    .badge{font-size:.72rem;padding:.16rem .55rem;border-radius:12px;font-weight:700;display:inline-block;}
+    .badge{font-size:.74rem;padding:.18rem .6rem;border-radius:12px;font-weight:700;display:inline-block;}
     .badge.paid{background:var(--paid);color:var(--paid-c);}
     .badge.partial{background:var(--partial);color:var(--partial-c);}
     .badge.unpaid{background:var(--unpaid);color:var(--unpaid-c);}
-    .bar-mini{height:6px;background:var(--bg2);border-radius:10px;min-width:44px;overflow:hidden;display:inline-block;vertical-align:middle;margin-right:.3rem;}
+    .bar-mini{height:7px;background:var(--bg2);border-radius:10px;min-width:60px;overflow:hidden;display:inline-block;vertical-align:middle;margin-right:.3rem;}
     .bar-mini-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--primary));border-radius:10px;}
+    .th-sort-hint{font-size:.67rem;color:var(--muted);font-weight:400;display:block;}
 
     /* SORT */
     th.sortable{cursor:pointer;user-select:none;}
@@ -181,12 +179,65 @@
     th.sortable.desc .sort-icon::before{content:'\f107';}
     th.sortable.asc .sort-icon,th.sortable.desc .sort-icon{opacity:1;color:var(--primary);}
 
+    /* ── Mobile: soi card grid ── */
+    .soi-mobile-grid{display:none;}
+    .soi-mcard{
+      background:var(--card);border:1px solid var(--border);border-radius:16px;
+      overflow:hidden;box-shadow:0 2px 10px var(--shadow2);
+      transition:transform .15s,box-shadow .15s;
+    }
+    .soi-mcard:active{transform:scale(.98);}
+    .soi-mcard-head{
+      padding:.7rem 1rem;
+      background:linear-gradient(135deg,var(--primary),var(--primary-d));
+      color:#fff;display:flex;align-items:center;justify-content:space-between;
+    }
+    .soi-mcard-title{font-size:1.05rem;font-weight:800;}
+    .soi-mcard-sub{font-size:.74rem;opacity:.85;}
+    .soi-mcard-badge{
+      background:rgba(255,255,255,.25);border-radius:20px;
+      padding:.2rem .7rem;font-size:.8rem;font-weight:700;white-space:nowrap;
+    }
+    .soi-mcard-body{padding:.75rem 1rem;}
+    .soi-mcard-total{
+      display:flex;align-items:baseline;gap:.4rem;
+      margin-bottom:.6rem;padding-bottom:.55rem;border-bottom:1px solid var(--border);
+    }
+    .soi-mcard-total-num{font-size:1.4rem;font-weight:800;color:var(--text);}
+    .soi-mcard-total-lbl{font-size:.78rem;color:var(--muted);}
+    .soi-mcard-full{font-size:.82rem;color:var(--paid-c);font-weight:700;}
+    .soi-mcard-halves{display:grid;grid-template-columns:1fr 1fr;gap:.5rem;}
+    .soi-mcard-half{
+      border-radius:12px;overflow:hidden;border:1px solid var(--border);
+    }
+    .soi-mcard-half-head{
+      padding:.35rem .7rem;font-size:.72rem;font-weight:700;color:#fff;
+      display:flex;justify-content:space-between;align-items:center;
+    }
+    .soi-mcard-half-body{background:var(--card2);padding:.5rem .7rem;}
+    .soi-mcard-half-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:.3rem;}
+    .soi-mcard-half-row:last-child{margin-bottom:0;}
+    .soi-mcard-half-lbl{font-size:.72rem;color:var(--muted);}
+    .soi-mcard-half-val{font-size:.82rem;font-weight:700;}
+    .soi-mcard-pct-bar{margin-top:.45rem;}
+    .soi-mcard-pct-row{display:flex;align-items:center;gap:.4rem;}
+    .soi-mcard-pct-text{font-size:.78rem;font-weight:700;color:var(--primary);min-width:34px;text-align:right;}
+
+    @media(max-width:640px){
+      .soi-table-wrap{display:none;}           /* ซ่อน table บน mobile */
+      .soi-mobile-grid{
+        display:grid;
+        grid-template-columns:1fr 1fr;
+        gap:.75rem;
+        padding:.9rem;
+      }
+    }
     .skeleton{background:linear-gradient(90deg,var(--bg2) 25%,var(--card2) 50%,var(--bg2) 75%);background-size:200% 100%;animation:shimmer 1.2s infinite;border-radius:8px;min-height:80px;}
     @keyframes shimmer{to{background-position:-200% 0;}}
-    /* ── RESPONSIVE ── */
+
+    /* ── GENERAL RESPONSIVE ── */
     body{overflow-x:hidden;}
     main{overflow-x:hidden;}
-
     @media(max-width:640px){
       .half-grid{grid-template-columns:1fr;}
       .chart-grid{grid-template-columns:1fr;}
@@ -197,8 +248,6 @@
       .progress-top{flex-direction:column;align-items:flex-start;gap:.25rem;}
       .progress-detail{flex-wrap:wrap;gap:.2rem;}
       .soi-header{flex-direction:column;align-items:flex-start;gap:.3rem;}
-      th{padding:.42rem .25rem;font-size:.67rem;}
-      td{padding:.5rem .25rem;font-size:.75rem;}
     }
     @media(max-width:420px){
       .top-grid{grid-template-columns:1fr;}
@@ -456,12 +505,8 @@ function renderSoiTable(d,col,dir){
   const{year}=d;
   let entries=getMergedEntries(d);
 
-  // ── กรองตามซอย ───────────────────────────────────────────
-  if(soiFilter!=='all'){
-    entries=entries.filter(([k])=>k===soiFilter);
-  }
+  if(soiFilter!=='all') entries=entries.filter(([k])=>k===soiFilter);
 
-  // ── เรียงลำดับ ────────────────────────────────────────────
   if(col){
     entries.sort((a,b)=>{
       const va=col==='soi'?soiNum(a[0]):col==='total'?a[1].total:col==='fullPaid'?a[1].fullPaid:col==='unpaid'?a[1].unpaid:0;
@@ -472,7 +517,7 @@ function renderSoiTable(d,col,dir){
     entries.sort((a,b)=>soiNum(a[0])-soiNum(b[0]));
   }
 
-  // ── สร้าง dropdown options ────────────────────────────────
+  // ── dropdown options ──────────────────────────────────────
   const allKeys=getMergedEntries(d).map(([k])=>k).sort((a,b)=>soiNum(a)-soiNum(b));
   const ddOpts=['<option value="all">ทุกซอย</option>',
     ...Array.from({length:22},(_,i)=>i).map(i=>{
@@ -485,51 +530,107 @@ function renderSoiTable(d,col,dir){
 
   // ── sortable th helper ────────────────────────────────────
   const si='<i class="fa-solid sort-icon" style="font-family:\'Font Awesome 6 Free\'"></i>';
-  function sth(label,k,extra=''){
-    const cls=sortCol===k?(sortDir===1?'asc':'desc'):'';
-    return`<th class="sortable ${cls} ${extra}" onclick="doSort('${k}')">${label}${si}</th>`;
+  function sth(label,k,cls=''){
+    const ac=sortCol===k?(sortDir===1?'asc':'desc'):'';
+    return`<th class="sortable ${ac} ${cls}" onclick="doSort('${k}')">${label}${si}</th>`;
   }
 
-  // ── rows ──────────────────────────────────────────────────
+  // ── Desktop table rows ────────────────────────────────────
   const rows=entries.map(([soi,s])=>{
-    const h1Pct=pct(s.h1Paid,s.total),h2Pct=pct(s.h2Paid,s.total),fullPct=pct(s.fullPaid,s.total);
-    const soiLabel=soi==='0'?'0':String(soiNum(soi));
+    const h1p=pct(s.h1Paid,s.total),h2p=pct(s.h2Paid,s.total),fp=pct(s.fullPaid,s.total);
+    const lbl=soi==='0'?'0':String(soiNum(soi));
     return`<tr>
-      <td class="td-left"><strong>${soiLabel}</strong></td>
-      <td><strong>${s.total}</strong><div style="font-size:.68rem;color:var(--muted)">หลัง</div></td>
-      <td><span class="badge paid">${s.fullPaid}</span><div style="font-size:.67rem;color:var(--paid-c)">${fullPct}%</div></td>
-      <td style="border-left:2px solid var(--border)"><span style="font-weight:700;color:var(--paid-c)">${s.h1Paid}</span><div style="font-size:.67rem;color:var(--muted)">ชำระ</div></td>
-      <td><span style="font-weight:700;color:var(--unpaid-c)">${s.h1Unpaid}</span><div style="font-size:.67rem;color:var(--muted)">ค้าง</div></td>
-      <td><div style="display:flex;align-items:center;justify-content:center;gap:.25rem">${barHtml(h1Pct)}<span style="font-size:.75rem;font-weight:700;color:var(--primary)">${h1Pct}%</span></div></td>
-      <td style="border-left:2px solid var(--border)"><span style="font-weight:700;color:var(--paid-c)">${s.h2Paid}</span><div style="font-size:.67rem;color:var(--muted)">ชำระ</div></td>
-      <td><span style="font-weight:700;color:var(--unpaid-c)">${s.h2Unpaid}</span><div style="font-size:.67rem;color:var(--muted)">ค้าง</div></td>
-      <td><div style="display:flex;align-items:center;justify-content:center;gap:.25rem">${barHtml(h2Pct)}<span style="font-size:.75rem;font-weight:700;color:var(--primary)">${h2Pct}%</span></div></td>
+      <td class="td-left">ซอย ${lbl}</td>
+      <td><strong>${s.total}</strong> หลัง</td>
+      <td><span class="badge paid">${s.fullPaid} หลัง</span><div style="font-size:.7rem;color:var(--paid-c)">${fp}%</div></td>
+      <td style="border-left:2px solid var(--border)"><span style="font-weight:700;color:var(--paid-c)">${s.h1Paid}</span></td>
+      <td><span style="font-weight:700;color:var(--unpaid-c)">${s.h1Unpaid}</span></td>
+      <td><div style="display:flex;align-items:center;gap:.3rem">${barHtml(h1p)}<span style="font-size:.8rem;font-weight:700;color:var(--primary)">${h1p}%</span></div></td>
+      <td style="border-left:2px solid var(--border)"><span style="font-weight:700;color:var(--paid-c)">${s.h2Paid}</span></td>
+      <td><span style="font-weight:700;color:var(--unpaid-c)">${s.h2Unpaid}</span></td>
+      <td><div style="display:flex;align-items:center;gap:.3rem">${barHtml(h2p)}<span style="font-size:.8rem;font-weight:700;color:var(--primary)">${h2p}%</span></div></td>
     </tr>`;
   }).join('');
 
+  // ── Mobile card items ─────────────────────────────────────
+  const cards=entries.map(([soi,s])=>{
+    const h1p=pct(s.h1Paid,s.total),h2p=pct(s.h2Paid,s.total),fp=pct(s.fullPaid,s.total);
+    const lbl=soi==='0'?'0':String(soiNum(soi));
+    // สีหัว card ตาม % การชำระ
+    const headColor=fp>=80?'linear-gradient(135deg,#059669,#1ea870)':fp>=40?'linear-gradient(135deg,#d97706,#f59e0b)':'linear-gradient(135deg,#dc2626,#ef4444)';
+    return`<div class="soi-mcard">
+      <div class="soi-mcard-head" style="background:${headColor}">
+        <div>
+          <div class="soi-mcard-title">ซอย ${lbl}</div>
+          <div class="soi-mcard-sub">${s.total} หลัง · ครบ ${s.fullPaid} หลัง</div>
+        </div>
+        <div class="soi-mcard-badge">${fp}%</div>
+      </div>
+      <div class="soi-mcard-body">
+        <div class="soi-mcard-pct-bar" style="margin-bottom:.6rem">
+          <div class="soi-mcard-pct-row">
+            <div style="flex:1;height:8px;background:var(--bg2);border-radius:10px;overflow:hidden">
+              <div style="height:100%;width:${fp}%;background:linear-gradient(90deg,var(--accent),var(--primary));border-radius:10px;transition:width .8s"></div>
+            </div>
+          </div>
+        </div>
+        <div class="soi-mcard-halves">
+          <div class="soi-mcard-half">
+            <div class="soi-mcard-half-head" style="background:linear-gradient(135deg,#4f7ef7,#2f5be8)">
+              <span>🌸 ครึ่งปีแรก</span><span style="font-size:.7rem">${h1p}%</span>
+            </div>
+            <div class="soi-mcard-half-body">
+              <div class="soi-mcard-half-row">
+                <span class="soi-mcard-half-lbl">ชำระ</span>
+                <span class="soi-mcard-half-val" style="color:var(--paid-c)">${s.h1Paid}</span>
+              </div>
+              <div class="soi-mcard-half-row">
+                <span class="soi-mcard-half-lbl">ค้าง</span>
+                <span class="soi-mcard-half-val" style="color:var(--unpaid-c)">${s.h1Unpaid}</span>
+              </div>
+            </div>
+          </div>
+          <div class="soi-mcard-half">
+            <div class="soi-mcard-half-head" style="background:linear-gradient(135deg,#7c3aed,#6d28d9)">
+              <span>🍂 ครึ่งปีหลัง</span><span style="font-size:.7rem">${h2p}%</span>
+            </div>
+            <div class="soi-mcard-half-body">
+              <div class="soi-mcard-half-row">
+                <span class="soi-mcard-half-lbl">ชำระ</span>
+                <span class="soi-mcard-half-val" style="color:var(--paid-c)">${s.h2Paid}</span>
+              </div>
+              <div class="soi-mcard-half-row">
+                <span class="soi-mcard-half-lbl">ค้าง</span>
+                <span class="soi-mcard-half-val" style="color:var(--unpaid-c)">${s.h2Unpaid}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+
   const emptyRow='<tr><td colspan="9" style="text-align:center;color:var(--muted);padding:2rem">ไม่มีข้อมูล</td></tr>';
+  const emptyCard='<div style="grid-column:1/-1;text-align:center;color:var(--muted);padding:2rem">ไม่มีข้อมูล</div>';
 
   document.getElementById('soiCard').innerHTML=`
     <div class="soi-header">
       <div class="soi-header-left"><i class="fa-solid fa-road"></i> รายละเอียดแยกตามซอย — ปี ${year}</div>
       <div class="soi-header-right">
         <select class="soi-filter" onchange="doSoiFilter(this.value)">${ddOpts}</select>
-        <span style="font-size:.72rem;color:var(--muted)">คลิกหัวตารางเพื่อเรียง</span>
+        <span style="font-size:.72rem;color:var(--muted);display:none" class="sort-hint-desktop">คลิกหัวตารางเพื่อเรียง</span>
       </div>
     </div>
-    <div class="table-wrap"><table>
-      <colgroup>
-        <col style="width:5%"><col style="width:8%"><col style="width:10%">
-        <col style="width:9%"><col style="width:9%"><col style="width:12%">
-        <col style="width:9%"><col style="width:9%"><col style="width:12%">
-      </colgroup>
+
+    <!-- ── Desktop table ── -->
+    <div class="soi-table-wrap"><table>
       <thead>
         <tr>
-          <th class="th-left sortable ${sortCol==='soi'?(sortDir===1?'asc':'desc'):''}" rowspan="2" onclick="doSort('soi')" style="vertical-align:middle">ซอย${si}</th>
-          <th class="sortable ${sortCol==='total'?(sortDir===1?'asc':'desc'):''}" rowspan="2" onclick="doSort('total')" style="vertical-align:middle">ทั้งหมด${si}</th>
-          <th class="sortable ${sortCol==='fullPaid'?(sortDir===1?'asc':'desc'):''}" rowspan="2" onclick="doSort('fullPaid')" style="vertical-align:middle">ชำระครบ${si}</th>
-          <th colspan="3" class="th-group">ครึ่งปีแรก</th>
-          <th colspan="3" class="th-group-r" style="border-left:2px solid #c4b5fd">ครึ่งปีหลัง</th>
+          ${sth('ซอย','soi','th-left')}
+          ${sth('ทั้งหมด','total')}
+          ${sth('ชำระครบ','fullPaid')}
+          <th colspan="3" class="th-group">🌸 ครึ่งปีแรก</th>
+          <th colspan="3" class="th-group-r" style="border-left:2px solid #c4b5fd">🍂 ครึ่งปีหลัง</th>
         </tr>
         <tr>
           <th class="th-group" style="border-top:none">ชำระแล้ว</th>
@@ -541,9 +642,11 @@ function renderSoiTable(d,col,dir){
         </tr>
       </thead>
       <tbody>${rows||emptyRow}</tbody>
-    </table></div>`;
+    </table></div>
 
-  // คืน selected value ของ dropdown
+    <!-- ── Mobile card grid ── -->
+    <div class="soi-mobile-grid">${cards||emptyCard}</div>`;
+
   const dd=document.querySelector('.soi-filter');
   if(dd) dd.value=soiFilter;
 }
