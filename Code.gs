@@ -96,6 +96,7 @@ function handleRequest(e) {
     switch (action) {
       // Auth
       case 'login':            result = login(data); break;
+      case 'changePassword':   result = changePassword(data); break;
 
       // Resident
       case 'getMyInfo':        result = getMyInfo(data); break;
@@ -381,6 +382,31 @@ function login(data) {
     full_name: user.full_name,
     message: 'เข้าสู่ระบบสำเร็จ'
   };
+}
+
+function changePassword(data) {
+  const { token, old_password, new_password } = data;
+  const decoded = verifyToken(token);
+  if (!decoded) return { success: false, message: 'กรุณาเข้าสู่ระบบใหม่' };
+  if (!old_password || !new_password) return { success: false, message: 'กรุณากรอกข้อมูลให้ครบ' };
+  if (new_password.length <= 5) return { success: false, message: 'รหัสผ่านใหม่ต้องมีมากกว่า 5 ตัวอักษร' };
+
+  const sheet = getSheet(SHEETS.USERS);
+  const rows = sheet.getDataRange().getValues();
+  const headers = rows[0];
+  const usernameCol = headers.indexOf('username');
+  const passwordCol = headers.indexOf('password');
+
+  for (let i = 1; i < rows.length; i++) {
+    if (String(rows[i][usernameCol]) === String(decoded.username)) {
+      if (String(rows[i][passwordCol]) !== String(old_password)) {
+        return { success: false, message: 'รหัสผ่านเดิมไม่ถูกต้อง' };
+      }
+      sheet.getRange(i + 1, passwordCol + 1).setValue(new_password);
+      return { success: true, message: 'เปลี่ยนรหัสผ่านสำเร็จ' };
+    }
+  }
+  return { success: false, message: 'ไม่พบข้อมูลผู้ใช้' };
 }
 
 // ── Resident ──────────────────────────────────────────────────

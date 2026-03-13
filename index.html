@@ -64,24 +64,13 @@
     .btn-login:disabled{opacity:.7;cursor:not-allowed;transform:none;}
     .spinner{display:none;width:18px;height:18px;border:2px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:spin .6s linear infinite;}
     @keyframes spin{to{transform:rotate(360deg);}}
-    .public-links{margin-top:1.5rem;padding-top:1.4rem;border-top:1px solid var(--border);}
-    .public-links p{font-size:.78rem;color:var(--muted);text-align:center;margin-bottom:.85rem;}
-    .pub-grid{display:grid;grid-template-columns:1fr 1fr;gap:.65rem;}
-    .pub-btn{display:flex;align-items:center;justify-content:center;gap:.45rem;padding:.65rem .5rem;border-radius:12px;border:1.5px solid var(--border);background:var(--card2);color:var(--text2);font-family:'Sarabun',sans-serif;font-size:.82rem;font-weight:600;cursor:pointer;text-decoration:none;transition:all .2s;}
-    .pub-btn:hover{background:var(--primary-l);border-color:var(--primary);color:var(--primary);transform:translateY(-2px);box-shadow:0 4px 12px var(--shadow);}
-    .pub-btn.admin-btn{border-color:#fbbf24;color:#d97706;background:#fffbeb;}
-    .pub-btn.admin-btn:hover{background:#fef3c7;border-color:#f59e0b;color:#b45309;}
-    [data-theme="dark"] .pub-btn.admin-btn{background:#2a2010;color:#fbbf24;}
-    [data-theme="dark"] .pub-btn.admin-btn:hover{background:#352818;}
     @media(max-width:480px){
       .card{padding:1.25rem 1rem;border-radius:18px;}
       .brand-icon{width:64px;height:64px;font-size:1.7rem;}
       .brand h1{font-size:1.2rem;}
-      .pub-grid{grid-template-columns:1fr 1fr;}
       .login-wrap{padding:0 .25rem;}
     }
     @media(max-width:360px){
-      .pub-grid{grid-template-columns:1fr;}
       .btn-login{font-size:.9rem;}
     }
   </style>
@@ -122,15 +111,7 @@
         <i class="fa-solid fa-right-to-bracket" id="loginIcon"></i>
         <span id="loginText">เข้าสู่ระบบ</span>
       </button>
-      <div class="public-links">
-        <p><i class="fa-solid fa-globe"></i> ข้อมูลสาธารณะ</p>
-        <div class="pub-grid">
-          <a href="summary.html" class="pub-btn"><i class="fa-solid fa-chart-pie" style="color:#4f7ef7"></i> สรุปค่าส่วนกลาง</a>
-          <a href="announcements.html" class="pub-btn"><i class="fa-solid fa-bullhorn" style="color:#f97316"></i> ประกาศ</a>
-          <a href="niti-report.html" class="pub-btn"><i class="fa-solid fa-clipboard-list" style="color:#34c88a"></i> ผลงานนิติ</a>
-          <a href="admin.html" class="pub-btn admin-btn"><i class="fa-solid fa-shield-halved"></i> Admin</a>
-        </div>
-      </div>
+
     </div>
   </div>
 <script>

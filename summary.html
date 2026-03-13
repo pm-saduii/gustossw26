@@ -219,7 +219,7 @@
       .soi-table-wrap{display:none;}           /* ซ่อน table บน mobile */
       .soi-mobile-grid{
         display:grid;
-        grid-template-columns:1fr 1fr;
+        grid-template-columns:1fr;
         gap:.75rem;
         padding:.9rem;
       }
@@ -323,8 +323,8 @@
 const API_URL='https://script.google.com/macros/s/AKfycbwQbc31pY86tM7EdD41dBsXRQ-OmL6M5m0TJKs_ZJiix2bLEYkHOiQ8eIGazR7ay0_l/exec';
 const token=localStorage.getItem('vms_token');
 const role=localStorage.getItem('vms_role');
+if(!token){window.location.href='index.html';}
 
-let currentYear='';
 let lastData=null;
 let donutChart=null,barChart=null;
 let sortCol='', sortDir=1;
