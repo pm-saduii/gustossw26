@@ -109,7 +109,13 @@
     /* SECTION */
     .section{display:none;animation:fadeSlideIn .3s ease both;}
     .section.active{display:block;}
-    .card{background:var(--card);border-radius:16px;border:1px solid var(--border);overflow:hidden;box-shadow:0 2px 12px var(--shadow2);margin-bottom:1.4rem;transition:background .3s,border-color .3s;}
+    .card{background:var(--card);border-radius:16px;border:1px solid var(--border);overflow:visible;box-shadow:0 2px 12px var(--shadow2);margin-bottom:1.4rem;transition:background .3s,border-color .3s;}
+    .card .card-header:first-child{border-radius:16px 16px 0 0;}
+    .card-body:last-child{border-radius:0 0 16px 16px;overflow:hidden;}
+    /* card ที่มี table — table-wrap จะ scroll ได้ */
+    .card-has-table{overflow:visible;}
+    .card-has-table .card-header{border-radius:16px 16px 0 0;}
+    .card-has-table .card-body{border-radius:0 0 16px 16px;overflow:auto;}
     .card-header{padding:.85rem 1.2rem;background:var(--card2);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;transition:background .3s;}
     .card-header h3{font-size:.92rem;font-weight:700;display:flex;align-items:center;gap:.5rem;}
     .card-header h3 i{color:var(--primary);}
@@ -606,7 +612,7 @@
             <div class="form-actions"><button class="btn btn-outline" onclick="toggleForm('houseForm')">ยกเลิก</button><button class="btn btn-primary" onclick="saveHouse()"><i class="fa-solid fa-floppy-disk"></i> บันทึก</button></div>
           </div>
         </div>
-        <div class="card">
+        <div class="card card-has-table">
           <div class="card-header"><h3><i class="fa-solid fa-list"></i> รายการบ้านทั้งหมด</h3><button class="btn btn-outline btn-sm" onclick="loadHouses()"><i class="fa-solid fa-rotate"></i> รีโหลด</button></div>
           <div class="card-body">
             <div class="search-box"><i class="fa-solid fa-search"></i><input type="text" id="houseSearch" placeholder="ค้นหาบ้านเลขที่ หรือชื่อเจ้าของ" oninput="filterHouses()"/></div>
@@ -730,7 +736,7 @@
           </div>
         </div>
 
-        <div class="card">
+        <div class="card card-has-table">
           <div class="card-header"><h3><i class="fa-solid fa-table-list"></i> รายการค่าส่วนกลาง</h3><button class="btn btn-outline btn-sm" onclick="loadFees()"><i class="fa-solid fa-rotate"></i> รีโหลด</button></div>
           <div class="card-body">
             <div class="year-filter-bar" id="yearFilterBar"></div>
@@ -775,7 +781,7 @@
             <div class="form-actions"><button class="btn btn-outline" onclick="toggleForm('userForm')">ยกเลิก</button><button class="btn btn-primary" onclick="saveUser()"><i class="fa-solid fa-floppy-disk"></i> บันทึก</button></div>
           </div>
         </div>
-        <div class="card">
+        <div class="card card-has-table">
           <div class="card-header"><h3><i class="fa-solid fa-users"></i> รายการผู้ใช้งาน</h3><button class="btn btn-outline btn-sm" onclick="loadUsers()"><i class="fa-solid fa-rotate"></i> รีโหลด</button></div>
           <div class="card-body">
             <!-- mobile card list -->
@@ -812,7 +818,7 @@
             <div class="form-actions"><button class="btn btn-outline" onclick="toggleForm('annForm')">ยกเลิก</button><button class="btn btn-primary" onclick="saveAnn()"><i class="fa-solid fa-floppy-disk"></i> บันทึก</button></div>
           </div>
         </div>
-        <div class="card">
+        <div class="card card-has-table">
           <div class="card-header"><h3><i class="fa-solid fa-list"></i> ประกาศทั้งหมด</h3><button class="btn btn-outline btn-sm" onclick="loadAnn()"><i class="fa-solid fa-rotate"></i> รีโหลด</button></div>
           <div class="card-body"><div class="table-wrap"><table class="ann-table"><thead><tr>
             <th onclick="sortTable('ann','title',this)">หัวข้อ<i class="fa-solid fa-sort sort-i"></i></th>
@@ -851,7 +857,7 @@
             <div class="form-actions"><button class="btn btn-outline" onclick="toggleForm('nitiForm')">ยกเลิก</button><button class="btn btn-primary" onclick="saveNiti()"><i class="fa-solid fa-floppy-disk"></i> บันทึก</button></div>
           </div>
         </div>
-        <div class="card">
+        <div class="card card-has-table">
           <div class="card-header"><h3><i class="fa-solid fa-table-list"></i> รายงานทั้งหมด</h3><button class="btn btn-outline btn-sm" onclick="loadNiti()"><i class="fa-solid fa-rotate"></i> รีโหลด</button></div>
           <div class="card-body"><div class="table-wrap"><table class="niti-table"><thead><tr>
             <th onclick="sortTable('niti','month',this)">เดือน/ปี<i class="fa-solid fa-sort sort-i"></i></th>
