@@ -229,7 +229,30 @@
       .inv-modal-bg{display:block!important;position:static!important;background:none!important;opacity:1!important;padding:0!important;}
       .inv-modal-sheet{max-width:100%!important;}
       .inv-modal-actions{display:none!important;}
-      .inv-doc{position:fixed;left:0;top:0;width:100%;padding:.7cm 1cm;box-shadow:none;border-radius:0;font-size:10.5pt;}
+      .inv-doc{
+        position:fixed;left:0;top:0;width:100%;
+        padding:.45cm .85cm;
+        box-shadow:none;border-radius:0;
+        font-size:9pt;line-height:1.35;
+      }
+      .inv-doc .inv-top{padding-bottom:.35rem;margin-bottom:.35rem;}
+      .inv-doc .inv-logo{width:54px;height:54px;font-size:1.5rem;}
+      .inv-doc .inv-company{font-size:11px;}
+      .inv-doc .inv-company-sub{font-size:9px;}
+      .inv-doc .inv-title-bar{margin:.35rem 0;padding:.3rem .7rem;}
+      .inv-doc .inv-title-bar h2{font-size:12px;}
+      .inv-doc .inv-info-grid{margin-bottom:.45rem;gap:.15rem .5rem;}
+      .inv-doc table.inv-table th{padding:.3rem .5rem;font-size:9pt;}
+      .inv-doc table.inv-table td{padding:.25rem .5rem;font-size:9pt;}
+      .inv-doc table.inv-table tfoot td{padding:.3rem .5rem;}
+      .inv-doc .inv-total-text{padding:.25rem .5rem;margin-bottom:.45rem;font-size:9pt;}
+      .inv-doc .inv-payment{padding:.45rem .7rem;margin-bottom:.45rem;}
+      .inv-doc .inv-payment-title{font-size:10px;margin-bottom:.25rem;}
+      .inv-doc .inv-payment-row{margin-bottom:.1rem;font-size:9pt;}
+      .inv-doc .inv-acct-num{font-size:13px;margin:.25rem 0;padding:.2rem;}
+      .inv-doc .inv-warn{font-size:9.5px;padding:.2rem;}
+      .inv-doc .inv-conditions{padding:.35rem .6rem;margin-top:.35rem;font-size:8.5pt;}
+      .inv-doc .inv-footer{padding-top:.3rem;margin-top:.3rem;font-size:8.5pt;}
       @page{size:A4 portrait;margin:0;}
     }
     .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:400;display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity .25s;}
@@ -506,7 +529,6 @@
       <i class="fa-solid fa-chevron-right" style="color:var(--muted);font-size:.8rem;flex-shrink:0"></i>
     </div>
   </div>
-  @media(max-width:600px){#invoiceSection{grid-template-columns:1fr;}}
 
   <div class="section-title" style="margin-top:1.5rem"><i class="fa-solid fa-receipt"></i> ประวัติค่าส่วนกลาง</div>
   <div id="feeContainer">
@@ -817,7 +839,7 @@
         <ol>
           <li>ครึ่งปีแรก (01/01–30/06) กรุณาชำระภายใน 31 กรกฎาคม หากชำระล่าช้าอาจมีค่าปรับและเบี้ยประกันและดอกเบี้ยตามข้อบังคับของนิติบุคคล</li>
           <li>ครึ่งปีหลัง (01/07–31/12) กรุณาชำระภายใน 31 มกราคม ของปีถัดไป</li>
-          <li>หลังโอนกรุณาส่งหลักฐานการชำระเงินเข้ามาที่ Line Official ID: @gusto.ssw26 หรือ Scan QR Code</li>
+          <li>หลังโอนกรุณาส่งหลักฐานการชำระเงินเข้ามาที่ Line Official ID: @gusto.ssw26</li>
         </ol>
       </div>
 
