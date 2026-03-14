@@ -224,12 +224,10 @@
 
     /* ── Print ── */
     @media print{
-      /* ซ่อนทุกอย่าง ยกเว้น inv-doc */
+      /* fallback กรณี browser ไม่รองรับ iframe print */
       html,body{height:auto!important;overflow:visible!important;}
       body *{visibility:hidden;}
       .inv-doc,.inv-doc *{visibility:visible;}
-
-      /* reset ทุก container ให้ไม่มี overflow/scroll */
       .inv-modal-bg,.inv-modal-sheet{
         display:block!important;position:static!important;
         background:none!important;opacity:1!important;
@@ -239,44 +237,13 @@
         transform:none!important;
       }
       .inv-modal-actions{display:none!important;}
-
-      /* inv-doc: A4 เต็มหน้า, scale ย่อเนื้อหาให้พอดี */
       .inv-doc{
-        position:absolute!important;
-        left:0!important;top:0!important;
-        width:210mm!important;
-        min-height:0!important;
-        max-height:297mm!important;
-        overflow:hidden!important;
-        padding:8mm 10mm!important;
+        position:absolute!important;left:0!important;top:0!important;
+        width:210mm!important;max-height:297mm!important;
+        overflow:hidden!important;padding:8mm 10mm!important;
         box-shadow:none!important;border-radius:0!important;
         font-size:8.5pt!important;line-height:1.3!important;
-        transform-origin:top left!important;
       }
-
-      /* ลด spacing ทุกส่วนให้กระทัดรัด */
-      .inv-doc .inv-top{padding-bottom:3mm!important;margin-bottom:3mm!important;}
-      .inv-doc .inv-logo{width:48px!important;height:48px!important;font-size:1.3rem!important;}
-      .inv-doc .inv-company{font-size:10pt!important;}
-      .inv-doc .inv-company-sub{font-size:7.5pt!important;}
-      .inv-doc .inv-ref-num{font-size:10pt!important;}
-      .inv-doc .inv-title-bar{margin:2.5mm 0!important;padding:2mm 5mm!important;}
-      .inv-doc .inv-title-bar h2{font-size:11pt!important;}
-      .inv-doc .inv-info-grid{margin-bottom:3mm!important;gap:1mm 4mm!important;font-size:8.5pt!important;}
-      .inv-doc table.inv-table th{padding:2mm 3mm!important;font-size:8pt!important;}
-      .inv-doc table.inv-table td{padding:1.8mm 3mm!important;font-size:8pt!important;border-bottom:0.5pt solid #dde3f0!important;}
-      .inv-doc table.inv-table tfoot td{padding:2mm 3mm!important;font-size:8.5pt!important;}
-      .inv-doc .inv-total-text{padding:2mm 3mm!important;margin-bottom:3mm!important;font-size:8pt!important;}
-      .inv-doc .inv-payment{padding:3mm 5mm!important;margin-bottom:3mm!important;}
-      .inv-doc .inv-payment-title{font-size:9pt!important;margin-bottom:1.5mm!important;}
-      .inv-doc .inv-payment-row{margin-bottom:0.8mm!important;font-size:8pt!important;}
-      .inv-doc .inv-acct-num{font-size:12pt!important;margin:1.5mm 0!important;padding:1.5mm!important;}
-      .inv-doc .inv-warn{font-size:8.5pt!important;padding:1.5mm!important;margin:.5mm 0!important;}
-      .inv-doc .inv-conditions{padding:2mm 4mm!important;margin-top:2.5mm!important;font-size:7.5pt!important;}
-      .inv-doc .inv-conditions-title{margin-bottom:1mm!important;}
-      .inv-doc .inv-conditions li{margin-bottom:0.8mm!important;}
-      .inv-doc .inv-footer{padding-top:2mm!important;margin-top:2mm!important;font-size:7.5pt!important;}
-
       @page{size:A4 portrait;margin:0;}
     }
     .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:400;display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity .25s;}
@@ -881,24 +848,89 @@
   }
 
   function printInvoice(){
-    const doc = document.getElementById('invDoc');
-    // คำนวณ scale: A4 = 210mm = ~794px ที่ 96dpi, content area = 794 - margins
-    const A4_H_PX = 1123; // 297mm @ 96dpi
-    const PAD_PX  = 91;   // 8mm top+bottom padding @ 96dpi (≈ 2×8mm×3.78)
-    const available = A4_H_PX - PAD_PX;
-    const actual    = doc.scrollHeight;
-    if(actual > available){
-      const scale = available / actual;
-      doc.style.transformOrigin = 'top left';
-      doc.style.transform = `scale(${scale.toFixed(4)})`;
-      doc.style.width = `${(100 / scale).toFixed(2)}%`;
+    const docEl = document.getElementById('invDoc');
+    const html  = docEl.innerHTML;
+
+    // ดึง styles ทั้งหมดที่เกี่ยวกับ inv-doc จาก stylesheet หลัก
+    let styles = '';
+    for(const sheet of document.styleSheets){
+      try{
+        for(const rule of sheet.cssRules){
+          const t = rule.cssText||'';
+          if(t.includes('inv-') || t.includes('Sarabun') || t.includes('@import') || t.includes('font-face')){
+            styles += t + '\n';
+          }
+        }
+      }catch(e){}
     }
-    window.print();
-    // reset หลัง print dialog ปิด
-    setTimeout(()=>{
-      doc.style.transform = '';
-      doc.style.width = '';
-    }, 1000);
+
+    // สร้าง iframe ชั่วคราว
+    const iframe = document.createElement('iframe');
+    iframe.style.cssText='position:fixed;right:-9999px;top:-9999px;width:210mm;height:297mm;border:none;';
+    document.body.appendChild(iframe);
+
+    const iDoc = iframe.contentDocument || iframe.contentWindow.document;
+    iDoc.open();
+    iDoc.write(`<!DOCTYPE html>
+<html><head>
+<meta charset="utf-8"/>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;700;800&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Sarabun',sans-serif;font-size:8.5pt;line-height:1.35;color:#111;background:#fff;width:210mm;}
+@page{size:A4 portrait;margin:0;}
+@media print{html,body{width:210mm;height:297mm;overflow:hidden;}}
+
+/* inv-doc reset */
+.inv-doc{padding:7mm 10mm;font-size:8.5pt;line-height:1.35;color:#111;background:#fff;}
+.inv-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:3mm;padding-bottom:3mm;border-bottom:2px solid #1a3a5c;}
+.inv-logo-area{display:flex;align-items:center;gap:3mm;}
+.inv-logo{width:48px;height:48px;border-radius:50%;border:2px solid #1a3a5c;display:flex;align-items:center;justify-content:center;font-size:1.4rem;background:#e8efff;flex-shrink:0;}
+.inv-company{font-size:10pt;font-weight:800;color:#1a3a5c;line-height:1.3;}
+.inv-company-sub{font-size:7.5pt;color:#555;margin-top:1mm;}
+.inv-ref{text-align:right;font-size:7.5pt;color:#555;}
+.inv-ref-num{font-size:10pt;font-weight:700;color:#1a3a5c;}
+.inv-title-bar{text-align:center;margin:2.5mm 0;padding:2mm 5mm;border:2px solid #1a3a5c;border-radius:3px;display:flex;align-items:center;justify-content:space-between;}
+.inv-title-bar h2{font-size:11pt;font-weight:800;color:#1a3a5c;margin:0;}
+.inv-title-original{font-size:9pt;font-weight:700;color:#dc2626;}
+.inv-info-grid{display:grid;grid-template-columns:1fr 1fr;gap:1mm 4mm;margin-bottom:3mm;font-size:8.5pt;}
+.inv-info-row{display:flex;gap:1.5mm;}
+.inv-info-lbl{color:#555;white-space:nowrap;min-width:55px;font-size:8pt;}
+.inv-info-val{font-weight:700;color:#111;}
+table.inv-table{width:100%;border-collapse:collapse;margin-bottom:3mm;font-size:8pt;}
+table.inv-table th{background:#1a3a5c;color:#fff;padding:2mm 3mm;font-weight:700;}
+table.inv-table th:first-child{text-align:center;width:28px;}
+table.inv-table th:last-child{text-align:right;}
+table.inv-table td{padding:1.8mm 3mm;border-bottom:0.4pt solid #dde3f0;}
+table.inv-table td:first-child{text-align:center;color:#666;width:28px;}
+table.inv-table td:last-child{text-align:right;font-weight:600;}
+table.inv-table tr:nth-child(even) td{background:#f8faff;}
+table.inv-table tfoot td{background:#e8efff;font-weight:800;color:#1a3a5c;padding:2mm 3mm;border-top:1.5pt solid #1a3a5c;}
+table.inv-table tfoot td:last-child{text-align:right;}
+.inv-total-text{font-size:8pt;color:#444;text-align:right;margin-bottom:3mm;font-style:italic;padding:2mm 3mm;background:#fffbe6;border-radius:4px;border:0.5pt solid #fde68a;}
+.inv-payment{background:#f0f4ff;border:1pt solid #bfdbfe;border-radius:5px;padding:3mm 5mm;margin-bottom:3mm;font-size:8pt;}
+.inv-payment-title{font-weight:800;color:#1a3a5c;margin-bottom:1.5mm;font-size:9pt;display:flex;align-items:center;gap:2mm;}
+.inv-payment-row{display:flex;align-items:center;gap:2mm;margin-bottom:0.8mm;}
+.inv-acct-num{font-size:12pt;font-weight:900;color:#1a3a5c;letter-spacing:.06em;text-align:center;margin:1.5mm 0;background:#fff;border-radius:4px;padding:1.5mm;border:0.5pt dashed #bfdbfe;}
+.inv-warn{color:#dc2626;font-weight:800;font-size:8.5pt;text-align:center;margin:.5mm 0;padding:1.5mm;background:#fee2e2;border-radius:4px;}
+.inv-conditions{font-size:7.5pt;color:#555;margin-top:2.5mm;padding:2mm 4mm;background:#f8faff;border-radius:4px;border-left:2.5pt solid #4f7ef7;}
+.inv-conditions-title{font-weight:700;color:#333;margin-bottom:1mm;}
+.inv-conditions ol{margin:0;padding-left:5mm;}
+.inv-conditions li{margin-bottom:0.8mm;}
+.inv-footer{display:flex;justify-content:space-between;font-size:7.5pt;color:#888;border-top:0.5pt solid #dde3f0;padding-top:2mm;margin-top:2mm;}
+${styles}
+</style>
+</head><body><div class="inv-doc">${html}</div></body></html>`);
+    iDoc.close();
+
+    // รอ font โหลดแล้ว print
+    iframe.onload = function(){
+      setTimeout(()=>{
+        iframe.contentWindow.focus();
+        iframe.contentWindow.print();
+        setTimeout(()=>{ document.body.removeChild(iframe); }, 1500);
+      }, 400);
+    };
   }
 
   // แปลงตัวเลขเป็นตัวหนังสือภาษาไทย (฿)
