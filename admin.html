@@ -1493,15 +1493,22 @@
   // ── OVERVIEW ──────────────────────────────────────────────────
 
   async function loadOverview(){
-    const[houses,fees,anns,reports,summary]=await Promise.all([
-      api({action:'getHouses'}),api({action:'getFees'}),api({action:'getAnnouncements'}),
-      api({action:'getNitiReports'}),api({action:'getFeeSummary'})
+    const[houses,fees,anns,reports,summary,carsRes]=await Promise.all([
+      api({action:'getHouses',token}),api({action:'getFees',token}),api({action:'getAnnouncements'}),
+      api({action:'getNitiReports'}),api({action:'getFeeSummary'}),
+      api({action:'getCars',token})
     ]);
     overviewSummary=summary.data;
+
+    // นับรถแยกประเภท
+    const allCars = carsRes.data||[];
+    const carCount = allCars.filter(c=>c.car_type==='car').length;
+    const otherCount = allCars.filter(c=>c.car_type!=='car').length;
+
     document.getElementById('overviewStats').innerHTML=`
       <div class="mini-stat"><div class="mini-stat-icon" style="color:var(--primary)"><i class="fa-solid fa-house"></i></div><div class="mini-stat-val">${houses.data?.length||0}</div><div class="mini-stat-label">บ้านทั้งหมด</div></div>
-      <div class="mini-stat"><div class="mini-stat-icon" style="color:#059669"><i class="fa-solid fa-receipt"></i></div><div class="mini-stat-val">${fees.data?.length||0}</div><div class="mini-stat-label">รายการค่าส่วนกลาง</div></div>
-      <div class="mini-stat"><div class="mini-stat-icon" style="color:#d97706"><i class="fa-solid fa-bullhorn"></i></div><div class="mini-stat-val">${anns.data?.length||0}</div><div class="mini-stat-label">ประกาศ</div></div>
+      <div class="mini-stat"><div class="mini-stat-icon" style="color:#059669"><i class="fa-solid fa-car"></i></div><div class="mini-stat-val">${carCount}</div><div class="mini-stat-label">จำนวนรถยนต์</div></div>
+      <div class="mini-stat"><div class="mini-stat-icon" style="color:#d97706"><i class="fa-solid fa-motorcycle"></i></div><div class="mini-stat-val">${otherCount}</div><div class="mini-stat-label">รถอื่นๆ</div></div>
       <div class="mini-stat"><div class="mini-stat-icon" style="color:#7c3aed"><i class="fa-solid fa-clipboard-list"></i></div><div class="mini-stat-val">${reports.data?.length||0}</div><div class="mini-stat-label">รายงานนิติ</div></div>`;
     overviewLoaded=true;
     drawOverviewCharts();
@@ -1519,8 +1526,13 @@
     if(oDonut){oDonut.destroy();oDonut=null;}
     if(oBar){oBar.destroy();oBar=null;}
     oDonut=new Chart(document.getElementById('ovDonut').getContext('2d'),{type:'doughnut',data:{labels:['ชำระครบ','บางส่วน','ยังไม่ชำระ'],datasets:[{data:[d.hFullPaid,d.hPartial,d.hUnpaid],backgroundColor:['#34c88a','#f6c26b','#f87171'],borderWidth:0,hoverOffset:5}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{color:textC,font:{family:'Sarabun',size:11},padding:12}}},cutout:'62%'}});
-    const soiEntries=Object.entries(d.bySoi||{}).slice(0,7);
-    oBar=new Chart(document.getElementById('ovBar').getContext('2d'),{type:'bar',data:{labels:soiEntries.map(([s])=>s),datasets:[{label:'ชำระครบ',data:soiEntries.map(([,v])=>v.fullPaid),backgroundColor:'#34c88a',borderRadius:5},{label:'ค้างชำระ',data:soiEntries.map(([,v])=>v.unpaid+v.partial),backgroundColor:'#f87171',borderRadius:5}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{color:textC,font:{family:'Sarabun',size:11},padding:12}}},scales:{x:{stacked:true,ticks:{color:textC,font:{family:'Sarabun'}},grid:{color:gridC}},y:{stacked:true,ticks:{color:textC,font:{family:'Sarabun'},stepSize:1},grid:{color:gridC}}}}});
+
+    // แสดง bySoi ครบทุก soi เรียงลำดับซอยแบบตัวเลข
+    const soiEntries=Object.entries(d.bySoi||{}).sort((a,b)=>{
+      const na=parseInt(a[0])||0, nb=parseInt(b[0])||0;
+      return na-nb;
+    });
+    oBar=new Chart(document.getElementById('ovBar').getContext('2d'),{type:'bar',data:{labels:soiEntries.map(([s])=>s),datasets:[{label:'ชำระครบ',data:soiEntries.map(([,v])=>v.fullPaid),backgroundColor:'#34c88a',borderRadius:4,stack:'s'},{label:'ค้างชำระ',data:soiEntries.map(([,v])=>v.unpaid+v.partial),backgroundColor:'#f87171',borderRadius:4,stack:'s'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{color:textC,font:{family:'Sarabun',size:11},padding:12}}},scales:{x:{stacked:true,ticks:{color:textC,font:{family:'Sarabun',size:10}},grid:{color:gridC}},y:{stacked:true,beginAtZero:true,ticks:{color:textC,font:{family:'Sarabun'},stepSize:1},grid:{color:gridC}}}}});
   }
 
   // ── HOUSES ────────────────────────────────────────────────────
