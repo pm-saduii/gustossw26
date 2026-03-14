@@ -448,19 +448,22 @@ function renderCharts(d){
     options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{color:textC,font:{family:'Sarabun',size:12},padding:14}},tooltip:{callbacks:{label:ctx=>`${ctx.label}: ${ctx.raw} หลัง`}}},cutout:'65%',animation:{animateScale:true}}
   });
 
-  // Bar chart by soi
-  const soiEntries=Object.entries(bySoi||{}).slice(0,8);
+  // Bar chart by soi — แสดงทุกซอย เรียงตัวเลข
+  const soiEntries=Object.entries(bySoi||{}).sort((a,b)=>{
+    const na=parseInt(a[0])||0, nb=parseInt(b[0])||0;
+    return na-nb;
+  });
   const bCtx=document.getElementById('barChart').getContext('2d');
   barChart=new Chart(bCtx,{
     type:'bar',
     data:{
       labels:soiEntries.map(([s])=>s),
       datasets:[
-        {label:'ชำระครบ',data:soiEntries.map(([,v])=>v.fullPaid),backgroundColor:'#34c88a',borderRadius:6},
-        {label:'ค้างชำระ',data:soiEntries.map(([,v])=>v.unpaid+v.partial),backgroundColor:'#f87171',borderRadius:6}
+        {label:'ชำระครบ',data:soiEntries.map(([,v])=>v.fullPaid),backgroundColor:'#34c88a',borderRadius:6,stack:'s'},
+        {label:'ค้างชำระ',data:soiEntries.map(([,v])=>v.unpaid+v.partial),backgroundColor:'#f87171',borderRadius:6,stack:'s'}
       ]
     },
-    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{color:textC,font:{family:'Sarabun',size:12},padding:14}}},scales:{x:{stacked:true,ticks:{color:textC,font:{family:'Sarabun'}},grid:{color:gridC}},y:{stacked:true,ticks:{color:textC,font:{family:'Sarabun'},stepSize:1},grid:{color:gridC}}},animation:{duration:900,easing:'easeOutQuart'}}
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{color:textC,font:{family:'Sarabun',size:12},padding:14}}},scales:{x:{stacked:true,ticks:{color:textC,font:{family:'Sarabun',size:10}},grid:{color:gridC}},y:{stacked:true,beginAtZero:true,ticks:{color:textC,font:{family:'Sarabun'},stepSize:1},grid:{color:gridC}}},animation:{duration:900,easing:'easeOutQuart'}}
   });
 }
 
