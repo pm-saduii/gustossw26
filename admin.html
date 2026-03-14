@@ -3287,6 +3287,11 @@
 
   async function loadInvList(){
     document.getElementById('invTbody').innerHTML='<tr><td colspan="11" style="text-align:center;color:var(--muted)">กำลังโหลด...</td></tr>';
+    // โหลด housesData ถ้ายังไม่มี
+    if(!housesData||!housesData.length){
+      const hd = await api({action:'getHouses',token});
+      if(hd.success && hd.data) housesData = hd.data.map(h=>({...h,house_no:_fixHouseNo(h.house_no),soi:_fixSoi(h.soi),phone:_fixPhone(h.phone)}));
+    }
     const d = await api({action:'getInvoices',token});
     invData = d.success ? d.data : [];
     const years = [...new Set(invData.map(r=>r.year).filter(Boolean))].sort((a,b)=>b-a);
@@ -3358,8 +3363,12 @@
     }).join('') : '<div style="text-align:center;color:var(--muted);padding:2rem">ไม่มีข้อมูล</div>';
   }
 
-  function openInvForm(invoice_id){
-    if(!housesData||!housesData.length){ toast('warning','กรุณารอโหลดข้อมูลบ้าน'); return; }
+  async function openInvForm(invoice_id){
+    // โหลด housesData ถ้ายังไม่มี
+    if(!housesData||!housesData.length){
+      const hd = await api({action:'getHouses',token});
+      if(hd.success && hd.data) housesData = hd.data.map(h=>({...h,house_no:_fixHouseNo(h.house_no),soi:_fixSoi(h.soi),phone:_fixPhone(h.phone)}));
+    }
     const sel = document.getElementById('inv_house_id');
     sel.innerHTML = '<option value="">— เลือกบ้าน —</option>' +
       housesData.map(h=>`<option value="${h.house_id}">บ้าน ${h.house_no||h.house_id} ซอย ${h.soi||'0'} · ${h.owner_name||''}</option>`).join('');
