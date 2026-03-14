@@ -570,6 +570,7 @@
           <div class="mini-stat"><div class="skeleton" style="height:80px"></div></div>
           <div class="mini-stat"><div class="skeleton" style="height:80px"></div></div>
           <div class="mini-stat"><div class="skeleton" style="height:80px"></div></div>
+          <div class="mini-stat"><div class="skeleton" style="height:80px"></div></div>
         </div>
         <!-- Dashboard Charts -->
         <div class="chart-grid" id="overviewCharts">
@@ -1509,6 +1510,7 @@
       <div class="mini-stat"><div class="mini-stat-icon" style="color:var(--primary)"><i class="fa-solid fa-house"></i></div><div class="mini-stat-val">${houses.data?.length||0}</div><div class="mini-stat-label">บ้านทั้งหมด</div></div>
       <div class="mini-stat"><div class="mini-stat-icon" style="color:#059669"><i class="fa-solid fa-car"></i></div><div class="mini-stat-val">${carCount}</div><div class="mini-stat-label">จำนวนรถยนต์</div></div>
       <div class="mini-stat"><div class="mini-stat-icon" style="color:#d97706"><i class="fa-solid fa-motorcycle"></i></div><div class="mini-stat-val">${otherCount}</div><div class="mini-stat-label">รถอื่นๆ</div></div>
+      <div class="mini-stat"><div class="mini-stat-icon" style="color:#ea580c"><i class="fa-solid fa-bullhorn"></i></div><div class="mini-stat-val">${anns.data?.length||0}</div><div class="mini-stat-label">ประกาศ</div></div>
       <div class="mini-stat"><div class="mini-stat-icon" style="color:#7c3aed"><i class="fa-solid fa-clipboard-list"></i></div><div class="mini-stat-val">${reports.data?.length||0}</div><div class="mini-stat-label">รายงานนิติ</div></div>`;
     overviewLoaded=true;
     drawOverviewCharts();
