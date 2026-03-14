@@ -162,6 +162,7 @@ function handleRequest(e) {
       case 'getPayments':      result = requireAdmin(data, getPayments); break;
       case 'savePayment':      result = requireAdmin(data, savePayment); break;
       case 'deletePayment':    result = requireAdmin(data, deletePayment); break;
+      case 'syncAllStatus':    result = requireAdmin(data, syncAllInvoiceStatus); break;
 
       // Resident — view own payments
       case 'getMyPayments':    result = getMyPayments(data); break;
@@ -1756,18 +1757,27 @@ function _syncInvoiceStatus(invoice_id) {
     var sh   = ensureInvoiceSheet();
     var rows = sh.getDataRange().getValues();
     var hdrs = rows[0];
-    var idCol    = hdrs.indexOf('invoice_id');
-    var statCol  = hdrs.indexOf('status');
-    if (statCol < 0) return;
+    var idCol   = hdrs.indexOf('invoice_id');
+    var statCol = hdrs.indexOf('status');
 
-    var paySheet = ensurePaymentSheet();
-    var payObjs  = sheetToObjects(paySheet).filter(p => p.invoice_id === invoice_id);
-    var totalPaid = payObjs.reduce((s,p)=>s+parseFloat(p.net_paid||0),0);
+    // ถ้ายังไม่มี column status → เพิ่มต่อท้าย
+    if (statCol < 0) {
+      statCol = hdrs.length;
+      sh.getRange(1, statCol + 1).setValue('status');
+      hdrs.push('status');
+    }
+
+    var payObjs = sheetToObjects(ensurePaymentSheet());
+    // นับ net_paid ที่เกี่ยวกับ invoice นี้ (ทั้ง invoice_id และ invoice_id_h2)
+    var totalPaid = payObjs
+      .filter(p => String(p.invoice_id) === String(invoice_id) ||
+                   String(p.invoice_id_h2||'') === String(invoice_id))
+      .reduce((s,p) => s + parseFloat(p.net_paid||0), 0);
 
     for (var i = 1; i < rows.length; i++) {
       if (String(rows[i][idCol]) === String(invoice_id)) {
         var due = parseFloat(rows[i][hdrs.indexOf('total_amount')]||0);
-        var st  = totalPaid <= 0 ? 'sent' : (totalPaid >= due ? 'paid' : 'partial');
+        var st  = totalPaid <= 0 ? 'sent' : (due > 0 && totalPaid >= due ? 'paid' : 'partial');
         sh.getRange(i+1, statCol+1).setValue(st);
         break;
       }
@@ -1798,4 +1808,25 @@ function deletePayment(data, user) {
   _syncCommonFeeFromPayment(payToDelete);
   _syncInvoiceStatus(payToDelete.invoice_id);
   return { success: true, message: 'ลบข้อมูลการชำระสำเร็จ' };
+}
+
+function syncAllInvoiceStatus(data, user) {
+  try {
+    var invSh  = ensureInvoiceSheet();
+    var invRows = invSh.getDataRange().getValues();
+    var invHdrs = invRows[0];
+    var idCol = invHdrs.indexOf('invoice_id');
+    if (idCol < 0) return { success: false, message: 'ไม่พบ column invoice_id' };
+
+    var count = 0;
+    for (var i = 1; i < invRows.length; i++) {
+      var inv_id = String(invRows[i][idCol]||'').trim();
+      if (!inv_id) continue;
+      _syncInvoiceStatus(inv_id);
+      count++;
+    }
+    return { success: true, message: 'Sync สถานะ ' + count + ' ใบ สำเร็จ' };
+  } catch(e) {
+    return { success: false, message: e.toString() };
+  }
 }

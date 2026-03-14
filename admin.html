@@ -969,6 +969,7 @@
                 <option value="2">🍂 ครึ่งปีหลัง</option>
               </select>
               <button class="btn btn-outline btn-sm" onclick="loadInvList()"><i class="fa-solid fa-rotate"></i> รีโหลด</button>
+              <button class="btn btn-outline btn-sm" onclick="syncAllStatus()" title="คำนวณสถานะใหม่ทั้งหมดจาก Payment"><i class="fa-solid fa-arrows-rotate"></i> Sync สถานะ</button>
             </div>
           </div>
         </div>
@@ -3337,6 +3338,15 @@
     const m={'draft':['draft','ฉบับร่าง'],'sent':['sent','รอชำระ'],'partial':['partial','ชำระบางส่วน'],'paid':['paid','ชำระแล้ว']};
     const [cls,txt]=m[s]||['sent','รอชำระ'];
     return `<span class="inv-status ${cls}">${txt}</span>`;
+  }
+
+  async function syncAllStatus(){
+    const btn = event.currentTarget;
+    btn.disabled=true; btn.innerHTML='<i class="fa-solid fa-spinner fa-spin"></i> กำลัง Sync...';
+    const r = await apiPost({action:'syncAllStatus',token});
+    btn.disabled=false; btn.innerHTML='<i class="fa-solid fa-arrows-rotate"></i> Sync สถานะ';
+    if(r.success){ toast('success', r.message); loadInvList(); }
+    else toast('error', r.message||'เกิดข้อผิดพลาด');
   }
 
   function renderInvTable(){
