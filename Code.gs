@@ -17,7 +17,8 @@ const SHEETS = {
   NITI_REPORT: 'NitiReport',
   CARS: 'Cars',
   CAR_REQUESTS: 'CarRequests',
-  INVOICE_DETAILS: 'InvoiceDetails'
+  INVOICE_DETAILS: 'InvoiceDetails',
+  INVOICE_PAYMENTS: 'InvoicePayments'
 };
 
 // ── Token Security ────────────────────────────────────────────
@@ -156,6 +157,14 @@ function handleRequest(e) {
       case 'getInvoices':      result = requireAdmin(data, getInvoices); break;
       case 'saveInvoice':      result = requireAdmin(data, saveInvoice); break;
       case 'deleteInvoice':    result = requireAdmin(data, deleteInvoice); break;
+
+      // Admin — Invoice Payments
+      case 'getPayments':      result = requireAdmin(data, getPayments); break;
+      case 'savePayment':      result = requireAdmin(data, savePayment); break;
+      case 'deletePayment':    result = requireAdmin(data, deletePayment); break;
+
+      // Resident — view own payments
+      case 'getMyPayments':    result = getMyPayments(data); break;
 
       // Admin — File Upload
       case 'uploadFile':       result = requireAdmin(data, (d) => handleUpload(d)); break;
@@ -1403,7 +1412,7 @@ function ensureInvoiceSheet() {
       'invoice_id','house_id','year','half',
       'fee_common','fee_car','fee_waste',
       'fee_overdue','fee_fine','fee_process','fee_other',
-      'total_amount','total_text','due_date','issued_date','note'
+      'total_amount','total_text','due_date','issued_date','note','status'
     ];
     sh.getRange(1, 1, 1, headers.length).setValues([headers]);
     // Style header row
@@ -1457,7 +1466,7 @@ function saveInvoice(data, user) {
     'invoice_id','house_id','year','half',
     'fee_common','fee_car','fee_waste',
     'fee_overdue','fee_fine','fee_process','fee_other',
-    'total_amount','total_text','due_date','issued_date','note'
+    'total_amount','total_text','due_date','issued_date','note','status'
   ];
 
   // Auto generate invoice_id if empty
@@ -1480,6 +1489,7 @@ function saveInvoice(data, user) {
     var now = new Date();
     data.issued_date = `${now.getDate().toString().padStart(2,'0')}/${(now.getMonth()+1).toString().padStart(2,'0')}/${now.getFullYear()+543}`;
   }
+  if (!data.status) data.status = 'sent';
 
   // Check if exists (same house_id + year + half)
   let existRow = -1;
@@ -1515,4 +1525,277 @@ function deleteInvoice(data, user) {
     }
   }
   return { success: false, message: 'ไม่พบใบแจ้งหนี้' };
+}
+
+// ══════════════════════════════════════════════════════════════
+// ── Invoice Payments ─────────────────────────────────────────
+// ══════════════════════════════════════════════════════════════
+
+function ensurePaymentSheet() {
+  var ss = SpreadsheetApp.openById(SHEET_ID);
+  var sh = ss.getSheetByName(SHEETS.INVOICE_PAYMENTS);
+  if (!sh) {
+    sh = ss.insertSheet(SHEETS.INVOICE_PAYMENTS);
+    var headers = [
+      'receipt_no','payment_id','invoice_id','invoice_id_h2','house_id','year','half','payment_scope',
+      'paid_amount','discount_pct','discount_amt','net_paid','overdue_amount',
+      'paid_date','note','confirmed_by','confirmed_at'
+    ];
+    sh.getRange(1,1,1,headers.length).setValues([headers]);
+    var hRange = sh.getRange(1,1,1,headers.length);
+    hRange.setBackground('#1a3a5c').setFontColor('#ffffff').setFontWeight('bold').setHorizontalAlignment('center');
+    [130,160,160,160,90,60,50,90,
+     110,90,110,110,110,
+     100,200,100,140].forEach((w,i)=>sh.setColumnWidth(i+1,w));
+    sh.setFrozenRows(1);
+    sh.getRange(2,1,300,headers.length).applyRowBanding(SpreadsheetApp.BandingTheme.LIGHT_GREY);
+  }
+  return sh;
+}
+
+function getPayments(data, user) {
+  const sh = ensurePaymentSheet();
+  var rows = sheetToObjects(sh);
+  // รองรับ full_year: payment เชื่อมทั้ง invoice_id และ invoice_id_h2
+  if (data.invoice_id) rows = rows.filter(r => r.invoice_id===data.invoice_id || String(r.invoice_id_h2||'')===data.invoice_id);
+  if (data.receipt_no) rows = rows.filter(r => r.receipt_no===data.receipt_no);
+  if (data.house_id)   rows = rows.filter(r => String(r.house_id)===String(data.house_id));
+  if (data.year)       rows = rows.filter(r => String(r.year)===String(data.year));
+  return { success: true, data: rows };
+}
+
+function getMyPayments(data) {
+  const user = verifyToken(data.token);
+  if (!user) return { success: false, message: 'กรุณาเข้าสู่ระบบ' };
+  const sh = ensurePaymentSheet();
+  var rows = sheetToObjects(sh).filter(r => String(r.house_id)===String(user.house_id));
+  if (data.year) rows = rows.filter(r => String(r.year)===String(data.year));
+  return { success: true, data: rows };
+}
+
+function _genReceiptNo(house_id, year) {
+  var sh   = ensurePaymentSheet();
+  var rows = sheetToObjects(sh);
+  var prefix = 'REC-' + String(house_id) + '-' + String(year) + '-';
+  var existing = rows.filter(function(r){ return String(r.receipt_no||'').startsWith(prefix); });
+  var next = existing.length + 1;
+  return prefix + String(next).padStart(3,'0');
+}
+
+function savePayment(data, user) {
+  var sh   = ensurePaymentSheet();
+  var rows = sh.getDataRange().getValues();
+  var hdrs = rows[0];
+  var pidCol = hdrs.indexOf('payment_id');
+
+  if (!data.payment_id) {
+    data.payment_id = 'PAY-' + Date.now().toString(36).toUpperCase().slice(-8);
+  }
+  if (!data.receipt_no) {
+    data.receipt_no = _genReceiptNo(data.house_id, data.year);
+  }
+  if (!data.confirmed_at) {
+    var d = new Date();
+    data.confirmed_at = d.getDate().toString().padStart(2,'0') + '/' +
+      (d.getMonth()+1).toString().padStart(2,'0') + '/' +
+      (d.getFullYear()+543) + ' ' +
+      d.getHours().toString().padStart(2,'0') + ':' + d.getMinutes().toString().padStart(2,'0');
+  }
+  if (!data.confirmed_by) data.confirmed_by = user.username || 'admin';
+
+  var paid      = parseFloat(data.paid_amount    || 0);
+  var discPct   = parseFloat(data.discount_pct   || 0);
+  var feeBase   = parseFloat(data.fee_common_base || 0);
+  var discAmt   = feeBase > 0 ? Math.round(feeBase * discPct / 100 * 100) / 100
+                              : parseFloat(data.discount_amt || 0);
+  var netPaid   = Math.round((paid - discAmt) * 100) / 100;
+
+  data.discount_amt    = discAmt;
+  data.net_paid        = netPaid;
+  data.payment_scope   = data.payment_scope   || 'half';
+  data.overdue_amount  = data.overdue_amount  || 0;
+  data.invoice_id_h2   = data.invoice_id_h2   || '';
+
+  const fields = [
+    'receipt_no','payment_id','invoice_id','invoice_id_h2','house_id','year','half','payment_scope',
+    'paid_amount','discount_pct','discount_amt','net_paid','overdue_amount',
+    'paid_date','note','confirmed_by','confirmed_at'
+  ];
+
+  var existRow = -1;
+  for (var i = 1; i < rows.length; i++) {
+    if (String(rows[i][pidCol]) === String(data.payment_id)) { existRow = i+1; break; }
+  }
+  const rowData = fields.map(function(f){ return data[f] !== undefined ? data[f] : ''; });
+  if (existRow > 0) {
+    sh.getRange(existRow,1,1,fields.length).setValues([rowData]);
+  } else {
+    sh.appendRow(rowData);
+  }
+
+  if (data.payment_scope === 'full_year') {
+    _syncCommonFeeHalf(data, '1', data.invoice_id);
+    _syncCommonFeeHalf(data, '2', data.invoice_id_h2);
+    if (data.invoice_id)    _syncInvoiceStatus(data.invoice_id);
+    if (data.invoice_id_h2) _syncInvoiceStatus(data.invoice_id_h2);
+  } else {
+    _syncCommonFeeFromPayment(data);
+    _syncInvoiceStatus(data.invoice_id);
+  }
+
+  return {
+    success: true, message: 'บันทึกการชำระเงินสำเร็จ',
+    payment_id: data.payment_id, receipt_no: data.receipt_no,
+    net_paid: netPaid, discount_amt: discAmt
+  };
+}
+
+function _syncCommonFeeHalf(payData, halfStr, invoice_id) {
+  try {
+    var feeSh   = getSheet(SHEETS.COMMON_FEE);
+    var feeRows = feeSh.getDataRange().getValues();
+    var feeHdr  = feeRows[0];
+    var houseCol = feeHdr.indexOf('house_id');
+    var yearCol  = feeHdr.indexOf('year');
+
+    var payObjs  = sheetToObjects(ensurePaymentSheet());
+    var halfPays = payObjs.filter(function(p) {
+      if (String(p.house_id)!==String(payData.house_id)||String(p.year)!==String(payData.year)) return false;
+      if (p.payment_scope==='full_year') {
+        return halfStr==='1' ? (p.invoice_id===invoice_id) : (String(p.invoice_id_h2)===String(invoice_id));
+      }
+      return String(p.half)===halfStr;
+    });
+    var totalPaid = halfPays.reduce(function(s,p){return s+parseFloat(p.net_paid||0);},0);
+
+    var invObjs = sheetToObjects(ensureInvoiceSheet());
+    var inv     = invObjs.find(function(i){return String(i.invoice_id)===String(invoice_id);});
+    var due     = inv ? parseFloat(inv.total_amount||0) : 0;
+    var status  = totalPaid<=0 ? 'unpaid' : (due>0&&totalPaid>=due ? 'paid' : 'partial');
+
+    var h1Prefix = halfStr==='1';
+    var statKey  = h1Prefix ? 'h1_status' : 'h2_status';
+    var paidKey  = h1Prefix ? 'h1_paid'   : 'h2_paid';
+
+    var found = false;
+    for (var i=1; i<feeRows.length; i++) {
+      if (String(feeRows[i][houseCol])===String(payData.house_id) && String(feeRows[i][yearCol])===String(payData.year)) {
+        var sc=feeHdr.indexOf(statKey); var pc=feeHdr.indexOf(paidKey);
+        if (sc>=0) feeSh.getRange(i+1,sc+1).setValue(status);
+        if (pc>=0) feeSh.getRange(i+1,pc+1).setValue(totalPaid);
+        found=true; break;
+      }
+    }
+    if (!found) {
+      var newRow = new Array(feeHdr.length).fill('');
+      newRow[houseCol]=payData.house_id; newRow[yearCol]=payData.year;
+      var si=feeHdr.indexOf(statKey); var pi=feeHdr.indexOf(paidKey);
+      if(si>=0) newRow[si]=status; if(pi>=0) newRow[pi]=totalPaid;
+      var os=feeHdr.indexOf(h1Prefix?'h2_status':'h1_status');
+      if(os>=0) newRow[os]='unpaid';
+      feeSh.appendRow(newRow);
+    }
+  } catch(e) { Logger.log('_syncCommonFeeHalf error: '+e); }
+}
+
+function _syncCommonFeeFromPayment(payData) {
+  try {
+    var feeSh  = getSheet(SHEETS.COMMON_FEE);
+    var feeRows = feeSh.getDataRange().getValues();
+    var feeHdr  = feeRows[0];
+    var houseCol = feeHdr.indexOf('house_id');
+    var yearCol  = feeHdr.indexOf('year');
+
+    // ตัดสินจาก InvoicePayments: รวม net_paid ทั้งหมดของ house+year+half
+    var paySheet = ensurePaymentSheet();
+    var payObjs  = sheetToObjects(paySheet);
+    var h1Total  = payObjs.filter(p => String(p.house_id)===String(payData.house_id) && String(p.year)===String(payData.year) && String(p.half)==='1').reduce((s,p)=>s+parseFloat(p.net_paid||0),0);
+    var h2Total  = payObjs.filter(p => String(p.house_id)===String(payData.house_id) && String(p.year)===String(payData.year) && String(p.half)==='2').reduce((s,p)=>s+parseFloat(p.net_paid||0),0);
+
+    // ดึง invoice เพื่อรู้ total_amount
+    var invSheet = ensureInvoiceSheet();
+    var invObjs  = sheetToObjects(invSheet);
+    var inv1 = invObjs.find(i=>String(i.house_id)===String(payData.house_id)&&String(i.year)===String(payData.year)&&String(i.half)==='1');
+    var inv2 = invObjs.find(i=>String(i.house_id)===String(payData.house_id)&&String(i.year)===String(payData.year)&&String(i.half)==='2');
+    var due1 = inv1 ? parseFloat(inv1.total_amount||0) : 0;
+    var due2 = inv2 ? parseFloat(inv2.total_amount||0) : 0;
+
+    var h1Status = h1Total > 0 ? (due1 > 0 && h1Total >= due1 ? 'paid' : 'partial') : 'unpaid';
+    var h2Status = h2Total > 0 ? (due2 > 0 && h2Total >= due2 ? 'paid' : 'partial') : 'unpaid';
+
+    // หา row ของ house+year ใน CommonFee
+    var found = false;
+    for (var i = 1; i < feeRows.length; i++) {
+      if (String(feeRows[i][houseCol])===String(payData.house_id) && String(feeRows[i][yearCol])===String(payData.year)) {
+        // update h1/h2 status+paid
+        var row = feeRows[i];
+        var setVal = function(col, val) { if(col>=0) feeSh.getRange(i+1,col+1).setValue(val); };
+        setVal(feeHdr.indexOf('h1_status'), h1Status);
+        setVal(feeHdr.indexOf('h1_paid'),   h1Total);
+        setVal(feeHdr.indexOf('h2_status'), h2Status);
+        setVal(feeHdr.indexOf('h2_paid'),   h2Total);
+        found = true; break;
+      }
+    }
+    // ถ้าไม่มี row ให้ append
+    if (!found) {
+      var newRow = new Array(feeHdr.length).fill('');
+      newRow[houseCol] = payData.house_id;
+      newRow[yearCol]  = payData.year;
+      var setIdx = function(name, val) { var c=feeHdr.indexOf(name); if(c>=0) newRow[c]=val; };
+      setIdx('h1_status', h1Status); setIdx('h1_paid', h1Total);
+      setIdx('h2_status', h2Status); setIdx('h2_paid', h2Total);
+      feeSh.appendRow(newRow);
+    }
+  } catch(e) { Logger.log('_syncCommonFeeFromPayment error: ' + e); }
+}
+
+function _syncInvoiceStatus(invoice_id) {
+  if (!invoice_id) return;
+  try {
+    var sh   = ensureInvoiceSheet();
+    var rows = sh.getDataRange().getValues();
+    var hdrs = rows[0];
+    var idCol    = hdrs.indexOf('invoice_id');
+    var statCol  = hdrs.indexOf('status');
+    if (statCol < 0) return;
+
+    var paySheet = ensurePaymentSheet();
+    var payObjs  = sheetToObjects(paySheet).filter(p => p.invoice_id === invoice_id);
+    var totalPaid = payObjs.reduce((s,p)=>s+parseFloat(p.net_paid||0),0);
+
+    for (var i = 1; i < rows.length; i++) {
+      if (String(rows[i][idCol]) === String(invoice_id)) {
+        var due = parseFloat(rows[i][hdrs.indexOf('total_amount')]||0);
+        var st  = totalPaid <= 0 ? 'sent' : (totalPaid >= due ? 'paid' : 'partial');
+        sh.getRange(i+1, statCol+1).setValue(st);
+        break;
+      }
+    }
+  } catch(e) { Logger.log('_syncInvoiceStatus error: ' + e); }
+}
+
+function deletePayment(data, user) {
+  const { payment_id } = data;
+  if (!payment_id) return { success: false, message: 'ไม่พบ payment_id' };
+  var sh   = ensurePaymentSheet();
+  var rows = sh.getDataRange().getValues();
+  var hdrs = rows[0];
+  var pidCol = hdrs.indexOf('payment_id');
+  // หา payment ที่จะลบก่อน เพื่อ sync ทีหลัง
+  var payToDelete = null;
+  for (var i = rows.length-1; i >= 1; i--) {
+    if (String(rows[i][pidCol]) === String(payment_id)) {
+      var obj = {};
+      hdrs.forEach((h,j)=>{ obj[h]=String(rows[i][j]); });
+      payToDelete = obj;
+      sh.deleteRow(i+1);
+      break;
+    }
+  }
+  if (!payToDelete) return { success: false, message: 'ไม่พบข้อมูลการชำระ' };
+  // sync กลับ
+  _syncCommonFeeFromPayment(payToDelete);
+  _syncInvoiceStatus(payToDelete.invoice_id);
+  return { success: true, message: 'ลบข้อมูลการชำระสำเร็จ' };
 }

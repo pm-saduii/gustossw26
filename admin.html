@@ -100,6 +100,10 @@
     [data-theme="dark"] .btn-danger{background:#2a1010;}
     [data-theme="dark"] .btn-danger:hover{background:#3d1515;}
     .btn-success{background:#d1fae5;color:#059669;}
+    .btn-success:hover{background:#a7f3d0;}
+    [data-theme="dark"] .btn-success{background:#0a2a1e;color:#34d399;}
+    [data-theme="dark"] .btn-success:hover{background:#0d3828;}
+    .btn-success{background:#d1fae5;color:#059669;}
     .btn-success:hover{background:#6ee7b7;}
     [data-theme="dark"] .btn-success{background:#0d2a1e;color:#34d399;}
     .btn-outline{background:var(--card);color:var(--text);border:1.5px solid var(--border);}
@@ -143,7 +147,19 @@
     .ann-table{min-width:560px;}
     .niti-table{min-width:600px;}
     .cars-table{min-width:640px;}
-    .inv-admin-table{min-width:820px;}
+    .inv-admin-table{min-width:860px;}
+    .pay-scope-btn{flex:1;padding:.45rem .5rem;border:1.5px solid var(--border);border-radius:10px;background:var(--card2);color:var(--text2);font-family:'Sarabun',sans-serif;font-size:.78rem;font-weight:700;cursor:pointer;transition:all .15s;}
+    .pay-scope-btn.active{background:var(--primary);color:#fff;border-color:var(--primary);}
+    .pay-scope-btn:hover:not(.active){background:var(--primary-l);border-color:var(--primary);}
+    .inv-status{font-size:.7rem;font-weight:700;padding:.18rem .6rem;border-radius:20px;display:inline-block;white-space:nowrap;}
+    .inv-status.draft{background:#f1f5f9;color:#64748b;}
+    .inv-status.sent{background:#fef3c7;color:#d97706;}
+    .inv-status.partial{background:#dbeafe;color:#1d4ed8;}
+    .inv-status.paid{background:#d1fae5;color:#059669;}
+    [data-theme=dark] .inv-status.draft{background:#1e293b;color:#94a3b8;}
+    [data-theme=dark] .inv-status.sent{background:#2a1f0a;color:#fbbf24;}
+    [data-theme=dark] .inv-status.partial{background:#0a1a2e;color:#60a5fa;}
+    [data-theme=dark] .inv-status.paid{background:#0a2a1e;color:#34d399;}
     th{text-align:left;padding:.55rem .9rem;font-size:.75rem;font-weight:700;color:var(--muted);border-bottom:1px solid var(--border);white-space:nowrap;background:var(--card2);cursor:pointer;user-select:none;transition:background .15s;}
     th:hover{color:var(--primary);}
     th .sort-i{margin-left:.25rem;opacity:.4;font-size:.65rem;}
@@ -963,9 +979,9 @@
               <table class="inv-admin-table"><thead><tr>
                 <th>บ้านเลขที่</th><th>ซอย</th><th>ปี</th><th>ครึ่งปี</th>
                 <th>ค่าส่วนกลาง</th><th>ค่ารถ</th><th>ค่าขยะ</th><th>ค้างชำระ</th><th>รวมทั้งสิ้น</th>
-                <th>กำหนดชำระ</th><th>จัดการ</th>
+                <th>กำหนดชำระ</th><th>สถานะ</th><th>จัดการ</th>
               </tr></thead><tbody id="invTbody">
-                <tr><td colspan="11"><div class="skeleton"></div></td></tr>
+                <tr><td colspan="12"><div class="skeleton"></div></td></tr>
               </tbody></table>
             </div>
           </div>
@@ -3317,6 +3333,12 @@
 
   function fmtNum(v){ return v&&!isNaN(v)?Number(v).toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2}):'—'; }
 
+  function invStatusLabel(s){
+    const m={'draft':['draft','ฉบับร่าง'],'sent':['sent','รอชำระ'],'partial':['partial','ชำระบางส่วน'],'paid':['paid','ชำระแล้ว']};
+    const [cls,txt]=m[s]||['sent','รอชำระ'];
+    return `<span class="inv-status ${cls}">${txt}</span>`;
+  }
+
   function renderInvTable(){
     const halfIcon = {'1':'🌸','2':'🍂'};
     document.getElementById('invTbody').innerHTML = invFiltered.length ? invFiltered.map(r=>{
@@ -3332,12 +3354,14 @@
         <td>${fmtNum(r.fee_overdue)}</td>
         <td style="font-weight:800;color:var(--primary)">${fmtNum(r.total_amount)}</td>
         <td>${r.due_date||'—'}</td>
+        <td>${invStatusLabel(r.status)}</td>
         <td><div class="actions">
+          <button class="btn btn-success btn-sm" onclick="openPayForm('${r.invoice_id}')" title="บันทึกการชำระ"><i class="fa-solid fa-money-bill-wave"></i></button>
           <button class="btn btn-primary btn-sm" onclick="openInvForm('${r.invoice_id}')"><i class="fa-solid fa-pen"></i></button>
           <button class="btn btn-danger btn-sm" onclick="delInv('${r.invoice_id}')"><i class="fa-solid fa-trash"></i></button>
         </div></td>
       </tr>`;
-    }).join('') : '<tr><td colspan="11" style="text-align:center;color:var(--muted);padding:2rem">ไม่มีข้อมูล</td></tr>';
+    }).join('') : '<tr><td colspan="12" style="text-align:center;color:var(--muted);padding:2rem">ไม่มีข้อมูล</td></tr>';
 
     document.getElementById('invMobileList').innerHTML = invFiltered.length ? invFiltered.map(r=>{
       const h = housesData.find(x=>x.house_id===r.house_id)||{};
@@ -3348,7 +3372,7 @@
             <div class="mcard-title">🏠 บ้าน ${h.house_no||r.house_id} ซอย ${h.soi||'—'}</div>
             <div class="mcard-sub">${halfLabel} ปี ${r.year} · ครบกำหนด ${r.due_date||'—'}</div>
           </div>
-          <span style="font-weight:800;color:var(--primary);font-size:.9rem">${fmtNum(r.total_amount)} ฿</span>
+          <div style="text-align:right">${invStatusLabel(r.status)}<br><span style="font-weight:800;color:var(--primary);font-size:.9rem">${fmtNum(r.total_amount)} ฿</span></div>
         </div>
         <div class="mcard-rows">
           <div class="mcard-row"><span class="mcard-lbl">ค่าส่วนกลาง</span><span class="mcard-val">${fmtNum(r.fee_common)} ฿</span></div>
@@ -3356,6 +3380,7 @@
           <div class="mcard-row"><span class="mcard-lbl">ค้างชำระ</span><span class="mcard-val" style="color:var(--unpaid-c)">${fmtNum(r.fee_overdue)} ฿</span></div>
         </div>
         <div class="mcard-actions">
+          <button class="btn btn-success btn-sm" onclick="openPayForm('${r.invoice_id}')"><i class="fa-solid fa-money-bill-wave"></i> บันทึกชำระ</button>
           <button class="btn btn-primary btn-sm" onclick="openInvForm('${r.invoice_id}')"><i class="fa-solid fa-pen"></i> แก้ไข</button>
           <button class="btn btn-danger btn-sm" onclick="delInv('${r.invoice_id}')"><i class="fa-solid fa-trash"></i> ลบ</button>
         </div>
@@ -3451,9 +3476,404 @@
     else toast('error',r.message);
   }
 
+  // ══════════════════════════════════════════════════════════
+  // ── Payment Management ─────────────────────────────────
+  // ══════════════════════════════════════════════════════════
+  let _payScope    = 'half1';   // 'half1' | 'half2' | 'full_year'
+  let _payInvH1    = null;      // invoice object ครึ่งปีแรก
+  let _payInvH2    = null;      // invoice object ครึ่งปีหลัง
+  let _payHouseId  = null;
+  let _payYear     = null;
+  let _payHistory  = [];
+
+  async function openPayForm(invoice_id){
+    // หา invoice และบ้านของ invoice นั้น
+    const inv = invData.find(r=>r.invoice_id===invoice_id);
+    if(!inv){ toast('warning','ไม่พบข้อมูลใบแจ้งหนี้'); return; }
+
+    _payHouseId = inv.house_id;
+    _payYear    = inv.year;
+
+    // หา invoice ทั้ง 2 ครึ่งปีของบ้านนี้
+    _payInvH1 = invData.find(r=>r.house_id===inv.house_id && String(r.year)===String(inv.year) && String(r.half)==='1') || null;
+    _payInvH2 = invData.find(r=>r.house_id===inv.house_id && String(r.year)===String(inv.year) && String(r.half)==='2') || null;
+
+    // default scope ตาม invoice ที่คลิก
+    const defaultScope = String(inv.half)==='2' ? 'half2' : 'half1';
+
+    // ข้อมูลบ้าน
+    const h = housesData.find(x=>x.house_id===inv.house_id)||{};
+    document.getElementById('payInvSummary').innerHTML=`
+      <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:.35rem">
+        <span><i class="fa-solid fa-house" style="color:var(--primary)"></i> <strong>บ้าน ${h.house_no||inv.house_id} ซอย ${h.soi||'0'}</strong> · ${h.owner_name||''}</span>
+        <span>ปี ${inv.year}</span>
+      </div>`;
+
+    document.getElementById('pay_payment_id').value  = '';
+    document.getElementById('pay_house_id').value    = inv.house_id;
+    document.getElementById('pay_year').value        = inv.year;
+
+    const now = new Date();
+    document.getElementById('pay_paid_date').value = `${now.getDate().toString().padStart(2,'0')}/${(now.getMonth()+1).toString().padStart(2,'0')}/${now.getFullYear()+543}`;
+
+    // โหลด history สำหรับบ้านนี้ปีนี้
+    await loadPayHistory(inv.house_id, inv.year);
+
+    setPayScope(defaultScope);
+    openModal('modalPayForm');
+  }
+
+  function setPayScope(scope){
+    _payScope = scope;
+    ['scopeBtn1','scopeBtn2','scopeBtnFY'].forEach(id=>document.getElementById(id)?.classList.remove('active'));
+    document.getElementById(scope==='half1'?'scopeBtn1':scope==='half2'?'scopeBtn2':'scopeBtnFY')?.classList.add('active');
+
+    const inv1Due = _payInvH1 ? parseFloat(_payInvH1.total_amount||0) : 0;
+    const inv2Due = _payInvH2 ? parseFloat(_payInvH2.total_amount||0) : 0;
+    const inv1FC  = _payInvH1 ? parseFloat(_payInvH1.fee_common||0)   : 0;
+    const inv2FC  = _payInvH2 ? parseFloat(_payInvH2.fee_common||0)   : 0;
+
+    let totalDue=0, feeBase=0, discPct=0, inv_id='', inv_id_h2='', half='1';
+    if(scope==='half1'){
+      totalDue=inv1Due; feeBase=inv1FC; inv_id=_payInvH1?.invoice_id||''; half='1';
+      document.getElementById('discBaseLabel').textContent='(ค่าส่วนกลาง H1)';
+    } else if(scope==='half2'){
+      totalDue=inv2Due; feeBase=inv2FC; inv_id=_payInvH2?.invoice_id||''; half='2';
+      document.getElementById('discBaseLabel').textContent='(ค่าส่วนกลาง H2)';
+    } else { // full_year
+      totalDue=inv1Due+inv2Due; feeBase=inv1FC+inv2FC; discPct=3;
+      inv_id=_payInvH1?.invoice_id||''; inv_id_h2=_payInvH2?.invoice_id||''; half='1';
+      document.getElementById('discBaseLabel').textContent='(H1+H2 fee_common × 3%)';
+    }
+
+    document.getElementById('pay_invoice_id').value    = inv_id;
+    document.getElementById('pay_invoice_id_h2').value = inv_id_h2||'';
+    document.getElementById('pay_scope').value          = scope==='full_year'?'full_year':'half';
+    document.getElementById('pay_total_due').value      = totalDue.toFixed(2);
+    document.getElementById('pay_paid_amount').value    = totalDue.toFixed(2);
+    document.getElementById('pay_discount_pct').value   = discPct;
+    // คำนวณส่วนลด
+    const discAmt = Math.round(feeBase * discPct / 100 * 100)/100;
+    document.getElementById('pay_discount_amt').value   = discAmt.toFixed(2);
+    document.getElementById('pay_net_paid').value       = Math.max(0, totalDue - discAmt).toFixed(2);
+    // ยอดค้างชำระ = ดึงจาก history ที่โหลดไว้
+    const paidSoFar = _payHistory
+      .filter(p=> scope==='full_year'
+        ? true
+        : scope==='half1' ? (p.invoice_id===inv_id && p.payment_scope!=='full_year')
+                          : (p.invoice_id===inv_id && p.payment_scope!=='full_year'))
+      .reduce((s,p)=>s+parseFloat(p.net_paid||0),0);
+    const overdue = Math.max(0, totalDue - paidSoFar);
+    document.getElementById('pay_overdue_amount').value = overdue.toFixed(2);
+    // store feeBase for calcPayNet
+    document.getElementById('pay_overdue_amount').dataset.feeBase = feeBase;
+  }
+
+  async function loadPayHistory(house_id, year){
+    const r = await api({action:'getPayments',token,house_id,year});
+    _payHistory = r.success ? r.data : [];
+    renderPayHistory();
+  }
+
+  function renderPayHistory(){
+    const el = document.getElementById('payHistoryList');
+    if(!_payHistory.length){
+      el.innerHTML='<div style="color:var(--muted);text-align:center;padding:.5rem">ยังไม่มีการชำระ</div>';
+      return;
+    }
+    const scopeLabel={'half':'ครึ่งปี','half1':'ครึ่งปีแรก','half2':'ครึ่งปีหลัง','full_year':'เต็มปี'};
+    el.innerHTML = _payHistory.map(p=>`
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:.45rem .6rem;border-radius:8px;background:var(--bg2);margin-bottom:.35rem;gap:.5rem;flex-wrap:wrap">
+        <div>
+          <span style="font-weight:700;color:#059669">${fmtNum(p.net_paid)} ฿</span>
+          <span style="background:#e0f2fe;color:#0369a1;font-size:.7rem;padding:.1rem .4rem;border-radius:10px;margin-left:.35rem">${scopeLabel[p.payment_scope]||p.payment_scope||'—'}</span>
+          <span style="color:var(--muted);margin-left:.35rem;font-size:.78rem">${p.paid_date||'—'}</span>
+          ${parseFloat(p.discount_amt||0)>0?`<span style="color:#d97706;font-size:.75rem;margin-left:.35rem">ส่วนลด ${fmtNum(p.discount_amt)} ฿</span>`:''}
+          <span style="font-size:.72rem;color:var(--muted);margin-left:.35rem">#${p.receipt_no||p.payment_id}</span>
+        </div>
+        <div style="display:flex;gap:.4rem;align-items:center">
+          ${p.note?`<span style="font-size:.75rem;color:var(--muted)">${p.note}</span>`:''}
+          <button class="btn btn-outline btn-sm" style="padding:.2rem .5rem" onclick="printReceipt('${p.payment_id}')" title="พิมพ์ใบเสร็จ"><i class="fa-solid fa-print"></i></button>
+          <button class="btn btn-danger btn-sm" style="padding:.2rem .5rem" onclick="delPayment('${p.payment_id}')"><i class="fa-solid fa-trash"></i></button>
+        </div>
+      </div>`).join('');
+  }
+
+  function calcPayNet(){
+    const paid    = parseFloat(document.getElementById('pay_paid_amount').value)||0;
+    const discPct = parseFloat(document.getElementById('pay_discount_pct').value)||0;
+    const feeBase = parseFloat(document.getElementById('pay_overdue_amount').dataset.feeBase||0);
+    const discAmt = feeBase > 0 ? Math.round(feeBase * discPct / 100 * 100)/100 : 0;
+    document.getElementById('pay_discount_amt').value = discAmt.toFixed(2);
+    document.getElementById('pay_net_paid').value     = Math.max(0, paid - discAmt).toFixed(2);
+  }
+
+  function calcPayNetFromAmt(){
+    const paid    = parseFloat(document.getElementById('pay_paid_amount').value)||0;
+    const discAmt = parseFloat(document.getElementById('pay_discount_amt').value)||0;
+    const feeBase = parseFloat(document.getElementById('pay_overdue_amount').dataset.feeBase||0);
+    if(feeBase>0) document.getElementById('pay_discount_pct').value = (discAmt/feeBase*100).toFixed(2);
+    document.getElementById('pay_net_paid').value = Math.max(0, paid - discAmt).toFixed(2);
+  }
+
+  async function savePaymentAdmin(){
+    const invoice_id  = document.getElementById('pay_invoice_id').value;
+    const paid_date   = document.getElementById('pay_paid_date').value.trim();
+    const paid_amount = document.getElementById('pay_paid_amount').value;
+    if(!invoice_id||!paid_date||!paid_amount){ toast('warning','กรุณากรอกข้อมูลให้ครบ'); return; }
+    const scope = document.getElementById('pay_scope').value;
+    const half  = scope==='full_year' ? '1' : (_payScope==='half2' ? '2' : '1');
+    const payload={
+      action:'savePayment', token,
+      payment_id:      document.getElementById('pay_payment_id').value||'',
+      invoice_id,
+      invoice_id_h2:   document.getElementById('pay_invoice_id_h2').value||'',
+      house_id:        document.getElementById('pay_house_id').value,
+      year:            document.getElementById('pay_year').value,
+      half,
+      payment_scope:   scope==='full_year'?'full_year':(_payScope==='half2'?'half2':'half1'),
+      paid_amount,
+      discount_pct:    document.getElementById('pay_discount_pct').value||0,
+      discount_amt:    document.getElementById('pay_discount_amt').value||0,
+      net_paid:        document.getElementById('pay_net_paid').value,
+      overdue_amount:  document.getElementById('pay_overdue_amount').value||0,
+      paid_date,
+      note:            document.getElementById('pay_note').value||'',
+      fee_common_base: document.getElementById('pay_overdue_amount').dataset.feeBase||0,
+    };
+    const r = await apiPost(payload);
+    if(r.success){
+      toast('success',`บันทึกสำเร็จ · ใบเสร็จ ${r.receipt_no} · ยอดสุทธิ ${fmtNum(r.net_paid)} ฿`);
+      document.getElementById('pay_payment_id').value='';
+      document.getElementById('pay_note').value='';
+      await loadPayHistory(document.getElementById('pay_house_id').value, document.getElementById('pay_year').value);
+      setPayScope(_payScope); // recalc overdue
+      loadInvList();
+    } else toast('error', r.message||'เกิดข้อผิดพลาด');
+  }
+
+  async function delPayment(payment_id){
+    const ok = await Swal.fire({icon:'warning',title:'ลบการชำระ?',text:'ระบบจะอัปเดตสถานะ CommonFee อัตโนมัติ',showCancelButton:true,confirmButtonText:'ลบ',confirmButtonColor:'#dc2626',cancelButtonText:'ยกเลิก'});
+    if(!ok.isConfirmed) return;
+    const r = await apiPost({action:'deletePayment',token,payment_id});
+    if(r.success){
+      toast('success','ลบสำเร็จ');
+      await loadPayHistory(document.getElementById('pay_house_id').value, document.getElementById('pay_year').value);
+      setPayScope(_payScope);
+      loadInvList();
+    } else toast('error', r.message);
+  }
+
+  // ── Print Receipt ──────────────────────────────────────
+  function printReceipt(payment_id){
+    const pay = _payHistory.find(p=>p.payment_id===payment_id);
+    if(!pay){ toast('warning','ไม่พบข้อมูลการชำระ'); return; }
+    const h   = housesData.find(x=>x.house_id===pay.house_id)||{};
+    _openReceiptPrint(pay, h, invData);
+  }
+
+  function _openReceiptPrint(pay, h, invArr){
+    const scopeLabel={'half1':'ครึ่งปีแรก','half2':'ครึ่งปีหลัง','full_year':'เต็มปี (ครึ่งปีแรก + ครึ่งปีหลัง)'};
+    const inv1 = invArr.find(i=>i.invoice_id===pay.invoice_id)||{};
+    const inv2 = pay.invoice_id_h2 ? invArr.find(i=>i.invoice_id===pay.invoice_id_h2)||{} : {};
+    const isFY = pay.payment_scope==='full_year';
+    const paid     = parseFloat(pay.paid_amount||0);
+    const discAmt  = parseFloat(pay.discount_amt||0);
+    const netPaid  = parseFloat(pay.net_paid||0);
+    const now = new Date();
+    const printTime = `${now.getDate().toString().padStart(2,'0')}/${(now.getMonth()+1).toString().padStart(2,'0')}/${now.getFullYear()+543} ${now.toTimeString().slice(0,5)}`;
+
+    // Build line items
+    let items = [];
+    const halfL1='ครึ่งปีแรก', halfL2='ครึ่งปีหลัง';
+    const yr = pay.year;
+    if(isFY){
+      if(parseFloat(inv1.fee_common||0)) items.push({desc:`ค่าส่วนกลาง ${halfL1} ปี ${yr} (01/01–30/06/${yr})`,    amt:parseFloat(inv1.fee_common||0)});
+      if(parseFloat(inv1.fee_car||0))    items.push({desc:`ค่าเช่าที่จอดรถ ${halfL1} ปี ${yr}`,                    amt:parseFloat(inv1.fee_car||0)});
+      if(parseFloat(inv1.fee_waste||0))  items.push({desc:`ค่าขยะ ${halfL1} ปี ${yr}`,                             amt:parseFloat(inv1.fee_waste||0)});
+      if(parseFloat(inv2.fee_common||0)) items.push({desc:`ค่าส่วนกลาง ${halfL2} ปี ${yr} (01/07–31/12/${yr})`,   amt:parseFloat(inv2.fee_common||0)});
+      if(parseFloat(inv2.fee_car||0))    items.push({desc:`ค่าเช่าที่จอดรถ ${halfL2} ปี ${yr}`,                   amt:parseFloat(inv2.fee_car||0)});
+      if(parseFloat(inv2.fee_waste||0))  items.push({desc:`ค่าขยะ ${halfL2} ปี ${yr}`,                            amt:parseFloat(inv2.fee_waste||0)});
+    } else {
+      const inv = inv1;
+      const hl  = pay.payment_scope==='half2' ? halfL2 : halfL1;
+      const pr  = pay.payment_scope==='half2' ? '01/07–31/12' : '01/01–30/06';
+      if(parseFloat(inv.fee_common||0))  items.push({desc:`ค่าส่วนกลาง ${hl} ปี ${yr} (${pr}/${yr})`,            amt:parseFloat(inv.fee_common||0)});
+      if(parseFloat(inv.fee_car||0))     items.push({desc:`ค่าเช่าที่จอดรถ ${hl} ปี ${yr}`,                      amt:parseFloat(inv.fee_car||0)});
+      if(parseFloat(inv.fee_waste||0))   items.push({desc:`ค่าขยะ ${hl} ปี ${yr}`,                               amt:parseFloat(inv.fee_waste||0)});
+      if(parseFloat(inv.fee_overdue||0)) items.push({desc:'ค่าส่วนกลางค้างชำระ',                                 amt:parseFloat(inv.fee_overdue||0)});
+      if(parseFloat(inv.fee_fine||0))    items.push({desc:'ค่าปรับค้างชำระ',                                     amt:parseFloat(inv.fee_fine||0)});
+      if(parseFloat(inv.fee_process||0)) items.push({desc:'ค่าดำเนินการ',                                        amt:parseFloat(inv.fee_process||0)});
+      if(parseFloat(inv.fee_other||0))   items.push({desc:'ค่าปรับอื่นๆ',                                        amt:parseFloat(inv.fee_other||0)});
+    }
+    const fmtB = v=>Number(v).toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2});
+    let idx=1;
+    const rowsHtml = items.map(it=>`<tr><td>${idx++}</td><td>${it.desc}</td><td>${fmtB(it.amt)}</td></tr>`).join('');
+    const discRow  = discAmt>0 ? `<tr><td></td><td style="color:#d97706">หัก ส่วนลด ${parseFloat(pay.discount_pct||0)}% ค่าส่วนกลาง</td><td style="color:#d97706">- ${fmtB(discAmt)}</td></tr>` : '';
+
+    const html = `<!DOCTYPE html><html><head><meta charset="utf-8"/>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;700;800&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Sarabun',sans-serif;font-size:10pt;color:#111;background:#fff;width:210mm;padding:12mm 15mm;}
+@page{size:A4 portrait;margin:0;}
+@media print{html,body{width:210mm;padding:12mm 15mm;}}
+.rec-top{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #1a3a5c;padding-bottom:4mm;margin-bottom:4mm;}
+.rec-logo{width:52px;height:52px;border-radius:50%;border:2px solid #1a3a5c;display:flex;align-items:center;justify-content:center;font-size:1.5rem;background:#e8efff;flex-shrink:0;}
+.rec-company{font-size:11pt;font-weight:800;color:#1a3a5c;}
+.rec-company-sub{font-size:8pt;color:#555;margin-top:1mm;}
+.rec-ref{text-align:right;font-size:8pt;color:#555;}
+.rec-no{font-size:11pt;font-weight:700;color:#1a3a5c;}
+.rec-title{text-align:center;padding:3mm 8mm;border:2px solid #1a3a5c;border-radius:3px;margin-bottom:4mm;display:flex;justify-content:space-between;align-items:center;}
+.rec-title h2{font-size:13pt;font-weight:800;color:#1a3a5c;}
+.rec-info{display:grid;grid-template-columns:1fr 1fr;gap:2mm 8mm;margin-bottom:4mm;font-size:9pt;}
+.rec-lbl{color:#555;font-size:8.5pt;}
+.rec-val{font-weight:700;}
+table{width:100%;border-collapse:collapse;margin-bottom:3mm;font-size:9pt;}
+thead th{background:#1a3a5c;color:#fff;padding:2mm 3mm;font-weight:700;}
+thead th:first-child{width:28px;text-align:center;}
+thead th:last-child{text-align:right;}
+td{padding:2mm 3mm;border-bottom:0.4pt solid #dde3f0;}
+td:first-child{text-align:center;color:#666;}
+td:last-child{text-align:right;font-weight:600;}
+tfoot td{background:#e8efff;font-weight:800;color:#1a3a5c;border-top:1.5pt solid #1a3a5c;padding:2.5mm 3mm;}
+tfoot td:last-child{text-align:right;}
+.rec-total-text{font-style:italic;font-size:9pt;text-align:right;padding:2mm 3mm;background:#fffbe6;border:0.5pt solid #fde68a;border-radius:4px;margin-bottom:4mm;}
+.rec-sign{display:flex;justify-content:space-between;margin-top:8mm;font-size:9pt;}
+.rec-sign-box{text-align:center;min-width:120px;}
+.rec-sign-line{border-bottom:1pt solid #333;width:120px;margin:0 auto 1.5mm;}
+.rec-footer{border-top:0.5pt solid #dde3f0;margin-top:4mm;padding-top:2mm;display:flex;justify-content:space-between;font-size:8pt;color:#888;}
+</style></head><body>
+<div class="rec-top">
+  <div style="display:flex;gap:4mm;align-items:center">
+    <div class="rec-logo">🏘️</div>
+    <div>
+      <div class="rec-company">นิติบุคคลหมู่บ้านจัดสรรกัสโต้สุขสวัสดิ์</div>
+      <div class="rec-company-sub">เลขที่ 9/13 ซอยสุขสวัสดิ์ 30 แยก 10 ถนนสุขสวัสดิ์<br>แขวงบางปะกอก เขตราษฎร์บูรณะ กรุงเทพมหานคร 10140<br>โทรศัพท์: 083-481-5895</div>
+    </div>
+  </div>
+  <div class="rec-ref"><div>เลขที่ใบเสร็จ</div><div class="rec-no">${pay.receipt_no||pay.payment_id}</div></div>
+</div>
+<div class="rec-title"><h2>ใบเสร็จรับเงิน ปี ${yr} (${scopeLabel[pay.payment_scope]||''})</h2><span style="color:#dc2626;font-weight:800;font-size:10pt">ต้นฉบับ</span></div>
+<div class="rec-info">
+  <div><div class="rec-lbl">เจ้าของบ้านเลขที่</div><div class="rec-val">${h.house_no||'—'} ซอย ${h.soi||'0'}</div></div>
+  <div><div class="rec-lbl">วันที่รับเงิน</div><div class="rec-val" style="color:#1a3a5c">${pay.paid_date||'—'}</div></div>
+  <div><div class="rec-lbl">ชื่อ-สกุล</div><div class="rec-val">${h.owner_name||'—'}</div></div>
+  <div><div class="rec-lbl">อ้างอิงใบแจ้งหนี้</div><div class="rec-val">${pay.invoice_id||'—'}${pay.invoice_id_h2?' / '+pay.invoice_id_h2:''}</div></div>
+</div>
+<table><thead><tr><th>ที่</th><th>รายการ</th><th>จำนวนเงิน</th></tr></thead>
+<tbody>${rowsHtml}${discRow}</tbody>
+<tfoot><tr><td colspan="2">ยอดรับชำระสุทธิ</td><td>${fmtB(netPaid)}</td></tr></tfoot></table>
+<div class="rec-total-text">( ${numberToThaiTextAdmin(netPaid)} )</div>
+<div class="rec-sign">
+  <div class="rec-sign-box"><div class="rec-sign-line"></div><div>ผู้รับเงิน</div><div style="color:#555;font-size:8pt;margin-top:.5mm">(${pay.confirmed_by||'admin'})</div></div>
+  <div class="rec-sign-box"><div class="rec-sign-line"></div><div>ลูกบ้านรับทราบ</div></div>
+</div>
+<div class="rec-footer"><span>นิติบุคคลหมู่บ้านจัดสรรกัสโต้สุขสวัสดิ์</span><span>วัน/เวลาที่พิมพ์: ${printTime}</span></div>
+</body></html>`;
+
+    const iframe = document.createElement('iframe');
+    iframe.style.cssText='position:fixed;right:-9999px;top:-9999px;width:210mm;height:297mm;border:none;';
+    document.body.appendChild(iframe);
+    const iDoc = iframe.contentDocument || iframe.contentWindow.document;
+    iDoc.open(); iDoc.write(html); iDoc.close();
+    iframe.onload = function(){
+      setTimeout(()=>{ iframe.contentWindow.focus(); iframe.contentWindow.print();
+        setTimeout(()=>document.body.removeChild(iframe),1500); },400);
+    };
+  }
+
+  function numberToThaiTextAdmin(n){
+    if(!n||isNaN(n)) return 'ศูนย์บาทถ้วน';
+    const t=['','หนึ่ง','สอง','สาม','สี่','ห้า','หก','เจ็ด','แปด','เก้า'];
+    const u=['','สิบ','ร้อย','พัน','หมื่น','แสน','ล้าน'];
+    function read(num){ if(num===0)return''; let s='',d=String(Math.floor(num));
+      for(let i=0;i<d.length;i++){let c=parseInt(d[i]),pos=d.length-1-i;if(c===0)continue;
+        if(pos===1&&c===1)s+='สิบ'; else if(pos===1&&c===2)s+='ยี่สิบ'; else s+=t[c]+u[pos];}return s;}
+    const baht=Math.floor(n),satang=Math.round((n-baht)*100);
+    const mils=Math.floor(baht/1000000),rest=baht%1000000;
+    let result=''; if(mils>0)result+=read(mils)+'ล้าน'; result+=read(rest)+'บาท';
+    if(satang>0)result+=read(satang)+'สตางค์'; else result+='ถ้วน';
+    return result||'ศูนย์บาทถ้วน';
+  }
+
 </script>
 
-<!-- ═══════ MODAL: Add Car ═══════ -->
+<!-- ═══════ MODAL: Payment Form ═══════ -->
+<div class="modal-backdrop" id="modalPayForm" onclick="closeModalBg(event,'modalPayForm')">
+  <div class="modal" style="max-width:600px">
+    <div class="modal-head">
+      <h3><i class="fa-solid fa-money-bill-wave"></i> บันทึกการชำระเงิน</h3>
+      <button class="modal-close" onclick="closeModal('modalPayForm')"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="pay_payment_id"/>
+      <input type="hidden" id="pay_invoice_id"/>
+      <input type="hidden" id="pay_invoice_id_h2"/>
+      <input type="hidden" id="pay_house_id"/>
+      <input type="hidden" id="pay_year"/>
+      <input type="hidden" id="pay_scope"/>
+
+      <!-- Invoice summary -->
+      <div id="payInvSummary" style="background:var(--bg2);border-radius:10px;padding:.7rem 1rem;margin-bottom:.85rem;font-size:.82rem;"></div>
+
+      <!-- Scope tabs -->
+      <div style="display:flex;gap:.4rem;margin-bottom:.85rem">
+        <button class="pay-scope-btn active" id="scopeBtn1"  onclick="setPayScope('half1')">🌸 ครึ่งปีแรก</button>
+        <button class="pay-scope-btn"        id="scopeBtn2"  onclick="setPayScope('half2')">🍂 ครึ่งปีหลัง</button>
+        <button class="pay-scope-btn"        id="scopeBtnFY" onclick="setPayScope('full_year')">🎯 เต็มปี (ส่วนลด 3%)</button>
+      </div>
+
+      <div class="mf-section">
+        <div class="mf-section-title">💰 รายละเอียดการชำระ</div>
+        <div class="mf-grid" style="grid-template-columns:1fr 1fr">
+          <div class="form-group">
+            <label>ยอดตามใบแจ้งหนี้ (฿)</label>
+            <input type="number" id="pay_total_due" readonly style="background:var(--bg2);font-weight:700"/>
+          </div>
+          <div class="form-group">
+            <label>ยอดค้างชำระ (฿)</label>
+            <input type="number" id="pay_overdue_amount" placeholder="0.00" step="0.01" style="background:var(--bg2);" readonly/>
+          </div>
+          <div class="form-group">
+            <label>วันที่ชำระเงิน</label>
+            <input type="text" id="pay_paid_date" placeholder="DD/MM/YYYY"/>
+          </div>
+          <div class="form-group">
+            <label>ยอดที่โอนมา (฿)</label>
+            <input type="number" id="pay_paid_amount" placeholder="0.00" step="0.01" oninput="calcPayNet()"/>
+          </div>
+          <div class="form-group" id="discPctGrp">
+            <label>% ส่วนลด <span style="color:var(--muted);font-size:.72rem">(ค่าส่วนกลาง)</span></label>
+            <input type="number" id="pay_discount_pct" placeholder="0" min="0" max="100" step="0.01" value="0" oninput="calcPayNet()"/>
+          </div>
+          <div class="form-group" id="discAmtGrp">
+            <label>ส่วนลด (฿) <span id="discBaseLabel" style="color:var(--muted);font-size:.72rem"></span></label>
+            <input type="number" id="pay_discount_amt" placeholder="0.00" step="0.01" oninput="calcPayNetFromAmt()"/>
+          </div>
+          <div class="form-group full">
+            <label>ยอดสุทธิที่รับ (฿)</label>
+            <input type="number" id="pay_net_paid" placeholder="0.00" step="0.01" style="background:var(--primary-l);font-weight:700;font-size:1rem"/>
+          </div>
+          <div class="form-group full">
+            <label>หมายเหตุ</label>
+            <input type="text" id="pay_note" placeholder="เช่น โอนผ่าน KBank, ชำระครบ"/>
+          </div>
+        </div>
+      </div>
+
+      <!-- ประวัติการชำระ -->
+      <div class="mf-section">
+        <div class="mf-section-title">📋 ประวัติการชำระ (ใบนี้)</div>
+        <div id="payHistoryList" style="font-size:.82rem;"></div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-outline" onclick="closeModal('modalPayForm')">ยกเลิก</button>
+      <button class="btn btn-success" onclick="savePaymentAdmin()"><i class="fa-solid fa-check"></i> บันทึกการชำระ</button>
+    </div>
+  </div>
+</div>
 <div class="modal-backdrop" id="modalCarAdd" onclick="closeModalBg(event,'modalCarAdd')">
   <div class="modal" style="max-width:500px;width:96vw">
     <div class="modal-head">

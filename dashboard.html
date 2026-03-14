@@ -167,9 +167,13 @@
     .inv-period-status{margin-top:.35rem;}
     .inv-badge{font-size:.7rem;font-weight:700;padding:.18rem .65rem;border-radius:20px;display:inline-block;}
     .inv-badge.inv-loading{background:var(--bg2);color:var(--muted);}
-    .inv-badge.inv-ready{background:#d1fae5;color:#059669;}
+    .inv-badge.inv-ready{background:#fef3c7;color:#d97706;}
+    .inv-badge.inv-paid{background:#d1fae5;color:#059669;}
+    .inv-badge.inv-partial{background:#dbeafe;color:#1d4ed8;}
     .inv-badge.inv-none{background:#fee2e2;color:#dc2626;}
-    [data-theme=dark] .inv-badge.inv-ready{background:#0d2a1e;color:#34d399;}
+    [data-theme=dark] .inv-badge.inv-ready{background:#2a1f0a;color:#fbbf24;}
+    [data-theme=dark] .inv-badge.inv-paid{background:#0d2a1e;color:#34d399;}
+    [data-theme=dark] .inv-badge.inv-partial{background:#0a1a2e;color:#60a5fa;}
     [data-theme=dark] .inv-badge.inv-none{background:#2a0f0f;color:#f87171;}
 
     /* ── Invoice Modal ── */
@@ -180,6 +184,8 @@
     .inv-btn-close{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:#fff;width:38px;height:38px;border-radius:50%;font-size:1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;}
     .inv-btn-print{background:#fff;color:#1a2035;border:none;border-radius:12px;padding:.55rem 1.2rem;font-family:'Sarabun',sans-serif;font-size:.88rem;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:.45rem;box-shadow:0 2px 12px rgba(0,0,0,.15);}
     .inv-btn-print:hover{background:#f0f4ff;}
+    .inv-btn-receipt{background:#d1fae5;color:#065f46;border:none;border-radius:12px;padding:.55rem 1.2rem;font-family:'Sarabun',sans-serif;font-size:.88rem;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:.45rem;box-shadow:0 2px 12px rgba(0,0,0,.15);}
+    .inv-btn-receipt:hover{background:#a7f3d0;}
 
     /* ── Invoice Document ── */
     .inv-doc{background:#fff;border-radius:12px;padding:1.5rem 1.75rem;font-family:'Sarabun',sans-serif;color:#111;font-size:13px;line-height:1.5;}
@@ -349,7 +355,10 @@
     <div class="inv-modal-sheet">
       <div class="inv-modal-actions no-print">
         <button class="inv-btn-close" onclick="closeInvoice()"><i class="fa-solid fa-xmark"></i></button>
-        <button class="inv-btn-print" onclick="printInvoice()"><i class="fa-solid fa-print"></i> พิมพ์ / บันทึก PDF</button>
+        <div style="display:flex;gap:.5rem">
+          <button class="inv-btn-receipt" id="btnPrintReceipt" onclick="printMyReceipt()" style="display:none"><i class="fa-solid fa-receipt"></i> พิมพ์ใบเสร็จ</button>
+          <button class="inv-btn-print" onclick="printInvoice()"><i class="fa-solid fa-print"></i> พิมพ์ใบแจ้งหนี้</button>
+        </div>
       </div>
       <div class="inv-doc" id="invDoc">
         <!-- content injected by JS -->
@@ -708,25 +717,45 @@
   }
 
   // ── Invoice ───────────────────────────────────────────────
-  let _invoiceData = {}; // {1: {...}, 2: {...}}
-  let _houseInfo   = {};
+  let _invoiceData  = {}; // {1: {...}, 2: {...}}
+  let _paymentData  = {}; // {1: [...], 2: [...]}
+  let _houseInfo    = {};
 
   async function loadInvoices(){
     const house_id = localStorage.getItem('vms_house');
     if(!house_id) return;
-    const year = new Date().getFullYear() + 543; // พ.ศ.
-    const d = await api({action:'getMyInvoice', token, house_id, year});
+    const year = new Date().getFullYear() + 543;
+    const [d, pd] = await Promise.all([
+      api({action:'getMyInvoice',  token, house_id, year}),
+      api({action:'getMyPayments', token, house_id, year})
+    ]);
     _invoiceData = {};
-    if(d.success && d.data){
-      d.data.forEach(inv => { _invoiceData[String(inv.half)] = inv; });
-    }
+    _paymentData = {1:[], 2:[]};
+    if(d.success  && d.data)  d.data.forEach(inv => { _invoiceData[String(inv.half)] = inv; });
+    if(pd.success && pd.data) pd.data.forEach(pay => {
+      const h = String(pay.half);
+      if(!_paymentData[h]) _paymentData[h]=[];
+      _paymentData[h].push(pay);
+    });
+
     [1,2].forEach(h=>{
-      const el = document.getElementById(`invStatus${h}`);
+      const el  = document.getElementById(`invStatus${h}`);
       if(!el) return;
-      if(_invoiceData[String(h)]){
-        el.innerHTML=`<span class="inv-badge inv-ready"><i class="fa-solid fa-check"></i> มีใบแจ้งหนี้ · ${fmtMoney(_invoiceData[String(h)].total_amount)} ฿</span>`;
-      } else {
+      const inv  = _invoiceData[String(h)];
+      const pays = _paymentData[h]||[];
+      const totalPaid = pays.reduce((s,p)=>s+parseFloat(p.net_paid||0),0);
+      if(!inv){
         el.innerHTML=`<span class="inv-badge inv-none"><i class="fa-solid fa-minus"></i> ยังไม่มีใบแจ้งหนี้</span>`;
+        return;
+      }
+      const due = parseFloat(inv.total_amount||0);
+      const st  = inv.status||'sent';
+      if(st==='paid'||totalPaid>=due){
+        el.innerHTML=`<span class="inv-badge inv-paid"><i class="fa-solid fa-circle-check"></i> ชำระแล้ว · ${fmtMoney(totalPaid)} ฿</span>`;
+      } else if(totalPaid>0){
+        el.innerHTML=`<span class="inv-badge inv-partial"><i class="fa-solid fa-clock"></i> ชำระบางส่วน · ${fmtMoney(totalPaid)}/${fmtMoney(due)} ฿</span>`;
+      } else {
+        el.innerHTML=`<span class="inv-badge inv-ready"><i class="fa-solid fa-file-invoice"></i> รอชำระ · ${fmtMoney(due)} ฿</span>`;
       }
     });
   }
@@ -734,11 +763,13 @@
   function fmtMoney(v){ return v?Number(v).toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2}):'0.00'; }
 
   function openInvoice(half){
-    const inv = _invoiceData[String(half)];
-    const h   = _houseInfo;
+    const inv  = _invoiceData[String(half)];
+    const pays = (_paymentData[half]||[]);
+    const h    = _houseInfo;
     const halfLabel = half===1?'ครึ่งปีแรก':'ครึ่งปีหลัง';
     const period    = half===1?'01/01 – 30/06':'01/07 – 31/12';
     const year      = inv ? inv.year : (new Date().getFullYear()+543);
+    const totalPaid = pays.reduce((s,p)=>s+parseFloat(p.net_paid||0),0);
 
     if(!inv){
       document.getElementById('invDoc').innerHTML=`
@@ -837,14 +868,157 @@
       <div class="inv-footer">
         <span>นิติบุคคลหมู่บ้านจัดสรรกัสโต้สุขสวัสดิ์</span>
         <span>วัน/เวลาที่พิมพ์: ${printTime}</span>
-      </div>`;
+      </div>
+      ${pays.length>0?`
+      <div class="inv-conditions no-print" style="margin-top:4mm;border-left-color:#059669;background:#f0fdf4;">
+        <div class="inv-conditions-title" style="color:#059669"><i class="fa-solid fa-circle-check"></i> ประวัติการชำระเงิน</div>
+        ${pays.map(p=>`<div style="display:flex;justify-content:space-between;font-size:11px;padding:1mm 0;border-bottom:0.5pt solid #d1fae5">
+          <span>${p.paid_date||'—'}${p.note?' · '+p.note:''}</span>
+          <span style="font-weight:700;color:#059669">${fmtMoney(p.net_paid)} ฿${parseFloat(p.discount_amt||0)>0?' <span style="color:#d97706;font-size:10px">(ส่วนลด '+fmtMoney(p.discount_amt)+' ฿)</span>':''}</span>
+        </div>`).join('')}
+        <div style="display:flex;justify-content:space-between;font-weight:800;margin-top:1.5mm;font-size:12px">
+          <span>รวมชำระแล้ว</span>
+          <span style="color:#059669">${fmtMoney(totalPaid)} ฿</span>
+        </div>
+        ${totalPaid<parseFloat(inv.total_amount||0)?`<div style="text-align:right;color:#dc2626;font-size:11px;margin-top:.5mm">คงเหลือ ${fmtMoney(parseFloat(inv.total_amount||0)-totalPaid)} ฿</div>`:''}
+      </div>`:''}
+      `;
 
     document.getElementById('invModal').classList.add('open');
     document.documentElement.scrollTop=0;
+    // แสดงปุ่มใบเสร็จถ้ามีการชำระแล้ว
+    const btnReceipt = document.getElementById('btnPrintReceipt');
+    if(btnReceipt) btnReceipt.style.display = pays.length>0 ? 'flex' : 'none';
+    // เก็บข้อมูลไว้สำหรับ printMyReceipt
+    window._currentInvHalf = half;
+    window._currentInvPays = pays;
+    window._currentInv = inv;
   }
 
   function closeInvoice(){
     document.getElementById('invModal').classList.remove('open');
+  }
+
+  function printMyReceipt(){
+    const pays = window._currentInvPays || [];
+    const inv  = window._currentInv;
+    const h    = _houseInfo;
+    if(!pays.length){ return; }
+    // ใช้ payment ล่าสุด (หรือทั้งหมดถ้า full_year)
+    const lastPay = pays[pays.length-1];
+    _buildAndPrintReceipt(lastPay, pays, inv, h);
+  }
+
+  function _buildAndPrintReceipt(pay, allPays, inv, h){
+    const scopeLabel={'half1':'ครึ่งปีแรก','half2':'ครึ่งปีหลัง','full_year':'เต็มปี (ครึ่งปีแรก + ครึ่งปีหลัง)','half':'ครึ่งปี'};
+    const netPaid   = allPays.reduce((s,p)=>s+parseFloat(p.net_paid||0),0);
+    const discAmt   = allPays.reduce((s,p)=>s+parseFloat(p.discount_amt||0),0);
+    const paid      = allPays.reduce((s,p)=>s+parseFloat(p.paid_amount||0),0);
+    const year      = inv.year;
+    const half      = String(inv.half);
+    const halfLabel = half==='1'?'ครึ่งปีแรก':'ครึ่งปีหลัง';
+    const period    = half==='1'?'01/01–30/06':'01/07–31/12';
+
+    const fmtB = v=>Number(v).toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2});
+    let items=[];
+    if(parseFloat(inv.fee_common||0))  items.push({desc:`ค่าส่วนกลาง ${halfLabel} ปี ${year} (${period}/${year})`, amt:parseFloat(inv.fee_common)});
+    if(parseFloat(inv.fee_car||0))     items.push({desc:`ค่าเช่าที่จอดรถ ${halfLabel} ปี ${year}`,                  amt:parseFloat(inv.fee_car)});
+    if(parseFloat(inv.fee_waste||0))   items.push({desc:`ค่าขยะ ${halfLabel} ปี ${year}`,                           amt:parseFloat(inv.fee_waste)});
+    if(parseFloat(inv.fee_overdue||0)) items.push({desc:'ค่าส่วนกลางค้างชำระ',                                     amt:parseFloat(inv.fee_overdue)});
+    if(parseFloat(inv.fee_fine||0))    items.push({desc:'ค่าปรับค้างชำระ',                                         amt:parseFloat(inv.fee_fine)});
+    if(parseFloat(inv.fee_process||0)) items.push({desc:'ค่าดำเนินการ',                                            amt:parseFloat(inv.fee_process)});
+    if(parseFloat(inv.fee_other||0))   items.push({desc:'ค่าปรับอื่นๆ',                                            amt:parseFloat(inv.fee_other)});
+
+    let idx=1;
+    const rowsHtml = items.map(it=>`<tr><td>${idx++}</td><td>${it.desc}</td><td>${fmtB(it.amt)}</td></tr>`).join('');
+    const discRow  = discAmt>0 ? `<tr><td></td><td style="color:#d97706">หัก ส่วนลด ${fmtB(parseFloat(pay.discount_pct||0))}% ค่าส่วนกลาง</td><td style="color:#d97706">- ${fmtB(discAmt)}</td></tr>` : '';
+
+    // ประวัติการชำระแต่ละครั้ง
+    const payRows = allPays.length>1 ? `
+      <div style="margin-top:3mm;padding:2mm 3mm;background:#f0fdf4;border-radius:4px;font-size:8.5pt">
+        <div style="font-weight:700;color:#065f46;margin-bottom:1mm">รายการชำระ</div>
+        ${allPays.map((p,i)=>`<div style="display:flex;justify-content:space-between;border-bottom:0.4pt solid #d1fae5;padding:0.8mm 0">
+          <span>ครั้งที่ ${i+1} · ${p.paid_date||'—'}${p.note?' · '+p.note:''}</span>
+          <span style="font-weight:700">${fmtB(p.net_paid)} ฿</span>
+        </div>`).join('')}
+      </div>` : '';
+
+    const now = new Date();
+    const printTime = `${now.getDate().toString().padStart(2,'0')}/${(now.getMonth()+1).toString().padStart(2,'0')}/${now.getFullYear()+543} ${now.toTimeString().slice(0,5)}`;
+    const receiptNo = pay.receipt_no || pay.payment_id;
+
+    const html = `<!DOCTYPE html><html><head><meta charset="utf-8"/>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;700;800&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Sarabun',sans-serif;font-size:10pt;color:#111;background:#fff;width:210mm;padding:12mm 15mm;}
+@page{size:A4 portrait;margin:0;}
+@media print{html,body{width:210mm;padding:12mm 15mm;}}
+.rec-top{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #1a3a5c;padding-bottom:4mm;margin-bottom:4mm;}
+.rec-logo{width:52px;height:52px;border-radius:50%;border:2px solid #1a3a5c;display:flex;align-items:center;justify-content:center;font-size:1.5rem;background:#e8efff;flex-shrink:0;}
+.rec-company{font-size:11pt;font-weight:800;color:#1a3a5c;}
+.rec-company-sub{font-size:8pt;color:#555;margin-top:1mm;}
+.rec-ref{text-align:right;font-size:8pt;color:#555;}
+.rec-no{font-size:11pt;font-weight:700;color:#1a3a5c;}
+.rec-title{text-align:center;padding:3mm 8mm;border:2px solid #1a3a5c;border-radius:3px;margin-bottom:4mm;display:flex;justify-content:space-between;align-items:center;}
+.rec-title h2{font-size:13pt;font-weight:800;color:#1a3a5c;}
+.rec-info{display:grid;grid-template-columns:1fr 1fr;gap:2mm 8mm;margin-bottom:4mm;font-size:9pt;}
+.rec-lbl{color:#555;font-size:8.5pt;}.rec-val{font-weight:700;}
+table{width:100%;border-collapse:collapse;margin-bottom:3mm;font-size:9pt;}
+thead th{background:#1a3a5c;color:#fff;padding:2mm 3mm;font-weight:700;}
+thead th:first-child{width:28px;text-align:center;}thead th:last-child{text-align:right;}
+td{padding:2mm 3mm;border-bottom:0.4pt solid #dde3f0;}
+td:first-child{text-align:center;color:#666;}td:last-child{text-align:right;font-weight:600;}
+tr:nth-child(even) td{background:#f8faff;}
+tfoot td{background:#e8efff;font-weight:800;color:#1a3a5c;border-top:1.5pt solid #1a3a5c;padding:2.5mm 3mm;}
+tfoot td:last-child{text-align:right;}
+.rec-total-text{font-style:italic;font-size:9pt;text-align:right;padding:2mm 3mm;background:#fffbe6;border:0.5pt solid #fde68a;border-radius:4px;margin-bottom:4mm;}
+.rec-sign{display:flex;justify-content:space-between;margin-top:8mm;font-size:9pt;}
+.rec-sign-box{text-align:center;min-width:120px;}
+.rec-sign-line{border-bottom:1pt solid #333;width:120px;margin:0 auto 1.5mm;}
+.rec-footer{border-top:0.5pt solid #dde3f0;margin-top:4mm;padding-top:2mm;display:flex;justify-content:space-between;font-size:8pt;color:#888;}
+</style></head><body>
+<div class="rec-top">
+  <div style="display:flex;gap:4mm;align-items:center">
+    <div class="rec-logo">🏘️</div>
+    <div>
+      <div class="rec-company">นิติบุคคลหมู่บ้านจัดสรรกัสโต้สุขสวัสดิ์</div>
+      <div class="rec-company-sub">เลขที่ 9/13 ซอยสุขสวัสดิ์ 30 แยก 10 ถนนสุขสวัสดิ์<br>แขวงบางปะกอก เขตราษฎร์บูรณะ กรุงเทพมหานคร 10140<br>โทรศัพท์: 083-481-5895</div>
+    </div>
+  </div>
+  <div class="rec-ref"><div>เลขที่ใบเสร็จ</div><div class="rec-no">${receiptNo}</div></div>
+</div>
+<div class="rec-title"><h2>ใบเสร็จรับเงิน ปี ${year} (${halfLabel})</h2><span style="color:#dc2626;font-weight:800;font-size:10pt">ต้นฉบับ</span></div>
+<div class="rec-info">
+  <div><div class="rec-lbl">เจ้าของบ้านเลขที่</div><div class="rec-val">${h.house_no||'—'} ซอย ${h.soi||'0'}</div></div>
+  <div><div class="rec-lbl">วันที่รับเงิน</div><div class="rec-val" style="color:#1a3a5c">${pay.paid_date||'—'}</div></div>
+  <div><div class="rec-lbl">ชื่อ-สกุล</div><div class="rec-val">${h.owner_name||localStorage.getItem('vms_name')||'—'}</div></div>
+  <div><div class="rec-lbl">อ้างอิงใบแจ้งหนี้</div><div class="rec-val">${inv.invoice_id||'—'}</div></div>
+</div>
+<table><thead><tr><th>ที่</th><th>รายการ</th><th>จำนวนเงิน</th></tr></thead>
+<tbody>${rowsHtml}${discRow}</tbody>
+<tfoot><tr><td colspan="2">ยอดรับชำระสุทธิ</td><td>${fmtB(netPaid)}</td></tr></tfoot></table>
+<div class="rec-total-text">( ${numberToThaiText(netPaid)} )</div>
+${payRows}
+<div class="rec-sign">
+  <div class="rec-sign-box"><div class="rec-sign-line"></div><div>ผู้รับเงิน</div></div>
+  <div class="rec-sign-box"><div class="rec-sign-line"></div><div>ลูกบ้านรับทราบ</div></div>
+</div>
+<div class="rec-footer"><span>นิติบุคคลหมู่บ้านจัดสรรกัสโต้สุขสวัสดิ์</span><span>วัน/เวลาที่พิมพ์: ${printTime}</span></div>
+</body></html>`;
+
+    const iframe = document.createElement('iframe');
+    iframe.style.cssText='position:fixed;right:-9999px;top:-9999px;width:210mm;height:297mm;border:none;';
+    document.body.appendChild(iframe);
+    const iDoc = iframe.contentDocument || iframe.contentWindow.document;
+    iDoc.open(); iDoc.write(html); iDoc.close();
+    iframe.onload = function(){
+      setTimeout(()=>{
+        iframe.contentWindow.focus();
+        iframe.contentWindow.print();
+        setTimeout(()=>document.body.removeChild(iframe),1500);
+      },400);
+    };
   }
 
   function printInvoice(){
